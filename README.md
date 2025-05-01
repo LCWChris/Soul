@@ -1,5 +1,6 @@
 # Welcome to your Expo app 👋
 
+這是從頭開始的資料優~
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
 ## Get started
