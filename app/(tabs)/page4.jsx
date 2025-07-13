@@ -1,6 +1,6 @@
-    // app/page4.tsx
-import React from 'react';
-import { Text, View } from 'react-native';
+// app/page4.tsx
+import React from "react";
+import { Text, View } from "react-native";
 
 export default function PageFourScreen() {
   return (
