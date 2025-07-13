@@ -7,17 +7,19 @@ export default function Page() {
   const { user } = useUser();
 
   return (
-    <View>
+    <View className="flex-1 justify-center items-center bg-red-100">
       <SignedIn>
-        <Text>Hello {user?.emailAddresses[0].emailAddress}</Text>
+        <Text className="text-red-800 font-bold">
+          Hello, {user?.emailAddresses[0].emailAddress}
+        </Text>
         <SignOutButton />
       </SignedIn>
       <SignedOut>
         <Link href="/(auth)/sign-in">
-          <Text>Sign in</Text>
+          <Text>登入</Text>
         </Link>
         <Link href="/(auth)/sign-up">
-          <Text>Sign up</Text>
+          <Text>註冊</Text>
         </Link>
       </SignedOut>
     </View>
