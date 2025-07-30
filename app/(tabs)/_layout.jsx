@@ -1,5 +1,6 @@
+import { COLORS } from "@/constants/theme";
 import { useUser } from "@clerk/clerk-expo";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Redirect, Tabs } from "expo-router";
 
 export default function TabLayout() {
@@ -8,13 +9,29 @@ export default function TabLayout() {
   if (!isSignedIn) return <Redirect href={"/sign-in"} />; // 如果未登入，重定向到登入頁面
 
   return (
-    <Tabs>
+    <Tabs
+      screenOptions={{
+        tabBarShowLabel: false,
+        headerShown: false,
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.gray,
+        tabBarStyle: {
+          backgroundColor: COLORS.tabBarColor,
+          borderTopWidth: 0,
+          elevation: 0, // Android 上的陰影
+          shadowColor: COLORS.shadow, // iOS 上的陰影
+          position: "absolute", // 使 TabBar 固定在底部
+          height: 40,
+          paddingBottom: 8, // 調整底部填充以適應圖標
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: "首頁",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" color={color} size={size} />
+            <MaterialCommunityIcons name="home" color={color} size={24} />
           ),
           headerShown: false,
         }}
@@ -24,7 +41,11 @@ export default function TabLayout() {
         options={{
           title: "學習",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book" color={color} size={size} />
+            <MaterialCommunityIcons
+              name="book-open-variant"
+              color={color}
+              size={24}
+            />
           ),
           headerShown: false,
         }}
@@ -34,7 +55,11 @@ export default function TabLayout() {
         options={{
           title: "翻譯",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="camera" color={color} size={size} />
+            <MaterialCommunityIcons
+              name="camera-wireless"
+              color={color}
+              size={24}
+            />
           ),
           headerShown: false,
         }}
@@ -44,7 +69,11 @@ export default function TabLayout() {
         options={{
           title: "使用者",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people" color={color} size={size} />
+            <MaterialCommunityIcons
+              name="account-circle"
+              color={color}
+              size={24}
+            />
           ),
           headerShown: false,
         }}
