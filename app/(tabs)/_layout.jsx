@@ -1,8 +1,6 @@
-// app/(tabs)/_layout.tsx
-import { useUser } from "@clerk/clerk-expo"; // 確保導入 Clerk 的 useUser 鉤子\
-import { Ionicons } from "@expo/vector-icons";
+import { useUser } from "@clerk/clerk-expo";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Redirect, Tabs } from "expo-router";
-
 
 export default function TabLayout() {
   const { isSignedIn } = useUser();
@@ -22,7 +20,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="scrollView_test"
+        name="education"
         options={{
           title: "學習",
           tabBarIcon: ({ color, size }) => (
@@ -32,21 +30,21 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="page3"
+        name="translation"
         options={{
-          title: "練習",
+          title: "翻譯",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="pencil" color={color} size={size} />
+            <Ionicons name="camera" color={color} size={size} />
           ),
           headerShown: false,
         }}
       />
       <Tabs.Screen
-        name="page4"
+        name="user"
         options={{
-          title: "更多",
+          title: "使用者",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="ellipsis-horizontal" color={color} size={size} />
+            <Ionicons name="people" color={color} size={size} />
           ),
           headerShown: false,
         }}

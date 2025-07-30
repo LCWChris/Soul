@@ -18,13 +18,12 @@ const screenWidth = Dimensions.get("window").width;
 export default function WordLearningPage() {
   const word = "一";
   const imageUrl = {
-    uri: "https://res.cloudinary.com/dslcjvqzf/image/upload/v1753713788/%E4%B8%80_viysdw.png"
+    uri: "https://res.cloudinary.com/dslcjvqzf/image/upload/v1753713788/%E4%B8%80_viysdw.png",
   };
 
   const videoUrl = {
-    uri: "https://res.cloudinary.com/dslcjvqzf/video/upload/v1753713826/one_detek2.mp4"
+    uri: "https://res.cloudinary.com/dslcjvqzf/video/upload/v1753713826/one_detek2.mp4",
   };
-
 
   const [modalVisible, setModalVisible] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -36,7 +35,7 @@ export default function WordLearningPage() {
           <Text style={styles.backText}>← 返回</Text>
         </TouchableOpacity>
 
-        <View style={styles.card} style={styles.imageWrapper}>
+        <View style={[styles.card, styles.imageWrapper]}>
           <Text style={styles.wordText}>{word}</Text>
 
           <TouchableOpacity onPress={() => setModalVisible(true)}>
