@@ -1,8 +1,8 @@
 // app/(tabs)/_layout.tsx
+import { useUser } from "@clerk/clerk-expo"; // 確保導入 Clerk 的 useUser 鉤子\
 import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
-import React from "react";
-import { useUser } from "@clerk/clerk-expo"; // 確保導入 Clerk 的 useUser 鉤子\
+
 
 export default function TabLayout() {
   const { isSignedIn } = useUser();
