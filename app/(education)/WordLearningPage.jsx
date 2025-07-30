@@ -14,7 +14,11 @@ import {
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
-
+export const options = {
+  headerShown: false, // 隱藏 header
+  title: "", // 不顯示標題
+  tabBarButton: () => null, // 不顯示在 tab bar
+};
 export default function WordLearningPage() {
   const word = "一";
   const imageUrl = {
