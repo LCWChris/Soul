@@ -1,3 +1,4 @@
+import "@/app/globals.css";
 import { useAuth } from "@clerk/clerk-expo";
 import { Redirect, Stack } from "expo-router";
 
@@ -8,5 +9,11 @@ export default function AuthRoutesLayout() {
     return <Redirect href={"/"} />;
   }
 
-  return <Stack />;
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false, // 隱藏所有頁面的標題欄
+      }}
+    />
+  );
 }

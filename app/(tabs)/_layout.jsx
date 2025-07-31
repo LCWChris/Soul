@@ -5,7 +5,6 @@ import { Redirect, Tabs } from "expo-router";
 
 export default function TabLayout() {
   const { isSignedIn } = useUser();
-
   if (!isSignedIn) return <Redirect href={"/sign-in"} />; // 如果未登入，重定向到登入頁面
 
   return (
@@ -18,7 +17,7 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: COLORS.tabBarColor,
           borderTopWidth: 0,
-          elevation: 0, // Android 上的陰影
+          elevation: 1, // Android 上的陰影
           shadowColor: COLORS.shadow, // iOS 上的陰影
           position: "absolute", // 使 TabBar 固定在底部
           height: 40,
@@ -31,7 +30,11 @@ export default function TabLayout() {
         options={{
           title: "首頁",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="home" color={color} size={24} />
+            <MaterialCommunityIcons
+              name="home-variant-outline"
+              color={color}
+              size={24}
+            />
           ),
           headerShown: false,
         }}
@@ -42,7 +45,7 @@ export default function TabLayout() {
           title: "學習",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
-              name="book-open-variant"
+              name="book-open-page-variant-outline"
               color={color}
               size={24}
             />
@@ -56,9 +59,9 @@ export default function TabLayout() {
           title: "翻譯",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
-              name="camera-wireless"
+              name="hand-wave-outline"
               color={color}
-              size={24}
+              size={22}
             />
           ),
           headerShown: false,
@@ -70,7 +73,7 @@ export default function TabLayout() {
           title: "使用者",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
-              name="account-circle"
+              name="account-outline"
               color={color}
               size={24}
             />
