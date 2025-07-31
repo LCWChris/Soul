@@ -1,10 +1,12 @@
-import { router } from 'expo-router';
+import { Link } from "expo-router"; // ← 正確的 Link 來源
 import { Button, StyleSheet, Text, View } from "react-native"; // 導入 StyleSheet
-export default function ScrollViewTestScreen() {
+export default function Education() {
   return (
     <View>
       <Text>學習主頁</Text>
-      <Button title="進入單字學習" onPress={() => router.navigate("/WordLearningPage")} />
+      <Link href="../WordLearningPage" push asChild>
+        <Button title="進入單字學習" />
+      </Link>
     </View>
   );
 }

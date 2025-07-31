@@ -20,7 +20,7 @@ export default function login() {
         router.replace("/(tabs)");
       }
     } catch (error) {
-      console.error("0Auth error:", error);
+      console.error("OAuth error:", error);
     }
   };
 
@@ -35,7 +35,7 @@ export default function login() {
         router.replace("/(tabs)");
       }
     } catch (error) {
-      console.error("0Auth error:", error);
+      console.error("OAuth error:", error);
     }
   };
 
