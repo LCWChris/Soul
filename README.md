@@ -3,6 +3,30 @@
 這是從頭開始的資料優，按照下面的指示操作~
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+## 現在把 Route 設定好了，規則如下:
+
+/app ->這是頁面資料夾。
+
+/(auth) ->這是註冊頁面。
+
+/(tabs) ->這是導覽列，有四個導覽列。
+
+由左到右分別是(home)、education、translation、user
+
+- 每個資料夾中的 index.jsx 就是該導覽列的主頁，例如:
+
+  - 按下 education 的 icon 後會跳轉
+
+    ```bash
+    /app/(tabs)/education/index.jsx
+    ```
+
+* 而該導覽列相關跳轉的內容都會在同一個資料夾，例如:
+  - WordLearningPage.jsx 跟 educatioin 相關就要放在
+    ```bash
+    /app/(tabs)/education/
+    ```
+
 ## Get started
 
 1. Install dependencies

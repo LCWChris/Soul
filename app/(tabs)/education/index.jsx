@@ -2,9 +2,9 @@ import { Link } from "expo-router"; // ← 正確的 Link 來源
 import { Button, StyleSheet, Text, View } from "react-native"; // 導入 StyleSheet
 export default function Education() {
   return (
-    <View>
-      <Text>學習主頁</Text>
-      <Link href="../WordLearningPage" push asChild>
+    <View className="flex-1 justify-center items-center bg-yellow-100">
+      <Text className="text-3xl text-yellow-800 font-bold">學習主頁</Text>
+      <Link href="/education/WordLearningPage" push asChild>
         <Button title="進入單字學習" />
       </Link>
     </View>

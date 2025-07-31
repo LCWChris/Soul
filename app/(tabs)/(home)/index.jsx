@@ -1,4 +1,3 @@
-import { SignOutButton } from "@/components/SignOutButton";
 import { SignedIn, SignedOut, useUser } from "@clerk/clerk-expo";
 import { Link } from "expo-router";
 import { Text, View } from "react-native";
@@ -12,7 +11,6 @@ export default function Page() {
         <Text className="text-red-800 font-bold">
           Hello, {user?.emailAddresses[0].emailAddress}
         </Text>
-        <SignOutButton />
       </SignedIn>
       <SignedOut>
         <Link href="/(auth)/sign-in">

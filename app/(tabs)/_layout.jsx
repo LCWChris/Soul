@@ -26,7 +26,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="(home)"
         options={{
           title: "首頁",
           tabBarIcon: ({ color, size }) => (
@@ -37,6 +37,7 @@ export default function TabLayout() {
             />
           ),
           headerShown: false,
+          popToTopOnBlur: true, // 當返回到首頁時，清除堆棧
         }}
       />
       <Tabs.Screen
@@ -51,6 +52,7 @@ export default function TabLayout() {
             />
           ),
           headerShown: false,
+          popToTopOnBlur: true,
         }}
       />
       <Tabs.Screen
@@ -65,6 +67,7 @@ export default function TabLayout() {
             />
           ),
           headerShown: false,
+          popToTopOnBlur: true,
         }}
       />
       <Tabs.Screen
@@ -79,6 +82,7 @@ export default function TabLayout() {
             />
           ),
           headerShown: false,
+          popToTopOnBlur: true,
         }}
       />
     </Tabs>

@@ -1,5 +1,6 @@
 import { Video } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Dimensions,
@@ -14,17 +15,13 @@ import {
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
-export const options = {
-  headerShown: false, // 隱藏 header
-  title: "", // 不顯示標題
-  tabBarButton: () => null, // 不顯示在 tab bar
-};
+
 export default function WordLearningPage() {
   const word = "一";
   const imageUrl = {
     uri: "https://res.cloudinary.com/dslcjvqzf/image/upload/v1753713788/%E4%B8%80_viysdw.png",
   };
-
+  const router = useRouter();
   const videoUrl = {
     uri: "https://res.cloudinary.com/dslcjvqzf/video/upload/v1753713826/one_detek2.mp4",
   };
@@ -35,7 +32,10 @@ export default function WordLearningPage() {
   return (
     <LinearGradient colors={["#e0f2fe", "#bae6fd"]} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <TouchableOpacity style={styles.backButton}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
           <Text style={styles.backText}>← 返回</Text>
         </TouchableOpacity>
 
