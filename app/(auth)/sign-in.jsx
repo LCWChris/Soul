@@ -1,65 +1,96 @@
-import { useSignIn } from "@clerk/clerk-expo";
-import { Link, useRouter } from "expo-router";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
-import React from "react";
+import { COLORS } from "@/constants/theme";
+import { styles } from "@/styles/auth.styles";
+import { useSSO } from "@clerk/clerk-expo";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
+import { Image, Text, TouchableOpacity, View } from "react-native";
 
-export default function Page() {
-  const { signIn, setActive, isLoaded } = useSignIn();
+export default function login() {
+  const { startSSOFlow } = useSSO();
   const router = useRouter();
-
-  const [emailAddress, setEmailAddress] = React.useState("");
-  const [password, setPassword] = React.useState("");
-
-  // Handle the submission of the sign-in form
-  const onSignInPress = async () => {
-    if (!isLoaded) return;
-
-    // Start the sign-in process using the email and password provided
+  // Google and Facebook SSO handlers
+  const handleGoogleSignIn = async () => {
     try {
-      const signInAttempt = await signIn.create({
-        identifier: emailAddress,
-        password,
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: "oauth_google",
+      });
+      console.log("createdSessionId", createdSessionId, "setActive", setActive);
+      if (createdSessionId && setActive) {
+        setActive({ session: createdSessionId });
+        router.replace("/(tabs)");
+      }
+    } catch (error) {
+      console.error("0Auth error:", error);
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    try {
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: "oauth_facebook",
       });
 
-      // If sign-in process is complete, set the created session as active
-      // and redirect the user
-      if (signInAttempt.status === "complete") {
-        await setActive({ session: signInAttempt.createdSessionId });
-        router.replace("/");
-      } else {
-        // If the status isn't complete, check why. User might need to
-        // complete further steps.
-        console.error(JSON.stringify(signInAttempt, null, 2));
+      if (createdSessionId && setActive) {
+        setActive({ session: createdSessionId });
+        router.replace("/(tabs)");
       }
-    } catch (err) {
-      // See https://clerk.com/docs/custom-flows/error-handling
-      // for more info on error handling
-      console.error(JSON.stringify(err, null, 2));
+    } catch (error) {
+      console.error("0Auth error:", error);
     }
   };
 
   return (
-    <View>
-      <Text>登入</Text>
-      <TextInput
-        autoCapitalize="none"
-        value={emailAddress}
-        placeholder="輸入電子信箱"
-        onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
-      />
-      <TextInput
-        value={password}
-        placeholder="輸入密碼"
-        secureTextEntry={true}
-        onChangeText={(password) => setPassword(password)}
-      />
-      <TouchableOpacity onPress={onSignInPress}>
-        <Text>繼續</Text>
-      </TouchableOpacity>
-      <View style={{ display: "flex", flexDirection: "row", gap: 3 }}>
-        <Link href="/sign-up">
-          <Text>註冊</Text>
-        </Link>
+    <View style={styles.container}>
+      {/* Brand Section */}
+      <View style={styles.brandSection}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../../assets/images/icon.png")}
+            style={styles.logo}
+          />
+        </View>
+        <Text style={styles.tagline}>一手學手語，雙手說世界</Text>
+      </View>
+
+      {/* Illustration */}
+      <View style={styles.illustrationContainer}>
+        <Image
+          style={styles.illustration}
+          source={require("../../assets/images/auth-bh-2.png")}
+          resizeMode="cover"
+        ></Image>
+      </View>
+
+      {/* Login Section */}
+      <View style={styles.loginSection}>
+        <TouchableOpacity
+          style={styles.authButton}
+          onPress={handleGoogleSignIn}
+          activeOpacity={0.9}
+        >
+          <View style={styles.authIconContainer}>
+            <MaterialCommunityIcons
+              name="google"
+              size={20}
+              color={COLORS.surface}
+            />
+          </View>
+          <Text style={styles.authButtonText}>使用 Google 登入</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.authButton}
+          onPress={handleFacebookSignIn}
+          activeOpacity={0.9}
+        >
+          <View style={styles.authIconContainer}>
+            <MaterialCommunityIcons
+              name="facebook"
+              size={20}
+              color={COLORS.surface}
+            />
+          </View>
+          <Text style={styles.authButtonText}>使用 Facebook 登入</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

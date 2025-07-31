@@ -20,8 +20,8 @@ export const styles = StyleSheet.create({
     marginBottom: 0,
   },
   logo: {
-    width: width * 0.5,
-    height: width * 0.5,
+    width: width * 0.25,
+    height: width * 0.25,
   },
   tagline: {
     fontSize: 16,
