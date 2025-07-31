@@ -9,23 +9,33 @@ import {
 
 export default function SettingScreen() {
   return (
-    <ScrollView style={styles.container}>
-      {/* 個人檔案設定 */}
-      <Text style={styles.sectionTitle}>個人檔案設定</Text>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>修改使用者名稱</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>設定身分（聽障 / 聽人）</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>更改 Email / 密碼</Text>
-      </TouchableOpacity>
+    <ScrollView className="flex-1 bg-white px-6 py-8">
+      <View>
+        <Text className="text-2xl font-bold text-gray-800 mb-6">
+          個人檔案設定
+        </Text>
+        <TouchableOpacity className="bg-blue-100 rounded-lg p-4 mb-4 w-64 self-center">
+          <Text className="text-base text-blue-700 font-semibold text-center">
+            修改使用者名稱
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity className="bg-blue-100 rounded-lg p-4 mb-4 w-64 self-center">
+          <Text className="text-base text-blue-700 font-semibold text-center">
+            設定身分（聽障 / 聽人）
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity className="bg-blue-100 rounded-lg p-4 mb-4 w-64 self-center">
+          <Text className="text-base text-blue-700 font-semibold text-center">
+            更改 Email / 密碼
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-      {/* ✅ 帳號管理 */}
-      <Text style={styles.sectionTitle}>帳號管理</Text>
-      <View style={[styles.button, { backgroundColor: "#f87171" }]}>
-        <SignOutButton />
+      <View>
+        <Text className="text-2xl font-bold text-gray-800 mb-6">帳號管理</Text>
+        <View>
+          <SignOutButton />
+        </View>
       </View>
     </ScrollView>
   );

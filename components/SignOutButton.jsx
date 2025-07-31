@@ -17,8 +17,13 @@ export const SignOutButton = () => {
     }
   };
   return (
-    <TouchableOpacity onPress={handleSignOut}>
-      <Text>登出</Text>
+    <TouchableOpacity
+      onPress={handleSignOut}
+      className="bg-blue-100 rounded-lg p-4 mb-4 w-64 self-center"
+    >
+      <Text className="text-base text-blue-700 font-semibold text-center">
+        登出
+      </Text>
     </TouchableOpacity>
   );
 };
