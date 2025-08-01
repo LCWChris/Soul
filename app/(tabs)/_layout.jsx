@@ -21,6 +21,7 @@ export default function TabLayout() {
           shadowColor: COLORS.shadow, // iOS 上的陰影
           position: "absolute", // 使 TabBar 固定在底部
           height: 60,
+          paddingTop: 8, // 調整頂部填充以適應圖標
           paddingBottom: 8, // 調整底部填充以適應圖標
         },
       }}
