@@ -20,16 +20,16 @@ tsl/
 
 ```bash
 pip install -r requirements.txt
-
+```
 2. 執行特徵擷取：
 
 ```bash
 python Feature_Extraction.py
-
+```
 3. 載入並使用訓練好的模型：
 ```python
 import torch
 
 model = torch.load('wlasl_resnet_lstm_best.pth')
 model.eval()
-
+```
