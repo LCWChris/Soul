@@ -9,7 +9,7 @@ export default function Page() {
     <View className="flex-1 justify-center items-center bg-red-100">
       <SignedIn>
         <Text className="text-red-800 font-bold">
-          Hello, {user?.emailAddresses[0].emailAddress}
+          Hello, {user?.username || user?.emailAddresses[0]?.emailAddress}
         </Text>
       </SignedIn>
       <SignedOut>
