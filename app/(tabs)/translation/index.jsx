@@ -1,9 +1,13 @@
-import { Text, View } from "react-native";
+import { useRouter } from 'expo-router';
+import { Button, Text, View } from 'react-native';
 
-export default function PageFourScreen() {
+export default function TranslationHome() {
+  const router = useRouter();
+
   return (
-    <View className="flex-1 justify-center items-center bg-green-100">
-      <Text className="text-3xl text-green-800 font-bold">翻譯</Text>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>翻譯首頁</Text>
+      <Button title="前往翻譯頁面" onPress={() => router.push('translation/translate-screen')} />
     </View>
   );
 }
