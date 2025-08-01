@@ -1,12 +1,14 @@
-import { Link } from "expo-router"; // ← 正確的 Link 來源
+import { useRouter } from "expo-router"; // 導入 useRouter 以便導航
 import { Button, StyleSheet, Text, View } from "react-native"; // 導入 StyleSheet
 export default function Education() {
+  const router = useRouter();
   return (
     <View className="flex-1 justify-center items-center bg-yellow-100">
-      <Text className="text-3xl text-yellow-800 font-bold">學習主頁</Text>
-      <Link href="/education/WordLearningPage" push asChild>
-        <Button title="進入單字學習" />
-      </Link>
+      <Text style={{ fontSize: 24, marginBottom: 20 }}>學習首頁</Text>
+      <Button
+        title="前往單字學習頁面"
+        onPress={() => router.push("education/word-learning-screen")}
+      />
     </View>
   );
 }

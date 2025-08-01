@@ -22,7 +22,9 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
     ```
 
 * 而該導覽列相關跳轉的內容都會在同一個資料夾，例如:
+
   - WordLearningPage.jsx 跟 educatioin 相關就要放在
+
     ```bash
     /app/(tabs)/education/
     ```

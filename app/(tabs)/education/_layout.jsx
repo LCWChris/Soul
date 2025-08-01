@@ -6,7 +6,7 @@ export default function _layout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: pathname.startsWith("/educatioin") ? "default" : "none",
+        animation: pathname.startsWith("/education") ? "default" : "none",
       }}
     />
   );

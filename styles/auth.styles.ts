@@ -42,7 +42,7 @@ export const styles = StyleSheet.create({
   loginSection: {
     width: "100%",
     paddingHorizontal: 24,
-    marginBottom: 60,
+    marginBottom: 100,
     alignItems: "center",
   },
   authButton: {
@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 24,
     width: "100%",
     maxWidth: 300,
-    elevation: 5,
+    elevation: 1,
   },
   authIconContainer: {
     width: 24,

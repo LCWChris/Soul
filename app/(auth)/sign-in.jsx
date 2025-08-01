@@ -71,7 +71,7 @@ export default function login() {
           <View style={styles.authIconContainer}>
             <MaterialCommunityIcons
               name="google"
-              size={20}
+              size={24}
               color={COLORS.surface}
             />
           </View>
@@ -85,7 +85,7 @@ export default function login() {
           <View style={styles.authIconContainer}>
             <MaterialCommunityIcons
               name="facebook"
-              size={20}
+              size={24}
               color={COLORS.surface}
             />
           </View>

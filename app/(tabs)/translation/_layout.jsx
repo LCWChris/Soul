@@ -1,6 +1,13 @@
-
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from "expo-router";
 
 export default function Layout() {
-  return <Stack screenOptions={{ headerShown: true }} />;
+  const pathname = usePathname();
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        animation: pathname.startsWith("/translation") ? "default" : "none",
+      }}
+    />
+  );
 }

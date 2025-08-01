@@ -1,3 +1,4 @@
+import ArrowBack from "@/components/ArrowBack"; // 引入自定義返回按鈕組件
 import { Video } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -15,7 +16,6 @@ import {
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
-
 export default function WordLearningPage() {
   const word = "一";
   const imageUrl = {
@@ -32,13 +32,7 @@ export default function WordLearningPage() {
   return (
     <LinearGradient colors={["#e0f2fe", "#bae6fd"]} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backText}>← 返回</Text>
-        </TouchableOpacity>
-
+        <ArrowBack />
         <View style={[styles.card, styles.imageWrapper]}>
           <Text style={styles.wordText}>{word}</Text>
 
