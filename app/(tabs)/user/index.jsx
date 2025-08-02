@@ -1,9 +1,13 @@
 import { SignOutButton } from "@/components/SignOutButton";
 import { useUser } from "@clerk/clerk-expo";
+import { useRouter } from "expo-router"; // 🆕 新增
 import { useEffect, useState } from "react";
 import {
   Alert,
   Modal,
+  Platform // 🆕 新增
+  ,
+
   ScrollView,
   StyleSheet,
   Text,
@@ -14,9 +18,10 @@ import {
 
 export default function SettingScreen() {
   const { user } = useUser();
+  const router = useRouter(); // 🆕 新增
   const [showModal, setShowModal] = useState(false);
   const [tempUsername, setTempUsername] = useState("");
-  const [inputError, setInputError] = useState(""); // 🆕 錯誤訊息
+  const [inputError, setInputError] = useState("");
 
   // ✅ 自動生成 username (首次登入時)
   const autoGenerateUsername = async () => {
@@ -51,7 +56,7 @@ export default function SettingScreen() {
     }
   };
 
-  // ✅ 點擊儲存按鈕：再做一次檢查
+  // ✅ 儲存 username
   const handleSaveUsername = async () => {
     setInputError("");
 
@@ -80,7 +85,6 @@ export default function SettingScreen() {
         errorMessage = error.message;
       }
 
-      // 🆕 處理 403 Forbidden（需重新登入）
       if (
         (error.status && error.status === 403) ||
         errorMessage.toLowerCase().includes("verification")
@@ -89,13 +93,83 @@ export default function SettingScreen() {
         return;
       }
 
-      // 🆕 重複 username 錯誤處理
       if (errorMessage.toLowerCase().includes("username is taken")) {
         setInputError("該使用者名稱已被使用，請嘗試其他名稱");
         return;
       }
 
       Alert.alert("錯誤", errorMessage);
+    }
+  };
+
+  // 🆕 改良後的註銷帳號功能
+  const handleDeleteAccount = async () => {
+    if (!user) {
+      console.log("❌ user 物件尚未加載");
+      if (Platform.OS === "web") {
+        alert("使用者資料尚未載入，請稍後再試");
+      } else {
+        Alert.alert("錯誤", "使用者資料尚未載入，請稍後再試");
+      }
+      return;
+    }
+
+    console.log("🟢 註銷帳號按鈕被點擊");
+
+    const showAlert = (title, message) => {
+      if (Platform.OS === "web") {
+        alert(`${title}\n\n${message}`);
+      } else {
+        Alert.alert(title, message);
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm("此操作無法復原，帳號資料將永久刪除，確定要繼續嗎？");
+      if (!confirmed) return;
+
+      try {
+        console.log("🟢 嘗試刪除帳號 (Web)...");
+        await user.delete();
+        console.log("✅ 帳號刪除成功 (Web)");
+        showAlert("帳號已刪除", "您的帳號已成功註銷。");
+        router.replace("/(auth)/sign-in");
+      } catch (error) {
+        console.error("❌ 刪除帳號失敗 (Web):", error);
+        let msg = "無法刪除帳號，請稍後再試";
+        if (error.status === 403) {
+          msg = "您的登入驗證已失效，請先登出並重新登入後再嘗試。";
+        }
+        showAlert("錯誤", msg);
+      }
+    } else {
+      Alert.alert(
+        "確認註銷帳號",
+        "此操作無法復原，帳號資料將永久刪除，確定要繼續嗎？",
+        [
+          { text: "取消", style: "cancel", onPress: () => console.log("取消註銷") },
+          {
+            text: "確定",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                console.log("🟢 嘗試刪除帳號...");
+                await user.delete();
+                console.log("✅ 帳號刪除成功");
+                showAlert("帳號已刪除", "您的帳號已成功註銷。");
+                router.replace("/(auth)/sign-in");
+              } catch (error) {
+                console.error("❌ 刪除帳號失敗:", error);
+                let msg = "無法刪除帳號，請稍後再試";
+                if (error.status === 403) {
+                  msg = "您的登入驗證已失效，請先登出並重新登入後再嘗試。";
+                }
+                showAlert("錯誤", msg);
+              }
+            },
+          },
+        ]
+      );
     }
   };
 
@@ -116,11 +190,22 @@ export default function SettingScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* 帳號管理 */}
       <View>
         <Text className="text-2xl font-bold text-gray-800 mb-6">帳號管理</Text>
         <View>
           <SignOutButton />
         </View>
+
+        {/* 🆕 註銷帳號按鈕 */}
+        <TouchableOpacity
+          className="bg-red-100 rounded-lg p-4 mb-4 w-64 self-center"
+          onPress={handleDeleteAccount}
+        >
+          <Text className="text-base text-red-700 font-semibold text-center">
+            註銷帳號
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <Modal visible={showModal} transparent animationType="slide">
@@ -129,11 +214,9 @@ export default function SettingScreen() {
             <Text style={styles.modalTitle}>輸入新的使用者名稱</Text>
             <Text style={styles.ruleText}>
               ※ 1.只能使用英數字、減號(-)、底線(_)，不能包含空格或中文。
-              {"\n"}
-              ※2.大寫字母會自動轉為小寫。
+              {"\n"}2.大寫字母會自動轉為小寫。
             </Text>
 
-            {/* 🆕 即時檢查輸入，紅框效果 */}
             <TextInput
               style={[
                 styles.input,
@@ -141,7 +224,7 @@ export default function SettingScreen() {
               ]}
               placeholder="新使用者名稱"
               value={tempUsername}
-              onChangeText={validateInput} // 🆕 即時檢查
+              onChangeText={validateInput}
             />
             {inputError ? (
               <Text style={{ color: "red", fontSize: 12, marginBottom: 8 }}>
