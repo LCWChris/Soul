@@ -1,78 +1,88 @@
-// ✅ app/(tabs)/translation/translate-screen.jsx
-import ArrowBack from "@/components/ArrowBack";
-import {
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Camera } from 'expo-camera';
+import * as MediaLibrary from 'expo-media-library';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 export default function TranslateScreen() {
+  const [hasPermission, setHasPermission] = useState(null);
+  const cameraRef = useRef(null);
+  const [capturedUri, setCapturedUri] = useState(null);
+console.log("Camera type:", typeof Camera, Camera);
+  useEffect(() => {
+    (async () => {
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      const mediaStatus = await MediaLibrary.requestPermissionsAsync();
+      setHasPermission(
+        cameraStatus.status === 'granted' && mediaStatus.status === 'granted'
+      );
+    })();
+  }, []);
+
+  const takePicture = async () => {
+    if (cameraRef.current) {
+      const options = { quality: 0.5, base64: false };
+      const photo = await cameraRef.current.takePictureAsync(options);
+      setCapturedUri(photo.uri);
+      await MediaLibrary.saveToLibraryAsync(photo.uri);
+      Alert.alert('成功', '照片已儲存至相簿');
+    }
+  };
+
+  if (hasPermission === null) {
+    return <View style={styles.center}><Text>請求權限中…</Text></View>;
+  }
+
+  if (hasPermission === false) {
+    return <View style={styles.center}><Text>沒有相機或儲存權限</Text></View>;
+  }
+
+  // Camera.Constants 可能 undefined，需判斷
+  const cameraType = Camera?.Constants?.Type?.back ?? undefined;
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* 模擬相機畫面區塊 */}
-      <View style={styles.cameraPlaceholder}>
-        <View style={styles.overlayBox}>
-          <Text style={styles.overlayText}>請將雙手放在框內</Text>
+      <Camera
+        style={styles.camera}
+        type={cameraType}
+        ref={cameraRef}
+      />
+      <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
+        <Text style={styles.captureText}>📸 拍照</Text>
+      </TouchableOpacity>
+      {capturedUri && (
+        <View style={styles.preview}>
+          <Text style={{ marginBottom: 10 }}>已拍攝照片：</Text>
+          <Image source={{ uri: capturedUri }} style={styles.image} />
         </View>
-      </View>
-      <ArrowBack />
-      {/* 結果區塊 */}
-      <View style={styles.resultArea}>
-        <Text style={styles.resultText}>翻譯結果將顯示於此</Text>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>開始翻譯</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>播放語音</Text>
-        </TouchableOpacity>
-      </View>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
-  cameraPlaceholder: {
-    flex: 3,
-    backgroundColor: "#dfefff",
-    justifyContent: "center",
-    alignItems: "center",
+  container: { flex: 1 },
+  center: {
+    flex: 1, justifyContent: 'center', alignItems: 'center',
   },
-  overlayBox: {
-    width: "80%",
-    height: "60%",
-    borderColor: "lightblue",
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 8,
-  },
-  overlayText: {
-    color: "lightblue",
-    fontSize: 16,
-  },
-  resultArea: {
-    flex: 2,
-    padding: 20,
-    justifyContent: "center",
-    backgroundColor: "#f7f7f7",
-  },
-  resultText: {
-    fontSize: 18,
-    marginBottom: 20,
-    color: "#333",
-    textAlign: "center",
-  },
-  button: {
+  camera: { flex: 1 },
+  captureButton: {
+    position: 'absolute',
+    bottom: 40,
+    alignSelf: 'center',
+    backgroundColor: '#000',
     padding: 12,
-    marginVertical: 6,
-    backgroundColor: "#4285F4",
-    borderRadius: 6,
-    alignItems: "center",
+    borderRadius: 50,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
+  captureText: {
+    color: '#fff', fontSize: 18,
+  },
+  preview: {
+    padding: 16,
+    alignItems: 'center',
+    backgroundColor: '#eee',
+  },
+  image: {
+    width: 300,
+    height: 400,
+    borderRadius: 12,
   },
 });
