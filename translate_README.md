@@ -26,7 +26,7 @@ pip install pydantic
 ## 啟動翻譯API
 預設使用port 8000，可以自已修改
 
-執行
+在有uvicorn的python環境執行
    ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
