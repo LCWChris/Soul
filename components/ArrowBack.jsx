@@ -6,7 +6,7 @@ export default function ArrowBack() {
   const router = useRouter(); // 使用 useRouter 來獲取路由對象
   return (
     <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-      <MaterialCommunityIcons name="arrow-left" size={30} color="black" />
+      <MaterialCommunityIcons name="arrow-left" size={20} color="black" />
     </TouchableOpacity>
   );
 }
