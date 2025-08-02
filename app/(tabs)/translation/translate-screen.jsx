@@ -1,5 +1,6 @@
 // ✅ app/(tabs)/translation/translate-screen.jsx
 import ArrowBack from "@/components/ArrowBack";
+import { useRouter } from "expo-router";
 import {
   SafeAreaView,
   StyleSheet,
@@ -7,7 +8,29 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+
 export default function TranslateScreen() {
+  const router = useRouter();
+
+  const pickVideo = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: true,
+      quality: 1,
+      base64: false, // ⚠️ 確保拿到檔案 URI 而不是 base64
+    });
+
+    if (!result.canceled && result.assets?.length > 0) {
+      const fileUri = result.assets[0].uri;
+      console.log("選取的影片 URI:", fileUri);
+      router.push({
+        pathname: "/(tabs)/translation/video-confirmation",
+        params: { videoUri: fileUri },
+      });
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* 模擬相機畫面區塊 */}
@@ -25,6 +48,9 @@ export default function TranslateScreen() {
         </TouchableOpacity>
         <TouchableOpacity style={styles.button}>
           <Text style={styles.buttonText}>播放語音</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={pickVideo}>
+          <Text style={styles.buttonText}>上傳影片</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
