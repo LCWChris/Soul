@@ -1,6 +1,6 @@
-import { SignedIn, SignedOut, useUser } from "@clerk/clerk-expo";
+import { SignedIn, useUser } from "@clerk/clerk-expo";
 import { Link } from "expo-router";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export default function Page() {
   const { user } = useUser();
@@ -11,15 +11,12 @@ export default function Page() {
         <Text className="text-red-800 font-bold">
           Hello, {user?.username || user?.emailAddresses[0]?.emailAddress}
         </Text>
+        <Link href="HomeScreenTest" push asChild>
+          <TouchableOpacity className="mt-4 bg-red-500 px-4 py-2 rounded">
+            <Text>跳轉測試頁面</Text>
+          </TouchableOpacity>
+        </Link>
       </SignedIn>
-      <SignedOut>
-        <Link href="/(auth)/sign-in">
-          <Text>登入</Text>
-        </Link>
-        <Link href="/(auth)/sign-up">
-          <Text>註冊</Text>
-        </Link>
-      </SignedOut>
     </View>
   );
 }
