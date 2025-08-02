@@ -8,14 +8,10 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
-// 替換成你的 MongoDB Atlas 連線字串
-const mongoURI = "mongodb+srv://soulsignteam:souls115@soulsignteam.rff3iag.mongodb.net/tsl_app?retryWrites=true&w=majority&appName=soulsignteam";
-
-mongoose.connect(mongoURI)
+mongoose.connect("mongodb+srv://soulsignteam:souls115@soulsignteam.rff3iag.mongodb.net/tsl_app?retryWrites=true&w=majority")
   .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB error:", err));
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// 建立詞彙資料模型
 const VocabSchema = new mongoose.Schema({
   title: String,
   content: String,
@@ -29,17 +25,20 @@ const VocabSchema = new mongoose.Schema({
 
 const Vocabulary = mongoose.model("Vocabulary", VocabSchema);
 
-// API: 取得所有詞彙
 app.get("/api/vocabularies", async (req, res) => {
-  try {
-    const data = await Vocabulary.find({});
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: "讀取資料失敗" });
-  }
+  const data = await Vocabulary.find({});
+  res.json(data);
 });
 
-// 啟動伺服器
 app.listen(port, () => {
   console.log(`🚀 Server is running at http://localhost:${port}`);
+});
+app.post("/api/vocabularies", async (req, res) => {
+  try {
+    const newVocab = new Vocabulary(req.body);
+    await newVocab.save();
+    res.status(201).json({ message: "新增成功！", data: newVocab });
+  } catch (err) {
+    res.status(500).json({ error: "新增失敗" });
+  }
 });
