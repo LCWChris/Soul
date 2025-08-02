@@ -1,5 +1,4 @@
 ## 前端（React Native / Expo）
- ✅ 播放 video（但已被 deprecate，建議改用 expo-video）
  ✅ router.push, useLocalSearchParams 
  ✅ 選擇影片、圖片（上傳影片用）
    ```bash
