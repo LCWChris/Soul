@@ -1,25 +1,53 @@
-import { useRouter } from "expo-router"; // 導入 useRouter 以便導航
-import { Button, StyleSheet, Text, View } from "react-native"; // 導入 StyleSheet
+import { useRouter } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
 export default function Education() {
   const router = useRouter();
+
   return (
-    <View className="flex-1 justify-center items-center bg-yellow-100">
-      <Text style={{ fontSize: 24, marginBottom: 20 }}>學習首頁</Text>
-      <Button
-        title="前往單字學習頁面"
+    <View style={styles.container}>
+      {/* 教學區 */}
+      <TouchableOpacity
+        style={[styles.section, styles.topSection]}
+        onPress={() => router.push("education/teach-screen")}
+      >
+        <Text style={styles.text}>進入教學區</Text>
+      </TouchableOpacity>
+
+      {/* 單字區 */}
+      <TouchableOpacity
+        style={[styles.section, styles.bottomSection]}
         onPress={() => router.push("education/word-learning-screen")}
-      />
+      >
+        <Text style={styles.text}>進入單字學習區</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  contentContainer: {
-    // 應用內容的居中樣式到 contentContainerStyle
-    // 注意：您不能直接在這裡寫 Tailwind 類名，需要用 StyleSheet.create 轉換
-    // 或者使用 NativeWind 的 `useTailwind` Hook 或 `tw` 函數來轉換
+  safeContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  container: {
+    flex: 1,
+    paddingBottom: 60, // 為底部導航留空間
+  },
+  section: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    flexGrow: 1, // 讓內容容器在內容不足時也能佔滿可用空間，以實現居中
+  },
+  topSection: {
+    backgroundColor: "#BFDBFE", // 淺藍
+  },
+  bottomSection: {
+    backgroundColor: "#1E3A8A", // 深藍
+  },
+  text: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "white",
   },
 });
