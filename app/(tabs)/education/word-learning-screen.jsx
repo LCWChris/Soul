@@ -1,8 +1,9 @@
-import ArrowBack from "@/components/ArrowBack"; // 引入自定義返回按鈕組件
+import ArrowBack from "@/components/ArrowBack"; // 自訂返回按鈕
 import { Video } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Dimensions,
   Image,
@@ -16,55 +17,71 @@ import {
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
-export default function WordLearningPage() {
-  const word = "一";
-  const imageUrl = {
-    uri: "https://res.cloudinary.com/dslcjvqzf/image/upload/v1753713788/%E4%B8%80_viysdw.png",
-  };
-  const router = useRouter();
-  const videoUrl = {
-    uri: "https://res.cloudinary.com/dslcjvqzf/video/upload/v1753713826/one_detek2.mp4",
-  };
 
+export default function WordLearningPage() {
+  const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [wordData, setWordData] = useState(null);
+
+  useEffect(() => {
+    axios
+      .get("http://172.20.10.3:3001/api/vocabularies")
+      .then((res) => {
+        console.log("✅ 從 API 拿到：", res.data);
+
+        if (res.data.length > 0) {
+          setWordData(res.data[0]);
+        } else {
+          console.warn("⚠️ API 回傳是空陣列！");
+        }
+      })
+      .catch((err) => console.error("❌ API Error", err));
+  }, []);
+
+
 
   return (
     <LinearGradient colors={["#e0f2fe", "#bae6fd"]} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <ArrowBack />
-        <View style={[styles.card, styles.imageWrapper]}>
-          <Text style={styles.wordText}>{word}</Text>
+        
+        {wordData ? (
+          <View style={[styles.card, styles.imageWrapper]}>
+            <Text style={styles.wordText}>{wordData.title}</Text>
 
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Image
-              source={imageUrl}
-              style={styles.imageMedia}
+            <TouchableOpacity onPress={() => setModalVisible(true)}>
+              <Image
+                source={{ uri: wordData.image_url }}
+                style={styles.imageMedia}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+
+            <Text style={styles.subTitle}>手語影片教學 🎬</Text>
+
+            <Video
+              source={{ uri: wordData.video_url }}
+              useNativeControls
               resizeMode="contain"
+              style={styles.videoMedia}
             />
-          </TouchableOpacity>
 
-          <Text style={styles.subTitle}>手語影片教學 🎬</Text>
-
-          <Video
-            source={videoUrl}
-            useNativeControls
-            resizeMode="contain"
-            style={styles.videoMedia}
-          />
-
-          <TouchableOpacity
-            style={[
-              styles.favoriteButton,
-              { backgroundColor: isFavorited ? "#93c5fd" : "#dbeafe" },
-            ]}
-            onPress={() => setIsFavorited(!isFavorited)}
-          >
-            <Text style={styles.favoriteText}>
-              {isFavorited ? "❤️ 已收藏" : "🤍 加入收藏"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={[
+                styles.favoriteButton,
+                { backgroundColor: isFavorited ? "#93c5fd" : "#dbeafe" },
+              ]}
+              onPress={() => setIsFavorited(!isFavorited)}
+            >
+              <Text style={styles.favoriteText}>
+                {isFavorited ? "❤️ 已收藏" : "🤍 加入收藏"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Text style={{ fontSize: 18, marginTop: 100 }}>載入中...</Text>
+        )}
       </ScrollView>
 
       <Modal visible={modalVisible} transparent animationType="fade">
@@ -72,11 +89,13 @@ export default function WordLearningPage() {
           style={styles.modalContainer}
           onPress={() => setModalVisible(false)}
         >
-          <Image
-            source={imageUrl}
-            style={styles.fullImage}
-            resizeMode="contain"
-          />
+          {wordData && (
+            <Image
+              source={{ uri: wordData.image_url }}
+              style={styles.fullImage}
+              resizeMode="contain"
+            />
+          )}
         </Pressable>
       </Modal>
     </LinearGradient>
@@ -88,14 +107,6 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
     paddingBottom: 80,
-  },
-  backButton: {
-    alignSelf: "flex-start",
-    marginBottom: 12,
-  },
-  backText: {
-    fontSize: 16,
-    color: "#1e3a8a",
   },
   card: {
     width: "100%",
@@ -120,11 +131,11 @@ const styles = StyleSheet.create({
   imageMedia: {
     width: screenWidth * 0.85,
     maxWidth: 340,
-    height: 340, // 重要！不定高
-    aspectRatio: 1, // 先給個大致預設比例，避免閃爍（如：1:1 圖片）
+    height: 340,
+    aspectRatio: 1,
     borderRadius: 12,
     marginBottom: 16,
-    backgroundColor: "transparent", // ← 不設底色或設成 transparent
+    backgroundColor: "transparent",
   },
   videoMedia: {
     width: screenWidth * 0.85,
