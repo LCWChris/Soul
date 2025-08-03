@@ -1,20 +1,25 @@
-import { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { CameraView, useCameraPermissions } from 'expo-camera';
-import { Video } from 'expo-av';
-import ArrowBack from '@/components/ArrowBack';
-import * as ImagePicker from 'expo-image-picker';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import ArrowBack from "@/components/ArrowBack";
+import { Video } from "expo-av";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
+import { useRef, useState } from "react";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 export default function TranslateScreen() {
   const [permission, requestPermission] = useCameraPermissions();
-  const [facing, setFacing] = useState('back');
+  const [facing, setFacing] = useState("back");
   const [photoUri, setPhotoUri] = useState(null);
   const [videoUri, setVideoUri] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const cameraRef = useRef(null);
 
-  if (!permission) return <View><Text>請求相機權限中…</Text></View>;
+  if (!permission)
+    return (
+      <View>
+        <Text>請求相機權限中…</Text>
+      </View>
+    );
   if (!permission.granted) {
     return (
       <View style={styles.center}>
@@ -27,7 +32,7 @@ export default function TranslateScreen() {
   }
 
   const toggleCameraFacing = () => {
-    setFacing(prev => (prev === 'back' ? 'front' : 'back'));
+    setFacing((prev) => (prev === "back" ? "front" : "back"));
   };
 
   const takePicture = async () => {
@@ -47,7 +52,7 @@ export default function TranslateScreen() {
         const video = await cameraRef.current.recordAsync();
         setVideoUri(video.uri);
       } catch (e) {
-        console.error('錄影錯誤：', e);
+        console.error("錄影錯誤：", e);
       }
       setIsRecording(false);
     }
@@ -81,7 +86,10 @@ export default function TranslateScreen() {
       </Animated.View>
 
       {/* 切換鏡頭按鈕 */}
-      <TouchableOpacity style={styles.topRightButton} onPress={toggleCameraFacing}>
+      <TouchableOpacity
+        style={styles.topRightButton}
+        onPress={toggleCameraFacing}
+      >
         <Text style={styles.buttonText}>🔄</Text>
       </TouchableOpacity>
 
@@ -104,17 +112,24 @@ export default function TranslateScreen() {
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity style={styles.button} onPress={takePicture} disabled={isRecording}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={takePicture}
+          disabled={isRecording}
+        >
           <Text style={styles.buttonText}>📸</Text>
         </TouchableOpacity>
       </View>
 
       {/* 照片/影片預覽區 */}
-      {photoUri && (
-        <Image source={{ uri: photoUri }} style={styles.preview} />
-      )}
+      {photoUri && <Image source={{ uri: photoUri }} style={styles.preview} />}
       {videoUri && (
-        <Video source={{ uri: videoUri }} style={styles.preview} useNativeControls resizeMode="contain" />
+        <Video
+          source={{ uri: videoUri }}
+          style={styles.preview}
+          useNativeControls
+          resizeMode="contain"
+        />
       )}
     </View>
   );
@@ -122,54 +137,56 @@ export default function TranslateScreen() {
 
 const styles = StyleSheet.create({
   center: {
-    flex: 1, justifyContent: 'center', alignItems: 'center',
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   camera: {
     flex: 1,
   },
   header: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     left: 0,
     zIndex: 20,
   },
   topRightButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 30,
     right: 20,
-    backgroundColor: '#000000aa',
+    backgroundColor: "#000000aa",
     padding: 10,
     borderRadius: 25,
     zIndex: 20,
   },
   buttonRow: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 80,
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 40,
     zIndex: 10,
   },
   button: {
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     padding: 12,
     borderRadius: 50,
     marginHorizontal: 8,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
   },
   preview: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 180,
-    alignSelf: 'center',
+    alignSelf: "center",
     width: 120,
     height: 120,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: "#fff",
   },
 });

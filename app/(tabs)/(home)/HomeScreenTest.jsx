@@ -1,3 +1,4 @@
+import ArrowBack from "@/components/ArrowBack"; // 假設你有一個返回箭頭組件
 import { styles } from "@/styles/auth.styles";
 import { useRouter } from "expo-router";
 import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -11,6 +12,8 @@ export default function HomeScreen() {
 
   return (
     <ScrollView className="flex-1 bg-white" style={{ marginBottom: 60 }}>
+      {/* 👈 返回箭頭 */}
+      <ArrowBack />
       {/* 🎉 Hero 區塊 */}
       <View className="items-center justify-center py-10 bg-yellow-100">
         <Image

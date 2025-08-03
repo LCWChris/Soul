@@ -1,19 +1,17 @@
 import { SignOutButton } from "@/components/SignOutButton";
 import { useUser } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router"; // 🆕 新增
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Modal,
-  Platform // 🆕 新增
-  ,
-
+  Platform, // 🆕 新增
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 export default function SettingScreen() {
@@ -24,7 +22,7 @@ export default function SettingScreen() {
   const [inputError, setInputError] = useState("");
 
   // ✅ 自動生成 username (首次登入時)
-  const autoGenerateUsername = async () => {
+  const autoGenerateUsername = useCallback(async () => {
     if (user && !user.username) {
       const randomId = Math.floor(100000000 + Math.random() * 900000000);
       const generatedUsername = `user${randomId}`;
@@ -35,11 +33,11 @@ export default function SettingScreen() {
         console.error("自動生成 username 失敗:", error);
       }
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     autoGenerateUsername();
-  }, [user]);
+  }, [autoGenerateUsername]);
 
   // 🆕 即時檢查輸入內容
   const validateInput = (value) => {
@@ -125,7 +123,9 @@ export default function SettingScreen() {
     };
 
     if (Platform.OS === "web") {
-      const confirmed = window.confirm("此操作無法復原，帳號資料將永久刪除，確定要繼續嗎？");
+      const confirmed = window.confirm(
+        "此操作無法復原，帳號資料將永久刪除，確定要繼續嗎？"
+      );
       if (!confirmed) return;
 
       try {
@@ -147,7 +147,11 @@ export default function SettingScreen() {
         "確認註銷帳號",
         "此操作無法復原，帳號資料將永久刪除，確定要繼續嗎？",
         [
-          { text: "取消", style: "cancel", onPress: () => console.log("取消註銷") },
+          {
+            text: "取消",
+            style: "cancel",
+            onPress: () => console.log("取消註銷"),
+          },
           {
             text: "確定",
             style: "destructive",
@@ -218,10 +222,7 @@ export default function SettingScreen() {
             </Text>
 
             <TextInput
-              style={[
-                styles.input,
-                inputError ? { borderColor: "red" } : null,
-              ]}
+              style={[styles.input, inputError ? { borderColor: "red" } : null]}
               placeholder="新使用者名稱"
               value={tempUsername}
               onChangeText={validateInput}

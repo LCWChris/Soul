@@ -18,7 +18,7 @@ export default function InitialLayout() {
     } else if (!isSignedIn && !isAuthScreen) {
       router.replace("/(auth)/sign-in"); // 如果未登入且不在認證頁面，則重定向到登入頁
     }
-  }, [isLoaded, isSignedIn, segments]);
+  }, [isLoaded, isSignedIn, segments, router]);
 
   if (!isLoaded) return null;
 
