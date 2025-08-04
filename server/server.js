@@ -31,11 +31,70 @@ const VocabSchema = new mongoose.Schema({
   created_at: Date
 });
 
+// 使用 book_words collection
+const BookWord = mongoose.model("BookWord", VocabSchema, "book_words");
+
+app.get("/api/book_words", async (req, res) => {
+  try {
+    const { level, category, search } = req.query;
+    let query = {};
+    
+    // 根據等級篩選
+    if (level) {
+      query.level = level;
+    }
+    
+    // 根據分類篩選 (theme 欄位)
+    if (category) {
+      query.theme = category;
+    }
+    
+    // 根據搜尋關鍵字篩選 (title 欄位)
+    if (search) {
+      query.title = { $regex: search, $options: 'i' };
+    }
+    
+    console.log("搜尋條件:", query);
+    const data = await BookWord.find(query);
+    console.log(`找到 ${data.length} 筆資料`);
+    res.json(data);
+  } catch (err) {
+    console.error("查詢失敗:", err);
+    res.status(500).json({ error: "查詢失敗" });
+  }
+});
+
+// 保留原本的 vocabularies API 以避免其他地方使用
 const Vocabulary = mongoose.model("Vocabulary", VocabSchema);
 
 app.get("/api/vocabularies", async (req, res) => {
-  const data = await Vocabulary.find({});
-  res.json(data);
+  try {
+    const { level, category, search } = req.query;
+    let query = {};
+    
+    // 根據等級篩選
+    if (level) {
+      query.level = level;
+    }
+    
+    // 根據分類篩選 (theme 欄位)
+    if (category) {
+      query.theme = category;
+    }
+    
+    // 根據搜尋關鍵字篩選 (title 欄位)
+    if (search) {
+      query.title = { $regex: search, $options: 'i' };
+    }
+    
+    console.log("搜尋條件:", query);
+    const data = await Vocabulary.find(query);
+    console.log(`找到 ${data.length} 筆資料`);
+    res.json(data);
+  } catch (err) {
+    console.error("查詢失敗:", err);
+    res.status(500).json({ error: "查詢失敗" });
+  }
 });
 
 app.post("/api/vocabularies", async (req, res) => {
