@@ -2,7 +2,7 @@ import ArrowBack from "@/components/ArrowBack"; // 自訂返回按鈕
 import { Video } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import {
   Dimensions,
@@ -23,6 +23,7 @@ export default function WordLearningPage() {
   const [modalVisible, setModalVisible] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   const [wordData, setWordData] = useState(null);
+  const [cloudinaryUrls, setCloudinaryUrls] = useState([]);
 
   useEffect(() => {
     axios
@@ -39,13 +40,18 @@ export default function WordLearningPage() {
       .catch((err) => console.error("❌ API Error", err));
   }, []);
 
-
+  useEffect(() => {
+    fetch("http://172.20.10.3:3001/api/cloudinary-images")
+      .then((res) => res.json())
+      .then((urls) => setCloudinaryUrls(urls))
+      .catch((err) => console.error("Cloudinary API Error", err));
+  }, []);
 
   return (
     <LinearGradient colors={["#e0f2fe", "#bae6fd"]} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <ArrowBack />
-        
+
         {wordData ? (
           <View style={[styles.card, styles.imageWrapper]}>
             <Text style={styles.wordText}>{wordData.title}</Text>
@@ -82,6 +88,18 @@ export default function WordLearningPage() {
         ) : (
           <Text style={{ fontSize: 18, marginTop: 100 }}>載入中...</Text>
         )}
+
+        <Text>Cloudinary 圖片/影片：</Text>
+        {cloudinaryUrls.map((url, idx) => (
+          <View key={idx} style={{ marginBottom: 16 }}>
+            {/* 只顯示圖片，影片可用 Video 組件 */}
+            {url.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+              <Image source={{ uri: url }} style={{ width: 200, height: 200 }} />
+            ) : (
+              <Text>{url}</Text>
+            )}
+          </View>
+        ))}
       </ScrollView>
 
       <Modal visible={modalVisible} transparent animationType="fade">

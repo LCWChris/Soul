@@ -1,6 +1,14 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const cloudinary = require('cloudinary').v2;
+
+// 初始化 Cloudinary
+cloudinary.config({
+  cloud_name: 'dbmrnpwxd',
+  api_key: '861285683337524',
+  api_secret: 'gIQ_tgM4L33AeLXq_gNNFfB0Q3A',
+});
 
 const app = express();
 const port = 3001;
@@ -30,9 +38,6 @@ app.get("/api/vocabularies", async (req, res) => {
   res.json(data);
 });
 
-app.listen(port, () => {
-  console.log(`🚀 Server is running at http://localhost:${port}`);
-});
 app.post("/api/vocabularies", async (req, res) => {
   try {
     const newVocab = new Vocabulary(req.body);
@@ -42,3 +47,24 @@ app.post("/api/vocabularies", async (req, res) => {
     res.status(500).json({ error: "新增失敗" });
   }
 });
+
+app.get('/api/cloudinary-images', async (req, res) => {
+  try {
+    const result = await cloudinary.search
+      .expression('resource_type:image OR resource_type:video')
+      .sort_by('created_at','desc')
+      .max_results(100)
+      .execute();
+
+    const urls = result.resources.map(item => item.secure_url);
+    res.json(urls);
+  } catch (err) {
+    res.status(500).json({ error: 'Cloudinary 查詢失敗', detail: err });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`🚀 Server is running at http://172.20.10.3:3001`);
+});
+
+
