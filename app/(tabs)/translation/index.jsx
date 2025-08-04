@@ -10,7 +10,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
   ScrollView,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -24,13 +23,18 @@ export default function TranslateScreen() {
   const [isUploading, setIsUploading] = useState(false);
   const [translationResult, setTranslationResult] = useState(null);
   const cameraRef = useRef(null);
+  const BACKEND_URL = process.env.EXPO_PUBLIC_TRANSLATE_API_BACKEND_URL;
+  const NODE_API = process.env.EXPO_PUBLIC_NODE_API;
+
+  const resetState = () => {
+    setPhotoUri(null);
+    setVideoUri(null);
+    setTranslationResult(null);
+    setIsUploading(false);
+  };
 
   if (!permission)
-    return (
-      <View>
-        <Text>請求相機權限中…</Text>
-      </View>
-    );
+    return <View><Text>請求相機權限中…</Text></View>;
 
   if (!permission.granted) {
     return (
@@ -47,18 +51,39 @@ export default function TranslateScreen() {
     setFacing((prev) => (prev === "back" ? "front" : "back"));
   };
 
+  const uploadVideoToCloudinary = async (videoUri) => {
+    const data = new FormData();
+    data.append("file", {
+      uri: videoUri,
+      type: "video/mp4",
+      name: "upload.mp4",
+    });
+    data.append("upload_preset", "upload"); // ⚠️ 改成你 Cloudinary 的 preset
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dbmrnpwxd/video/upload",
+      {
+        method: "POST",
+        body: data,
+      }
+    );
+
+    if (!res.ok) throw new Error(await res.text());
+    const result = await res.json();
+    return result.secure_url;
+  };
+
   const takePicture = async () => {
     if (cameraRef.current) {
+      resetState();
       const photo = await cameraRef.current.takePictureAsync();
       setPhotoUri(photo.uri);
-      setVideoUri(null);
     }
   };
 
   const startRecording = async () => {
     if (cameraRef.current && !isRecording) {
-      setPhotoUri(null);
-      setVideoUri(null);
+      resetState();
       setIsRecording(true);
       try {
         const video = await cameraRef.current.recordAsync();
@@ -78,6 +103,7 @@ export default function TranslateScreen() {
   };
 
   const pickVideoFromGallery = async () => {
+    resetState();
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Videos,
       allowsEditing: false,
@@ -86,19 +112,40 @@ export default function TranslateScreen() {
 
     if (!result.canceled) {
       setVideoUri(result.assets[0].uri);
-      setPhotoUri(null);
     }
   };
 
   const uploadAndTranslateVideo = async () => {
-    if (!videoUri) {
-      alert("請先錄製或選擇影片");
-      return;
-    }
+  if (!videoUri) {
+    alert("請先錄製或選擇影片");
+    return;
+  }
 
-    setIsUploading(true);
-    setTranslationResult(null);
+  setIsUploading(true);
+  setTranslationResult(null);
 
+  try {
+    // ① 上傳到 Cloudinary
+    const cloudUrl = await uploadVideoToCloudinary(videoUri);
+
+    // ② 傳給 Node.js 寫入 MongoDB
+    await fetch(`${NODE_API}/api/vocabularies`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    title: "影片標題",
+    content: "",
+    level: "",
+    theme: "",
+    image_url: "",
+    video_url: cloudUrl,  // 這是 Cloudinary 回傳網址
+    created_by: "frontend",  // 可省略
+    created_at: new Date().toISOString(),
+  }),
+});
+
+
+    // ③ 傳影片給 FastAPI 翻譯
     const formData = new FormData();
     formData.append("file", {
       uri: videoUri,
@@ -106,35 +153,29 @@ export default function TranslateScreen() {
       type: "video/mp4",
     });
 
-    try {
-      const response = await fetch("https://8cbe5f586bf2.ngrok-free.app/translate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          body: formData,
-      });
+    const response = await fetch(`${BACKEND_URL}/translate`, {
+      method: "POST",
+      body: formData,
+    });
 
+    const data = await response.json();
+    setTranslationResult(data.translation || "未取得翻譯結果");
 
+  } catch (error) {
+    console.error("上傳或翻譯失敗：", error);
+    setTranslationResult("翻譯失敗，請稍後再試");
+  } finally {
+    setIsUploading(false);
+  }
+};
 
-      const data = await response.json();
-      setTranslationResult(data.translation || "未取得翻譯結果");
-    } catch (error) {
-      console.error("上傳或翻譯失敗：", error);
-      setTranslationResult("翻譯失敗，請稍後再試");
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   return (
     <View style={{ flex: 1 }}>
-      {/* 返回按鈕 */}
       <Animated.View entering={FadeInDown.delay(100)} style={styles.header}>
         <ArrowBack />
       </Animated.View>
 
-      {/* 切換鏡頭按鈕 */}
       <TouchableOpacity
         style={styles.topRightButton}
         onPress={toggleCameraFacing}
@@ -142,10 +183,8 @@ export default function TranslateScreen() {
         <Text style={styles.buttonText}>🔄</Text>
       </TouchableOpacity>
 
-      {/* 相機畫面 */}
       <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
 
-      {/* 功能按鈕 */}
       <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.button} onPress={pickVideoFromGallery}>
           <Text style={styles.buttonText}>🎬</Text>
@@ -170,7 +209,6 @@ export default function TranslateScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* 預覽 */}
       {photoUri && <Image source={{ uri: photoUri }} style={styles.preview} />}
       {videoUri && (
         <Video
@@ -181,9 +219,7 @@ export default function TranslateScreen() {
         />
       )}
 
-      {/* 上傳與翻譯按鈕 */}
       <View style={{ alignItems: "center", marginBottom: 20, paddingBottom: 120 }}>
-
         <TouchableOpacity
           style={[styles.button, { paddingHorizontal: 20, marginTop: 20 }]}
           onPress={uploadAndTranslateVideo}
@@ -195,7 +231,6 @@ export default function TranslateScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* 翻譯結果 */}
       {translationResult && (
         <ScrollView
           style={{
@@ -215,20 +250,9 @@ export default function TranslateScreen() {
 }
 
 const styles = StyleSheet.create({
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  camera: {
-    flex: 1,
-  },
-  header: {
-    position: "absolute",
-    top: 10,
-    left: 0,
-    zIndex: 20,
-  },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  camera: { flex: 1 },
+  header: { position: "absolute", top: 10, left: 0, zIndex: 20 },
   topRightButton: {
     position: "absolute",
     top: 30,
@@ -254,10 +278,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginHorizontal: 8,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-  },
+  buttonText: { color: "#fff", fontSize: 16 },
   preview: {
     position: "absolute",
     bottom: 180,
