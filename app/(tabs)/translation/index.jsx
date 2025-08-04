@@ -1,9 +1,18 @@
+// SOUL/app/(tabs)/translation/index.jsx
 import ArrowBack from "@/components/ArrowBack";
 import { Video } from "expo-av";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useRef, useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+  ScrollView,
+} from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 export default function TranslateScreen() {
@@ -12,6 +21,8 @@ export default function TranslateScreen() {
   const [photoUri, setPhotoUri] = useState(null);
   const [videoUri, setVideoUri] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [translationResult, setTranslationResult] = useState(null);
   const cameraRef = useRef(null);
 
   if (!permission)
@@ -20,6 +31,7 @@ export default function TranslateScreen() {
         <Text>請求相機權限中…</Text>
       </View>
     );
+
   if (!permission.granted) {
     return (
       <View style={styles.center}>
@@ -78,6 +90,43 @@ export default function TranslateScreen() {
     }
   };
 
+  const uploadAndTranslateVideo = async () => {
+    if (!videoUri) {
+      alert("請先錄製或選擇影片");
+      return;
+    }
+
+    setIsUploading(true);
+    setTranslationResult(null);
+
+    const formData = new FormData();
+    formData.append("file", {
+      uri: videoUri,
+      name: "video.mp4",
+      type: "video/mp4",
+    });
+
+    try {
+      const response = await fetch("https://8cbe5f586bf2.ngrok-free.app/translate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          body: formData,
+      });
+
+
+
+      const data = await response.json();
+      setTranslationResult(data.translation || "未取得翻譯結果");
+    } catch (error) {
+      console.error("上傳或翻譯失敗：", error);
+      setTranslationResult("翻譯失敗，請稍後再試");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <View style={{ flex: 1 }}>
       {/* 返回按鈕 */}
@@ -96,7 +145,7 @@ export default function TranslateScreen() {
       {/* 相機畫面 */}
       <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
 
-      {/* 功能按鈕區：底部三鍵排列 */}
+      {/* 功能按鈕 */}
       <View style={styles.buttonRow}>
         <TouchableOpacity style={styles.button} onPress={pickVideoFromGallery}>
           <Text style={styles.buttonText}>🎬</Text>
@@ -121,7 +170,7 @@ export default function TranslateScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* 照片/影片預覽區 */}
+      {/* 預覽 */}
       {photoUri && <Image source={{ uri: photoUri }} style={styles.preview} />}
       {videoUri && (
         <Video
@@ -130,6 +179,36 @@ export default function TranslateScreen() {
           useNativeControls
           resizeMode="contain"
         />
+      )}
+
+      {/* 上傳與翻譯按鈕 */}
+      <View style={{ alignItems: "center", marginBottom: 20, paddingBottom: 120 }}>
+
+        <TouchableOpacity
+          style={[styles.button, { paddingHorizontal: 20, marginTop: 20 }]}
+          onPress={uploadAndTranslateVideo}
+          disabled={isUploading}
+        >
+          <Text style={styles.buttonText}>
+            {isUploading ? "翻譯中…" : "上傳並翻譯"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 翻譯結果 */}
+      {translationResult && (
+        <ScrollView
+          style={{
+            backgroundColor: "#f0f0f0",
+            padding: 20,
+            marginHorizontal: 20,
+            marginBottom: 20,
+            borderRadius: 12,
+          }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: "bold" }}>翻譯結果：</Text>
+          <Text style={{ fontSize: 18, marginTop: 8 }}>{translationResult}</Text>
+        </ScrollView>
       )}
     </View>
   );
