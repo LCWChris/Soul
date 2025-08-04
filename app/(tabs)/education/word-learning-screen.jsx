@@ -4,6 +4,8 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { getFavorites, toggleFavorite as toggleFavoriteUtil } from "@/utils/favorites";
+import { API_CONFIG } from "@/constants/api";
+import { NetworkTester } from "@/utils/networkTester";
 import {
   Dimensions,
   Image,
@@ -17,6 +19,7 @@ import {
   TextInput,
   FlatList,
   PanResponder,
+  Alert,
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
@@ -81,7 +84,8 @@ export default function WordLearningPage() {
   const fetchWords = async () => {
     try {
       setLoading(true);
-      let url = `http://172.20.10.3:3001/api/book_words`;
+      // 使用配置文件中的 API 端點
+      let url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}`;
       const params = new URLSearchParams();
       
       if (selectedLevel) params.append('level', selectedLevel);
@@ -92,16 +96,39 @@ export default function WordLearningPage() {
         url += `?${params.toString()}`;
       }
       
-      console.log("請求 URL:", url);
-      const res = await axios.get(url);
-      console.log("✅ 從 book_words API 拿到：", res.data);
-      setWords(res.data);
+      console.log("🔍 當前 API 配置:", API_CONFIG.BASE_URL);
+      console.log("📡 請求 URL:", url);
       
-      if (res.data.length > 0 && !currentWord) {
+      const res = await axios.get(url, {
+        timeout: API_CONFIG.TIMEOUT,
+      });
+      
+      console.log("✅ API 連接成功，獲取到", res.data.length, "個單詞");
+      setWords(res.data);
+      if (res.data.length > 0) {
         setCurrentWord(res.data[0]);
+        setCurrentWordIndex(0);
       }
     } catch (error) {
-      console.error('取得單詞失敗', error);
+      console.error("❌ API 連接失敗:", error.message);
+      
+      // 網路連接檢查和用戶提示
+      Alert.alert(
+        "網路連接問題",
+        `無法連接到伺服器 (${API_CONFIG.BASE_URL})\n\n可能的原因：\n• 伺服器未啟動\n• 網路連接問題\n• IP 地址設定錯誤\n\n錯誤詳情：${error.message}`,
+        [
+          {
+            text: "檢查網路連接",
+            onPress: async () => {
+              const networkInfo = await NetworkTester.getNetworkInfo();
+              console.log("網路檢查結果:", networkInfo);
+            }
+          },
+          { text: "確定", style: "default" }
+        ]
+      );
+      
+      setWords([]);
     } finally {
       setLoading(false);
     }

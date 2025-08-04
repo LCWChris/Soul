@@ -122,6 +122,41 @@ app.get('/api/cloudinary-images', async (req, res) => {
   }
 });
 
+// 🔧 API 連接測試端點
+app.get("/api/test", (req, res) => {
+  res.json({ 
+    status: 'success', 
+    message: '伺服器連接正常',
+    timestamp: new Date().toISOString(),
+    server: 'Soul Learning App API'
+  });
+});
+
+// 📊 伺服器狀態檢查端點
+app.get("/api/status", async (req, res) => {
+  try {
+    // 檢查資料庫連接
+    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    
+    // 獲取單詞數量
+    const wordCount = await BookWord.countDocuments();
+    
+    res.json({
+      status: 'healthy',
+      database: dbStatus,
+      wordCount: wordCount,
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`🚀 Server is running at http://172.20.10.3:3001`);
 });
