@@ -6,7 +6,10 @@
     "orientation": "portrait",
     "icon": "./assets/images/LOGO.png",
     "scheme": "soul",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
+    "androidStatusBar": {
+      "barStyle": "dark-content"
+    },
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true

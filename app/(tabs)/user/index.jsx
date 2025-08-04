@@ -1,47 +1,17 @@
 import { SignOutButton } from "@/components/SignOutButton";
 import { useUser } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router"; // 🆕 新增
-import { useEffect, useState } from "react";
-import {
-  Alert,
-  Modal,
-  Platform // 🆕 新增
-  ,
-
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
-} from "react-native";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Alert, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function SettingScreen() {
   const { user } = useUser();
-  const router = useRouter(); // 🆕 新增
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [tempUsername, setTempUsername] = useState("");
   const [inputError, setInputError] = useState("");
 
-  // ✅ 自動生成 username (首次登入時)
-  const autoGenerateUsername = async () => {
-    if (user && !user.username) {
-      const randomId = Math.floor(100000000 + Math.random() * 900000000);
-      const generatedUsername = `user${randomId}`;
-      try {
-        await user.update({ username: generatedUsername });
-        console.log("已自動設定 username:", generatedUsername);
-      } catch (error) {
-        console.error("自動生成 username 失敗:", error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    autoGenerateUsername();
-  }, [user]);
-
-  // 🆕 即時檢查輸入內容
+  // ✅ 即時檢查輸入內容
   const validateInput = (value) => {
     setTempUsername(value);
     if (!value.trim()) {
@@ -79,16 +49,13 @@ export default function SettingScreen() {
       console.error("更新失敗:", error);
 
       let errorMessage = "設定失敗，請稍後再試";
-      if (error.errors && error.errors.length > 0) {
+      if (error.errors?.length > 0) {
         errorMessage = error.errors[0].message;
       } else if (error.message) {
         errorMessage = error.message;
       }
 
-      if (
-        (error.status && error.status === 403) ||
-        errorMessage.toLowerCase().includes("verification")
-      ) {
+      if (error.status === 403 || errorMessage.toLowerCase().includes("verification")) {
         setInputError("您目前的登入狀態已失效，請先登出並重新登入後再嘗試。");
         return;
       }
@@ -102,84 +69,48 @@ export default function SettingScreen() {
     }
   };
 
-  // 🆕 改良後的註銷帳號功能
+  // ✅ 註銷帳號功能
   const handleDeleteAccount = async () => {
     if (!user) {
-      console.log("❌ user 物件尚未加載");
-      if (Platform.OS === "web") {
-        alert("使用者資料尚未載入，請稍後再試");
-      } else {
-        Alert.alert("錯誤", "使用者資料尚未載入，請稍後再試");
-      }
+      const msg = "使用者資料尚未載入，請稍後再試";
+      Platform.OS === "web" ? alert(msg) : Alert.alert("錯誤", msg);
       return;
     }
 
-    console.log("🟢 註銷帳號按鈕被點擊");
-
     const showAlert = (title, message) => {
-      if (Platform.OS === "web") {
-        alert(`${title}\n\n${message}`);
-      } else {
-        Alert.alert(title, message);
-      }
+      Platform.OS === "web" ? alert(`${title}\n\n${message}`) : Alert.alert(title, message);
     };
 
-    if (Platform.OS === "web") {
-      const confirmed = window.confirm("此操作無法復原，帳號資料將永久刪除，確定要繼續嗎？");
-      if (!confirmed) return;
-
+    const confirmDelete = async () => {
       try {
-        console.log("🟢 嘗試刪除帳號 (Web)...");
         await user.delete();
-        console.log("✅ 帳號刪除成功 (Web)");
         showAlert("帳號已刪除", "您的帳號已成功註銷。");
         router.replace("/(auth)/sign-in");
       } catch (error) {
-        console.error("❌ 刪除帳號失敗 (Web):", error);
+        console.error("❌ 刪除帳號失敗:", error);
         let msg = "無法刪除帳號，請稍後再試";
         if (error.status === 403) {
           msg = "您的登入驗證已失效，請先登出並重新登入後再嘗試。";
         }
         showAlert("錯誤", msg);
       }
+    };
+
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm("此操作無法復原，帳號資料將永久刪除，確定要繼續嗎？");
+      if (confirmed) await confirmDelete();
     } else {
-      Alert.alert(
-        "確認註銷帳號",
-        "此操作無法復原，帳號資料將永久刪除，確定要繼續嗎？",
-        [
-          { text: "取消", style: "cancel", onPress: () => console.log("取消註銷") },
-          {
-            text: "確定",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                console.log("🟢 嘗試刪除帳號...");
-                await user.delete();
-                console.log("✅ 帳號刪除成功");
-                showAlert("帳號已刪除", "您的帳號已成功註銷。");
-                router.replace("/(auth)/sign-in");
-              } catch (error) {
-                console.error("❌ 刪除帳號失敗:", error);
-                let msg = "無法刪除帳號，請稍後再試";
-                if (error.status === 403) {
-                  msg = "您的登入驗證已失效，請先登出並重新登入後再嘗試。";
-                }
-                showAlert("錯誤", msg);
-              }
-            },
-          },
-        ]
-      );
+      Alert.alert("確認註銷帳號", "此操作無法復原，帳號資料將永久刪除，確定要繼續嗎？", [
+        { text: "取消", style: "cancel" },
+        { text: "確定", style: "destructive", onPress: confirmDelete },
+      ]);
     }
   };
 
   return (
     <ScrollView className="flex-1 bg-white px-6 py-8">
       <View>
-        <Text className="text-2xl font-bold text-gray-800 mb-6">
-          個人檔案設定
-        </Text>
-
+        <Text className="text-2xl font-bold text-gray-800 mb-6">個人檔案設定</Text>
         <TouchableOpacity
           className="bg-blue-100 rounded-lg p-4 mb-4 w-64 self-center"
           onPress={() => setShowModal(true)}
@@ -197,14 +128,11 @@ export default function SettingScreen() {
           <SignOutButton />
         </View>
 
-        {/* 🆕 註銷帳號按鈕 */}
         <TouchableOpacity
           className="bg-red-100 rounded-lg p-4 mb-4 w-64 self-center"
           onPress={handleDeleteAccount}
         >
-          <Text className="text-base text-red-700 font-semibold text-center">
-            註銷帳號
-          </Text>
+          <Text className="text-base text-red-700 font-semibold text-center">註銷帳號</Text>
         </TouchableOpacity>
       </View>
 
@@ -213,25 +141,19 @@ export default function SettingScreen() {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>輸入新的使用者名稱</Text>
             <Text style={styles.ruleText}>
-              ※ 1.只能使用英數字、減號(-)、底線(_)，不能包含空格或中文。
-              {"\n"}2.大寫字母會自動轉為小寫。
+              1.只能使用英數字、減號(-)、底線(_)，不能包含空格或中文。
+              {"\n"}
+              2.大寫字母會自動轉為小寫。
             </Text>
-
             <TextInput
-              style={[
-                styles.input,
-                inputError ? { borderColor: "red" } : null,
-              ]}
+              style={[styles.input, inputError ? { borderColor: "red" } : null]}
               placeholder="新使用者名稱"
               value={tempUsername}
               onChangeText={validateInput}
             />
-            {inputError ? (
-              <Text style={{ color: "red", fontSize: 12, marginBottom: 8 }}>
-                {inputError}
-              </Text>
-            ) : null}
-
+            {inputError && (
+              <Text style={{ color: "red", fontSize: 12, marginBottom: 8 }}>{inputError}</Text>
+            )}
             <TouchableOpacity
               style={[styles.button, { backgroundColor: "#10b981" }]}
               onPress={handleSaveUsername}
