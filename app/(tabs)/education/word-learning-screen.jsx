@@ -1,9 +1,9 @@
 import ArrowBack from "@/components/ArrowBack"; // 自訂返回按鈕
-import { Video } from "expo-av";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { getFavorites, toggleFavorite as toggleFavoriteUtil } from "@/utils/favorites";
 import {
   Dimensions,
   Image,
@@ -14,6 +14,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  TextInput,
+  FlatList,
+  PanResponder,
 } from "react-native";
 
 const screenWidth = Dimensions.get("window").width;
@@ -21,77 +24,347 @@ const screenWidth = Dimensions.get("window").width;
 export default function WordLearningPage() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [wordData, setWordData] = useState(null);
+  const [words, setWords] = useState([]);
+  const [favorites, setFavorites] = useState(new Set());
+  const [searchText, setSearchText] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [currentWord, setCurrentWord] = useState(null);
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [mode, setMode] = useState('list'); // 'list', 'learning', 'favorites'
+  const [loading, setLoading] = useState(true);
+
+  const userId = 'user123'; // 實際應從認證系統取得
+
+  // 滑動手勢處理
+  const panResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (evt, gestureState) => {
+      return Math.abs(gestureState.dx) > 20;
+    },
+    onPanResponderRelease: (evt, gestureState) => {
+      if (gestureState.dx > 50) {
+        // 右滑 - 上一個單詞
+        goToPreviousWord();
+      } else if (gestureState.dx < -50) {
+        // 左滑 - 下一個單詞
+        goToNextWord();
+      }
+    },
+  });
+
+  const goToNextWord = () => {
+    if (currentWordIndex < words.length - 1) {
+      const nextIndex = currentWordIndex + 1;
+      setCurrentWordIndex(nextIndex);
+      setCurrentWord(words[nextIndex]);
+    }
+  };
+
+  const goToPreviousWord = () => {
+    if (currentWordIndex > 0) {
+      const prevIndex = currentWordIndex - 1;
+      setCurrentWordIndex(prevIndex);
+      setCurrentWord(words[prevIndex]);
+    }
+  };
 
   useEffect(() => {
-    axios
-      .get("http://172.20.10.3:3001/api/vocabularies")
-      .then((res) => {
-        console.log("✅ 從 API 拿到：", res.data);
+    fetchWords();
+    fetchFavorites();
+  }, [selectedLevel, selectedCategory, searchText]);
 
-        if (res.data.length > 0) {
-          setWordData(res.data[0]);
-        } else {
-          console.warn("⚠️ API 回傳是空陣列！");
-        }
-      })
-      .catch((err) => console.error("❌ API Error", err));
+  // 組件首次掛載時載入收藏數據
+  useEffect(() => {
+    fetchFavorites();
   }, []);
 
+  const fetchWords = async () => {
+    try {
+      setLoading(true);
+  
+      let url = `http://192.168.1.231:3001/api/book_words`;
+;
 
+      const params = new URLSearchParams();
+      
+      if (selectedLevel) params.append('level', selectedLevel);
+      if (selectedCategory) params.append('category', selectedCategory);
+      if (searchText) params.append('search', searchText);
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      console.log("請求 URL:", url);
+      const res = await axios.get(url);
+      console.log("✅ 從 book_words API 拿到：", res.data);
+      setWords(res.data);
+      
+      if (res.data.length > 0 && !currentWord) {
+        setCurrentWord(res.data[0]);
+      }
+    } catch (error) {
+      console.error('取得單詞失敗', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return (
-    <LinearGradient colors={["#e0f2fe", "#bae6fd"]} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <ArrowBack />
+  const fetchFavorites = async () => {
+    try {
+      // 從 AsyncStorage 載入收藏數據
+      const favoritesSet = await getFavorites(userId);
+      setFavorites(favoritesSet);
+      console.log('✅ 載入收藏數據:', Array.from(favoritesSet));
+    } catch (error) {
+      console.error('載入收藏失敗', error);
+    }
+  };
+
+  const toggleFavorite = async (wordId) => {
+    try {
+      // 使用工具函數切換收藏狀態
+      const newFavorites = await toggleFavoriteUtil(userId, wordId);
+      if (newFavorites) {
+        setFavorites(newFavorites);
+      }
+      
+      // 未來也可以同步到後端 API
+      // await axios.post('http://172.20.10.3:3001/api/favorites', {
+      //   user_id: userId, 
+      //   word_id: wordId,
+      //   action: favorites.has(wordId) ? 'remove' : 'add'
+      // });
+    } catch (error) {
+      console.error('收藏操作失敗', error);
+    }
+  };
+
+  const WordCard = ({ item, index }) => (
+    <TouchableOpacity 
+      style={styles.wordCard}
+      onPress={() => {
+        setCurrentWord(item);
+        setCurrentWordIndex(index);
+        setMode('learning');
+      }}
+    >
+      <Image source={{ uri: item.image_url }} style={styles.wordCardImage} />
+      <View style={styles.wordInfo}>
+        <Text style={styles.wordCardText}>{item.title}</Text>
+        <Text style={styles.levelText}>{item.level || '初級'}</Text>
+      </View>
+      <TouchableOpacity 
+        style={styles.favoriteBtn}
+        onPress={(e) => {
+          e.stopPropagation();
+          toggleFavorite(item._id);
+        }}
+      >
+        <Text style={styles.favoriteIcon}>
+          {favorites.has(item._id) ? '❤️' : '🤍'}
+        </Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+
+  const renderListView = () => (
+    <View style={styles.container}>
+      {/* 搜尋列 */}
+      <TextInput
+        style={styles.searchInput}
+        placeholder="搜尋單詞..."
+        value={searchText}
+        onChangeText={setSearchText}
+      />
+      
+      {/* 篩選按鈕 */}
+      <ScrollView horizontal style={styles.filterRow} showsHorizontalScrollIndicator={false}>
+        {['初級', '中級', '高級'].map(level => (
+          <TouchableOpacity
+            key={level}
+            style={[styles.filterBtn, selectedLevel === level && styles.filterBtnActive]}
+            onPress={() => setSelectedLevel(selectedLevel === level ? '' : level)}
+          >
+            <Text style={[styles.filterText, selectedLevel === level && styles.filterTextActive]}>
+              {level}
+            </Text>
+          </TouchableOpacity>
+        ))}
         
-        {wordData ? (
-          <View style={[styles.card, styles.imageWrapper]}>
-            <Text style={styles.wordText}>{wordData.title}</Text>
+        {['數字', '動物', '食物', '日常'].map(category => (
+          <TouchableOpacity
+            key={category}
+            style={[styles.filterBtn, selectedCategory === category && styles.filterBtnActive]}
+            onPress={() => setSelectedCategory(selectedCategory === category ? '' : category)}
+          >
+            <Text style={[styles.filterText, selectedCategory === category && styles.filterTextActive]}>
+              {category}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
-            <TouchableOpacity onPress={() => setModalVisible(true)}>
-              <Image
-                source={{ uri: wordData.image_url }}
-                style={styles.imageMedia}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
+      {/* 單詞列表 */}
+      {loading ? (
+        <Text style={styles.loadingText}>載入中...</Text>
+      ) : (
+        <FlatList
+          data={words}
+          renderItem={({ item, index }) => <WordCard item={item} index={index} />}
+          keyExtractor={item => item._id}
+          numColumns={2}
+          contentContainerStyle={styles.wordList}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+    </View>
+  );
 
-            <Text style={styles.subTitle}>手語影片教學 🎬</Text>
+  const renderLearningView = () => (
+    <View style={styles.learningContainer}>
+      <View style={styles.learningHeader}>
+        <TouchableOpacity 
+          style={styles.backBtn}
+          onPress={() => setMode('list')}
+        >
+          <Text style={styles.backBtnText}>← 返回列表</Text>
+        </TouchableOpacity>
+        
+        <Text style={styles.wordCounter}>
+          {currentWordIndex + 1} / {words.length}
+        </Text>
+      </View>
+      
+      {currentWord && (
+        <View style={styles.learningContent} {...panResponder.panHandlers}>
+          <ScrollView contentContainerStyle={styles.learningScrollContainer}>
+            <View style={styles.learningCard}>
+              <Text style={styles.learningWord}>{currentWord.title}</Text>
+              
+              <TouchableOpacity onPress={() => setModalVisible(true)}>
+                <Image 
+                  source={{ uri: currentWord.image_url }} 
+                  style={styles.learningImage} 
+                  resizeMode="contain"
+                />
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[
+                  styles.favoriteButton,
+                  { backgroundColor: favorites.has(currentWord._id) ? "#93c5fd" : "#dbeafe" }
+                ]}
+                onPress={() => toggleFavorite(currentWord._id)}
+              >
+                <Text style={styles.favoriteText}>
+                  {favorites.has(currentWord._id) ? '❤️ 已收藏' : '🤍 加入收藏'}
+                </Text>
+              </TouchableOpacity>
 
-            <Video
-              source={{ uri: wordData.video_url }}
-              useNativeControls
-              resizeMode="contain"
-              style={styles.videoMedia}
-            />
-
-            <TouchableOpacity
-              style={[
-                styles.favoriteButton,
-                { backgroundColor: isFavorited ? "#93c5fd" : "#dbeafe" },
-              ]}
-              onPress={() => setIsFavorited(!isFavorited)}
+              {currentWord.content && (
+                <Text style={styles.descriptionText}>{currentWord.content}</Text>
+              )}
+            </View>
+          </ScrollView>
+          
+          {/* 導航按鈕 */}
+          <View style={styles.navigationButtons}>
+            <TouchableOpacity 
+              style={[styles.navBtn, currentWordIndex === 0 && styles.navBtnDisabled]}
+              onPress={goToPreviousWord}
+              disabled={currentWordIndex === 0}
             >
-              <Text style={styles.favoriteText}>
-                {isFavorited ? "❤️ 已收藏" : "🤍 加入收藏"}
+              <Text style={[styles.navBtnText, currentWordIndex === 0 && styles.navBtnTextDisabled]}>
+                ← 上一個
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.navBtn, currentWordIndex === words.length - 1 && styles.navBtnDisabled]}
+              onPress={goToNextWord}
+              disabled={currentWordIndex === words.length - 1}
+            >
+              <Text style={[styles.navBtnText, currentWordIndex === words.length - 1 && styles.navBtnTextDisabled]}>
+                下一個 →
               </Text>
             </TouchableOpacity>
           </View>
+          
+          <Text style={styles.swipeHint}>💡 左右滑動切換單詞</Text>
+        </View>
+      )}
+    </View>
+  );
+
+  const renderFavoritesView = () => {
+    const favoriteWords = words.filter(word => favorites.has(word._id));
+    
+    return (
+      <View style={styles.container}>
+        <Text style={styles.favoritesTitle}>我的收藏 ({favoriteWords.length})</Text>
+        
+        {favoriteWords.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>還沒有收藏任何單詞</Text>
+            <TouchableOpacity 
+              style={styles.exploreBtn}
+              onPress={() => setMode('list')}
+            >
+              <Text style={styles.exploreBtnText}>去探索單詞</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
-          <Text style={{ fontSize: 18, marginTop: 100 }}>載入中...</Text>
+          <FlatList
+            data={favoriteWords}
+            renderItem={({ item, index }) => <WordCard item={item} index={index} />}
+            keyExtractor={item => item._id}
+            numColumns={2}
+            contentContainerStyle={styles.wordList}
+            showsVerticalScrollIndicator={false}
+          />
         )}
-      </ScrollView>
+      </View>
+    );
+  };
+
+  return (
+    <LinearGradient colors={["#e0f2fe", "#bae6fd"]} style={{ flex: 1 }}>
+      {/* 頂部導航 */}
+      <View style={styles.header}>
+        <ArrowBack />
+        <View style={styles.tabContainer}>
+          <TouchableOpacity 
+            style={[styles.tabBtn, mode === 'list' && styles.tabBtnActive]}
+            onPress={() => setMode('list')}
+          >
+            <Text style={[styles.tabBtnText, mode === 'list' && styles.tabBtnTextActive]}>
+              單詞列表
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tabBtn, mode === 'favorites' && styles.tabBtnActive]}
+            onPress={() => setMode('favorites')}
+          >
+            <Text style={[styles.tabBtnText, mode === 'favorites' && styles.tabBtnTextActive]}>
+              我的收藏
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {mode === 'list' && renderListView()}
+      {mode === 'learning' && renderLearningView()}
+      {mode === 'favorites' && renderFavoritesView()}
 
       <Modal visible={modalVisible} transparent animationType="fade">
         <Pressable
           style={styles.modalContainer}
           onPress={() => setModalVisible(false)}
         >
-          {wordData && (
+          {currentWord && (
             <Image
-              source={{ uri: wordData.image_url }}
+              source={{ uri: currentWord.image_url }}
               style={styles.fullImage}
               resizeMode="contain"
             />
@@ -103,65 +376,280 @@ export default function WordLearningPage() {
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    padding: 16,
-    alignItems: "center",
-    paddingBottom: 80,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 60,
+    paddingBottom: 16,
+    backgroundColor: 'rgba(255,255,255,0.9)',
   },
-  card: {
-    width: "100%",
-    maxWidth: 420,
+  tabContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginLeft: 20,
+  },
+  tabBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    marginHorizontal: 8,
     borderRadius: 20,
-    backgroundColor: "#ffffff",
+    backgroundColor: 'transparent',
+  },
+  tabBtnActive: {
+    backgroundColor: '#3b82f6',
+  },
+  tabBtnText: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+  tabBtnTextActive: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  container: {
+    flex: 1,
     padding: 16,
-    shadowColor: "#60a5fa",
+  },
+  searchInput: {
+    backgroundColor: 'white',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  filterRow: {
+    marginBottom: 16,
+    paddingHorizontal: 8,
+    height: 48,
+  },
+  filterBtn: {
+    backgroundColor: 'white',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterBtnActive: {
+    backgroundColor: '#3b82f6',
+  },
+  filterText: {
+    color: '#666',
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  filterTextActive: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  loadingText: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 100,
+    color: '#666',
+  },
+  wordList: {
+    paddingBottom: 100,
+  },
+  wordCard: {
+    backgroundColor: 'white',
+    margin: 6,
+    borderRadius: 16,
+    padding: 12,
+    flex: 1,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    maxWidth: (screenWidth - 48) / 2,
+  },
+  wordCardImage: {
+    width: (screenWidth - 48) / 2 - 24,
+    height: (screenWidth - 48) / 2 - 24,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  wordInfo: {
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  wordCardText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e3a8a',
+    textAlign: 'center',
+  },
+  levelText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  favoriteBtn: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    padding: 4,
+  },
+  favoriteIcon: {
+    fontSize: 20,
+  },
+  learningContainer: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  learningHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  wordCounter: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+  learningContent: {
+    flex: 1,
+  },
+  backBtn: {
+    paddingVertical: 8,
+  },
+  backBtnText: {
+    fontSize: 16,
+    color: '#3b82f6',
+    fontWeight: '500',
+  },
+  learningScrollContainer: {
+    paddingBottom: 100,
+  },
+  learningCard: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 10,
-    elevation: 4,
-    alignItems: "center",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  wordText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1e3a8a",
+  learningWord: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#1e3a8a',
     marginBottom: 16,
-    textAlign: "center",
+    textAlign: 'center',
   },
-  imageMedia: {
-    width: screenWidth * 0.85,
-    maxWidth: 340,
-    height: 340,
-    aspectRatio: 1,
-    borderRadius: 12,
+  learningImage: {
+    width: screenWidth * 0.8,
+    height: screenWidth * 0.8,
+    maxWidth: 300,
+    maxHeight: 300,
+    borderRadius: 16,
     marginBottom: 16,
-    backgroundColor: "transparent",
-  },
-  videoMedia: {
-    width: screenWidth * 0.85,
-    maxWidth: 340,
-    height: 240,
-    aspectRatio: 16 / 9,
-    borderRadius: 12,
-    marginBottom: 20,
-    backgroundColor: "#dbeafe",
   },
   subTitle: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#1e40af",
-    marginBottom: 10,
-    marginTop: 6,
+    fontWeight: '600',
+    color: '#1e40af',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  navigationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  navBtn: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  navBtnDisabled: {
+    backgroundColor: '#e5e7eb',
+  },
+  navBtnText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  navBtnTextDisabled: {
+    color: '#9ca3af',
+  },
+  swipeHint: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#9ca3af',
+    paddingBottom: 20,
   },
   favoriteButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    marginBottom: 16,
   },
   favoriteText: {
     fontSize: 16,
-    fontWeight: "500",
-    color: "#1e3a8a",
+    fontWeight: '600',
+    color: '#1e3a8a',
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  favoritesTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1e3a8a',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 100,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  exploreBtn: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  exploreBtnText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   modalContainer: {
     flex: 1,
@@ -172,7 +660,7 @@ const styles = StyleSheet.create({
   fullImage: {
     width: "90%",
     height: "80%",
-    maxWidth: 340,
-    maxHeight: 460,
+    maxWidth: 400,
+    maxHeight: 500,
   },
 });
