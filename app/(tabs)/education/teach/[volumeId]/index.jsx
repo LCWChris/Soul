@@ -1,16 +1,19 @@
+import { API_CONFIG } from "@/constants/api";
 import axios from "axios";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
-
 export default function VolumeIndex() {
   const { volumeId } = useLocalSearchParams();
   const [lessons, setLessons] = useState([]);
 
   useEffect(() => {
-    axios.get(`http://192.168.1.182:3001/api/materials?volume=${volumeId}`)
-      .then(res => setLessons(res.data))
-      .catch(err => console.error("載入單元失敗", err));
+    axios
+      .get(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIALS}?volume=${volumeId}`
+      )
+      .then((res) => setLessons(res.data))
+      .catch((err) => console.error("載入單元失敗", err));
   }, [volumeId]);
 
   return (
@@ -21,7 +24,8 @@ export default function VolumeIndex() {
           style={styles.card}
           onPress={() => {
             console.log("🧭 點擊教材，導向 _id：", item._id);
-            router.push(`/education/teach/${volumeId}/${item._id}`)}}
+            router.push(`/education/teach/${volumeId}/${item._id}`);
+          }}
         >
           <Text style={styles.unit}>{item.unit}</Text>
         </TouchableOpacity>

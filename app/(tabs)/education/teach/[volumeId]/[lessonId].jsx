@@ -1,7 +1,15 @@
+import { API_CONFIG } from "@/constants/api";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 export default function LessonPage() {
   const { lessonId } = useLocalSearchParams();
@@ -11,7 +19,7 @@ export default function LessonPage() {
   useEffect(() => {
     console.log("📦 進入教材頁面，lessonId：", lessonId);
     axios
-      .get(`http://192.168.1.182:3001/api/material/${lessonId}`)
+      .get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIAL}/${lessonId}`)
       .then((res) => {
         console.log("✅ 成功取得教材資料", res.data);
         setData(res.data);
