@@ -17,7 +17,7 @@ export default function login() {
       console.log("createdSessionId", createdSessionId, "setActive", setActive);
       if (createdSessionId && setActive) {
         setActive({ session: createdSessionId });
-        router.replace("/(tabs)");
+        router.replace("/");
       }
     } catch (error) {
       console.error("OAuth error:", error);
@@ -32,7 +32,7 @@ export default function login() {
 
       if (createdSessionId && setActive) {
         setActive({ session: createdSessionId });
-        router.replace("/(tabs)");
+        router.replace("/");
       }
     } catch (error) {
       console.error("OAuth error:", error);
