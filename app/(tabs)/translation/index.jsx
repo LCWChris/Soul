@@ -23,8 +23,9 @@ export default function TranslateScreen() {
   const [isUploading, setIsUploading] = useState(false);
   const [translationResult, setTranslationResult] = useState(null);
   const cameraRef = useRef(null);
+
   const BACKEND_URL = process.env.EXPO_PUBLIC_TRANSLATE_API_BACKEND_URL;
-  const NODE_API = process.env.EXPO_PUBLIC_NODE_API;
+  const NODE_API = `http://${process.env.EXPO_PUBLIC_IP}:3001`;
 
   const resetState = () => {
     setPhotoUri(null);
@@ -58,7 +59,7 @@ export default function TranslateScreen() {
       type: 'video/mp4',
       name: 'upload.mp4',
     });
-    data.append('upload_preset', 'upload'); // ⚠️ 改成你 Cloudinary 的 preset
+    data.append("upload_preset", "upload");
 
     const res = await fetch(
       'https://api.cloudinary.com/v1_1/dbmrnpwxd/video/upload',
@@ -116,59 +117,57 @@ export default function TranslateScreen() {
   };
 
   const uploadAndTranslateVideo = async () => {
-  if (!videoUri) {
-    alert('請先錄製或選擇影片');
-    return;
-  }
+    if (!videoUri) {
+      alert('請先錄製或選擇影片');
+      return;
+    }
 
-  setIsUploading(true);
-  setTranslationResult(null);
+    setIsUploading(true);
+    setTranslationResult(null);
 
-  try {
-    // ① 上傳到 Cloudinary
-    const cloudUrl = await uploadVideoToCloudinary(videoUri);
+    try {
+      // ① 上傳到 Cloudinary
+      const cloudUrl = await uploadVideoToCloudinary(videoUri);
 
-    // ② 傳給 Node.js 寫入 MongoDB
-    await fetch(`${NODE_API}/api/vocabularies`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    title: '影片標題',
-    content: '',
-    level: '',
-    theme: '',
-    image_url: '',
-    video_url: cloudUrl,  // 這是 Cloudinary 回傳網址
-    created_by: 'frontend',  // 可省略
-    created_at: new Date().toISOString(),
-  }),
-});
+      // ② 傳給 Node.js 寫入 MongoDB
+      await fetch(`${NODE_API}/api/vocabularies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: '影片標題',
+          content: '',
+          level: '',
+          theme: '',
+          image_url: '',
+          video_url: cloudUrl,  // 這是 Cloudinary 回傳網址
+          created_by: 'frontend',  // 可省略
+          created_at: new Date().toISOString(),
+        }),
+      });
 
+      // ③ 傳影片給 FastAPI 翻譯
+      const formData = new FormData();
+      formData.append('file', {
+        uri: videoUri,
+        name: 'video.mp4',
+        type: 'video/mp4',
+      });
 
-    // ③ 傳影片給 FastAPI 翻譯
-    const formData = new FormData();
-    formData.append('file', {
-      uri: videoUri,
-      name: 'video.mp4',
-      type: 'video/mp4',
-    });
+      const response = await fetch(`${BACKEND_URL}/translate`, {
+        method: 'POST',
+        body: formData,
+      });
 
-    const response = await fetch(`${BACKEND_URL}/translate`, {
-      method: 'POST',
-      body: formData,
-    });
+      const data = await response.json();
+      setTranslationResult(data.translation || '未取得翻譯結果');
 
-    const data = await response.json();
-    setTranslationResult(data.translation || '未取得翻譯結果');
-
-  } catch (error) {
-    console.error('上傳或翻譯失敗：', error);
-    setTranslationResult('翻譯失敗，請稍後再試');
-  } finally {
-    setIsUploading(false);
-  }
-};
-
+    } catch (error) {
+      console.error('上傳或翻譯失敗：', error);
+      setTranslationResult('翻譯失敗，請稍後再試');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <View style={{ flex: 1 }}>

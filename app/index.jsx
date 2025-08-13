@@ -7,25 +7,28 @@ import { ActivityIndicator, View } from 'react-native';
 export default function Index() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasFilled, setHasFilled] = useState(false);
-  const { isSignedIn, user } = useAuth();
+  const { isSignedIn, userId } = useAuth();
 
   useEffect(() => {
     const checkQuestionnaire = async () => {
+      if (!userId) return;
+
+      const key = `questionnaireFilled_${userId}`;
+      console.log("[Index] 登入後檢查問卷 → key:", key);
+
       try {
-        if (user?.id) {
-          const filled = await AsyncStorage.getItem(`questionnaireFilled_${user.id}`);
-          console.log('問卷紀錄值：', filled);
-          setHasFilled(filled === 'true');
-        }
+        const filled = await AsyncStorage.getItem(key);
+        console.log(`[Index] 讀取問卷狀態 → key: ${key}，值:`, filled);
+        setHasFilled(filled === "true");
       } catch (e) {
-        console.error('讀取問卷狀態失敗', e);
+        console.error("[Index] 讀取問卷狀態失敗", e);
       } finally {
         setIsLoading(false);
       }
     };
 
     checkQuestionnaire();
-  }, [user]);
+  }, [userId]);
 
   if (!isSignedIn) {
     return <Redirect href="/(auth)/sign-in" />;

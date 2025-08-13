@@ -6,5 +6,5 @@ export const API_CONFIG = {
     MATERIALS: "/api/materials",
     MATERIAL: "/api/material",
   },
-  TIMEOUT: 10000, // 10 秒超時
+  TIMEOUT: 10000,
 };

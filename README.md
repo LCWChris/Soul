@@ -42,6 +42,7 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
    npx expo start
    ```
+4. 修改.env中的EXPO_PUBLIC_IP為自己的網域，取得方式可以參考NETWORK_SETUP_GUIDE.md
 
 # 翻譯 API 啟動指南
 
@@ -93,6 +94,8 @@ Authtoken saved to configuration file: ~/.ngrok2/ngrok.yml
 ---
 
 ## 3️⃣ 啟動翻譯 API
+
+以下方法都建議在anaconda 環境中操作
 
 ### 方法一：手動啟動
 
