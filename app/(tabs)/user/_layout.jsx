@@ -1,4 +1,4 @@
-import { Stack, usePathname } from "expo-router";
+import { Stack, usePathname } from 'expo-router';
 
 export default function _layout() {
   const pathname = usePathname();
@@ -6,7 +6,7 @@ export default function _layout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: pathname.startsWith("/user") ? "default" : "none",
+        animation: pathname.startsWith('/user') ? 'default' : 'none',
       }}
     />
   );

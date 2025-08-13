@@ -1,11 +1,11 @@
-import ArrowBack from "@/components/ArrowBack"; // 自訂返回按鈕
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { getFavorites, toggleFavorite as toggleFavoriteUtil } from "@/utils/favorites";
-import { API_CONFIG } from "@/constants/api";
-import { NetworkTester } from "@/utils/networkTester";
+import ArrowBack from '@/components/ArrowBack'; // 自訂返回按鈕
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { getFavorites, toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
+import { API_CONFIG } from '@/constants/api';
+import { NetworkTester } from '@/utils/networkTester';
 import {
   Dimensions,
   Image,
@@ -20,9 +20,9 @@ import {
   FlatList,
   PanResponder,
   Alert,
-} from "react-native";
+} from 'react-native';
 
-const screenWidth = Dimensions.get("window").width;
+const screenWidth = Dimensions.get('window').width;
 
 export default function WordLearningPage() {
   const router = useRouter();
@@ -96,36 +96,36 @@ export default function WordLearningPage() {
         url += `?${params.toString()}`;
       }
       
-      console.log("🔍 當前 API 配置:", API_CONFIG.BASE_URL);
-      console.log("📡 請求 URL:", url);
+      console.log('🔍 當前 API 配置:', API_CONFIG.BASE_URL);
+      console.log('📡 請求 URL:', url);
       
       const res = await axios.get(url, {
         timeout: API_CONFIG.TIMEOUT,
       });
       
-      console.log("✅ API 連接成功，獲取到", res.data.length, "個單詞");
+      console.log('✅ API 連接成功，獲取到', res.data.length, '個單詞');
       setWords(res.data);
       if (res.data.length > 0) {
         setCurrentWord(res.data[0]);
         setCurrentWordIndex(0);
       }
     } catch (error) {
-      console.error("❌ API 連接失敗:", error.message);
+      console.error('❌ API 連接失敗:', error.message);
       
       // 網路連接檢查和用戶提示
       Alert.alert(
-        "網路連接問題",
+        '網路連接問題',
         `無法連接到伺服器 (${API_CONFIG.BASE_URL})\n\n可能的原因：\n• 伺服器未啟動\n• 網路連接問題\n• IP 地址設定錯誤\n\n錯誤詳情：${error.message}`,
         [
           {
-            text: "檢查網路連接",
+            text: '檢查網路連接',
             onPress: async () => {
               const networkInfo = await NetworkTester.getNetworkInfo();
-              console.log("網路檢查結果:", networkInfo);
-            }
+              console.log('網路檢查結果:', networkInfo);
+            },
           },
-          { text: "確定", style: "default" }
-        ]
+          { text: '確定', style: 'default' },
+        ],
       );
       
       setWords([]);
@@ -277,7 +277,7 @@ export default function WordLearningPage() {
               <TouchableOpacity 
                 style={[
                   styles.favoriteButton,
-                  { backgroundColor: favorites.has(currentWord._id) ? "#93c5fd" : "#dbeafe" }
+                  { backgroundColor: favorites.has(currentWord._id) ? '#93c5fd' : '#dbeafe' },
                 ]}
                 onPress={() => toggleFavorite(currentWord._id)}
               >
@@ -353,7 +353,7 @@ export default function WordLearningPage() {
   };
 
   return (
-    <LinearGradient colors={["#e0f2fe", "#bae6fd"]} style={{ flex: 1 }}>
+    <LinearGradient colors={['#e0f2fe', '#bae6fd']} style={{ flex: 1 }}>
       {/* 頂部導航 */}
       <View style={styles.header}>
         <ArrowBack />
@@ -677,13 +677,13 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.85)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   fullImage: {
-    width: "90%",
-    height: "80%",
+    width: '90%',
+    height: '80%',
     maxWidth: 400,
     maxHeight: 500,
   },

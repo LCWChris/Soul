@@ -1,9 +1,9 @@
-import { COLORS } from "@/constants/theme";
-import { styles } from "@/styles/auth.styles";
-import { useSSO } from "@clerk/clerk-expo";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useRouter } from "expo-router";
-import { Image, Text, TouchableOpacity, View } from "react-native";
+import { COLORS } from '@/constants/theme';
+import { styles } from '@/styles/auth.styles';
+import { useSSO } from '@clerk/clerk-expo';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useRouter } from 'expo-router';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 export default function login() {
   const { startSSOFlow } = useSSO();
@@ -12,30 +12,30 @@ export default function login() {
   const handleGoogleSignIn = async () => {
     try {
       const { createdSessionId, setActive } = await startSSOFlow({
-        strategy: "oauth_google",
+        strategy: 'oauth_google',
       });
-      console.log("createdSessionId", createdSessionId, "setActive", setActive);
+      console.log('createdSessionId', createdSessionId, 'setActive', setActive);
       if (createdSessionId && setActive) {
         setActive({ session: createdSessionId });
-        router.replace("/(tabs)");
+        router.replace('/(tabs)');
       }
     } catch (error) {
-      console.error("OAuth error:", error);
+      console.error('OAuth error:', error);
     }
   };
 
   const handleFacebookSignIn = async () => {
     try {
       const { createdSessionId, setActive } = await startSSOFlow({
-        strategy: "oauth_facebook",
+        strategy: 'oauth_facebook',
       });
 
       if (createdSessionId && setActive) {
         setActive({ session: createdSessionId });
-        router.replace("/(tabs)");
+        router.replace('/(tabs)');
       }
     } catch (error) {
-      console.error("OAuth error:", error);
+      console.error('OAuth error:', error);
     }
   };
 
@@ -45,7 +45,7 @@ export default function login() {
       <View style={styles.brandSection}>
         <View style={styles.logoContainer}>
           <Image
-            source={require("../../assets/images/icon.png")}
+            source={require('../../assets/images/icon.png')}
             style={styles.logo}
           />
         </View>
@@ -56,7 +56,7 @@ export default function login() {
       <View style={styles.illustrationContainer}>
         <Image
           style={styles.illustration}
-          source={require("../../assets/images/auth-bh-2.png")}
+          source={require('../../assets/images/auth-bh-2.png')}
           resizeMode="cover"
         ></Image>
       </View>

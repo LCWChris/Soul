@@ -1,8 +1,8 @@
-import { API_CONFIG } from "@/constants/api";
-import axios from "axios";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { API_CONFIG } from '@/constants/api';
+import axios from 'axios';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 export default function TeachScreen() {
   const [volumes, setVolumes] = useState([]);
 
@@ -13,13 +13,13 @@ export default function TeachScreen() {
         const uniqueVolumes = [...new Set(res.data.map((item) => item.volume))];
         setVolumes(uniqueVolumes);
       })
-      .catch((err) => console.error("載入冊別失敗", err));
+      .catch((err) => console.error('載入冊別失敗', err));
   }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {volumes.map((vol) => {
-        console.log("🔍 渲染中的 vol：", vol); // ← 你可以加這行 debug
+        console.log('🔍 渲染中的 vol：', vol); // ← 你可以加這行 debug
         return (
           <TouchableOpacity
             key={vol}
@@ -40,14 +40,14 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   card: {
-    backgroundColor: "#E0E7FF",
+    backgroundColor: '#E0E7FF',
     padding: 16,
     borderRadius: 12,
-    alignItems: "center",
+    alignItems: 'center',
   },
   text: {
     fontSize: 18,
-    fontWeight: "bold",
-    color: "#1E3A8A",
+    fontWeight: 'bold',
+    color: '#1E3A8A',
   },
 });
