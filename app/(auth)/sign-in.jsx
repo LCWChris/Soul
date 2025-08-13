@@ -17,11 +17,7 @@ export default function login() {
       console.log('createdSessionId', createdSessionId, 'setActive', setActive);
       if (createdSessionId && setActive) {
         setActive({ session: createdSessionId });
-<<<<<<< HEAD
-        router.replace('/(tabs)');
-=======
         router.replace("/");
->>>>>>> cff8ae7c68096983872d349dd42ab1a5501caa2d
       }
     } catch (error) {
       console.error('OAuth error:', error);
@@ -36,11 +32,7 @@ export default function login() {
 
       if (createdSessionId && setActive) {
         setActive({ session: createdSessionId });
-<<<<<<< HEAD
-        router.replace('/(tabs)');
-=======
         router.replace("/");
->>>>>>> cff8ae7c68096983872d349dd42ab1a5501caa2d
       }
     } catch (error) {
       console.error('OAuth error:', error);
