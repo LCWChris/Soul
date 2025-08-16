@@ -68,9 +68,9 @@ app.get("/api/book_words", async (req, res) => {
       query.learning_level = learning_level;
     }
 
-    // 根據分類篩選 (categories 陣列)
+    // 根據分類篩選 (使用 category 欄位)
     if (category) {
-      query.categories = { $in: [category] };
+      query.category = category;
     }
 
     // 根據情境篩選
@@ -121,12 +121,12 @@ app.get("/api/vocabularies", async (req, res) => {
 
     // 根據等級篩選
     if (level) {
-      query.level = level;
+      query.learning_level = level;
     }
 
-    // 根據分類篩選 (theme 欄位)
+    // 根據分類篩選 (使用 category 欄位)
     if (category) {
-      query.theme = category;
+      query.category = category;
     }
 
     // 根據搜尋關鍵字篩選 (title 欄位)
@@ -135,7 +135,7 @@ app.get("/api/vocabularies", async (req, res) => {
     }
 
     console.log("搜尋條件:", query);
-    const data = await Vocabulary.find(query);
+    const data = await BookWord.find(query);
     console.log(`找到 ${data.length} 筆資料`);
     res.json(data);
   } catch (err) {
@@ -147,23 +147,44 @@ app.get("/api/vocabularies", async (req, res) => {
 // 新增：獲取所有可用的分類
 app.get("/api/categories", async (req, res) => {
   try {
+    // 使用 category 欄位而不是 categories 陣列，避免 nan 值
     const categories = await BookWord.aggregate([
-      { $unwind: "$categories" },
-      { $group: { _id: "$categories", count: { $sum: 1 } } },
+      { 
+        $match: { 
+          category: { $exists: true, $ne: null, $ne: "", $ne: "nan" } 
+        } 
+      },
+      { 
+        $group: { 
+          _id: "$category", 
+          count: { $sum: 1 } 
+        } 
+      },
       { $sort: { count: -1 } }
     ]);
     
-    const learning_levels = await BookWord.distinct("learning_level");
-    const contexts = await BookWord.distinct("context");
-    const frequencies = await BookWord.distinct("frequency");
-    const volumes = await BookWord.distinct("volume");
+    const learning_levels = await BookWord.distinct("learning_level", {
+      learning_level: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
+    });
+    
+    const contexts = await BookWord.distinct("context", {
+      context: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
+    });
+    
+    const frequencies = await BookWord.distinct("frequency", {
+      frequency: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
+    });
+    
+    const volumes = await BookWord.distinct("volume", {
+      volume: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
+    });
     
     res.json({
       categories: categories.map(cat => ({ name: cat._id, count: cat.count })),
-      learning_levels,
-      contexts,
-      frequencies,
-      volumes
+      learning_levels: learning_levels.filter(level => level && level !== "nan"),
+      contexts: contexts.filter(context => context && context !== "nan"),
+      frequencies: frequencies.filter(freq => freq && freq !== "nan"),
+      volumes: volumes.filter(vol => vol && vol !== "nan")
     });
   } catch (err) {
     console.error("獲取分類失敗:", err);
@@ -224,6 +245,68 @@ app.get("/api/stats", async (req, res) => {
   } catch (err) {
     console.error("獲取統計失敗:", err);
     res.status(500).json({ error: "獲取統計失敗" });
+  }
+});
+
+// 新增：批量更新詞匯分級
+app.post("/api/book_words/batch_update", async (req, res) => {
+  try {
+    const { updates } = req.body;
+    
+    if (!updates || !Array.isArray(updates)) {
+      return res.status(400).json({ error: "需要提供updates陣列" });
+    }
+    
+    let updated_count = 0;
+    let error_count = 0;
+    
+    for (const updateRequest of updates) {
+      try {
+        const { filter, update } = updateRequest;
+        const result = await BookWord.updateOne(filter, { $set: update });
+        
+        if (result.modifiedCount > 0) {
+          updated_count++;
+        }
+      } catch (error) {
+        error_count++;
+        console.error("批量更新單個詞匯失敗:", error);
+      }
+    }
+    
+    res.json({
+      updated_count,
+      error_count,
+      total_requested: updates.length
+    });
+    
+  } catch (err) {
+    console.error("批量更新失敗:", err);
+    res.status(500).json({ error: "批量更新失敗" });
+  }
+});
+
+// 新增：獲取分級統計
+app.get("/api/book_words/level_stats", async (req, res) => {
+  try {
+    const stats = await BookWord.aggregate([
+      {
+        $group: {
+          _id: "$learning_level",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    const result = {};
+    stats.forEach(stat => {
+      result[stat._id] = stat.count;
+    });
+    
+    res.json(result);
+  } catch (err) {
+    console.error("獲取分級統計失敗:", err);
+    res.status(500).json({ error: "獲取分級統計失敗" });
   }
 });
 

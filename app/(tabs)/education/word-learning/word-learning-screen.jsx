@@ -1,16 +1,4 @@
-<<<<<<< HEAD
-import ArrowBack from '@/components/ArrowBack'; // 自訂返回按鈕
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import { getFavorites, toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
-import { API_CONFIG } from '@/constants/api';
-import { NetworkTester } from '@/utils/networkTester';
-=======
 import ArrowBack from "@/components/ArrowBack"; // 自訂返回按鈕
-import VocabularyCategories from "./word-learning/components/VocabularyCategories";
-import RecommendedWords from "./word-learning/components/RecommendedWords";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -18,7 +6,6 @@ import axios from "axios";
 import { getFavorites, toggleFavorite as toggleFavoriteUtil } from "@/utils/favorites";
 import { API_CONFIG } from "@/constants/api";
 import { NetworkTester } from "@/utils/networkTester";
->>>>>>> 7a725c1666c457e5b90ce0fa890957e9550af73c
 import {
   Dimensions,
   Image,
@@ -33,9 +20,303 @@ import {
   FlatList,
   PanResponder,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 
 const screenWidth = Dimensions.get('window').width;
+
+// ===== 內嵌組件：VocabularyCategories =====
+const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selectedCategory, selectedLearningLevel }) => {
+  const [categories, setCategories] = useState([]);
+  const [learningLevels, setLearningLevels] = useState([]);
+  const [volumes, setVolumes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`);
+      const data = response.data;
+      
+      setCategories(data.categories || []);
+      setLearningLevels(data.learning_levels || []);
+      setVolumes(data.volumes || []);
+      setRetryCount(0);
+    } catch (error) {
+      console.error('獲取分類失敗:', error);
+      setError('無法載入分類資料');
+      
+      if (retryCount < 2) {
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          fetchCategories();
+        }, 2000 * (retryCount + 1));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    setRetryCount(0);
+    fetchCategories();
+  };
+
+  const getLearningLevelDisplayName = (level) => {
+    const levelMap = {
+      'beginner': '🟢 初學者',
+      'intermediate': '🟡 進階者',
+      'advanced': '🔴 熟練者'
+    };
+    return levelMap[level] || level;
+  };
+
+  const getCategoryIcon = (categoryName) => {
+    const iconMap = {
+      '生活用語': '🏠',
+      '情感表達': '💭',
+      '動作描述': '🏃‍♂️',
+      '物品名稱': '📱',
+      '其他': '🔤',
+      '家庭生活': '🏠',
+      '日常動作': '🏃‍♂️',
+      '數字時間': '🕐',
+      '動物自然': '🦁',
+      '人物關係': '👥',
+      '食物飲品': '🍽️',
+      '身體健康': '💪',
+      '地點場所': '📍',
+      '物品工具': '📱'
+    };
+    return iconMap[categoryName] || '📝';
+  };
+
+  if (loading) {
+    return (
+      <View style={categoriesStyles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4A90E2" />
+        <Text style={categoriesStyles.loadingText}>
+          {retryCount > 0 ? `重試中 (${retryCount}/2)...` : '載入分類中...'}
+        </Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={categoriesStyles.errorContainer}>
+        <Text style={categoriesStyles.errorIcon}>😔</Text>
+        <Text style={categoriesStyles.errorTitle}>載入失敗</Text>
+        <Text style={categoriesStyles.errorMessage}>{error}</Text>
+        <TouchableOpacity style={categoriesStyles.retryButton} onPress={handleRetry}>
+          <Text style={categoriesStyles.retryButtonText}>🔄 重試</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={categoriesStyles.container} showsVerticalScrollIndicator={false}>
+      {/* 學習難度選擇 */}
+      <View style={categoriesStyles.section}>
+        <Text style={categoriesStyles.sectionTitle}>📚 按程度學習</Text>
+        <View style={categoriesStyles.levelContainer}>
+          {learningLevels.map((level) => (
+            <TouchableOpacity
+              key={level}
+              style={[
+                categoriesStyles.levelButton,
+                selectedLearningLevel === level && categoriesStyles.selectedButton
+              ]}
+              onPress={() => onLearningLevelSelect(level)}
+            >
+              <Text style={[
+                categoriesStyles.levelButtonText,
+                selectedLearningLevel === level && categoriesStyles.selectedButtonText
+              ]}>
+                {getLearningLevelDisplayName(level)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* 主題分類選擇 */}
+      <View style={categoriesStyles.section}>
+        <Text style={categoriesStyles.sectionTitle}>🏷️ 主題分類</Text>
+        <View style={categoriesStyles.categoryGrid}>
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category.name}
+              style={[
+                categoriesStyles.categoryButton,
+                selectedCategory === category.name && categoriesStyles.selectedButton
+              ]}
+              onPress={() => onCategorySelect(category.name)}
+            >
+              <Text style={categoriesStyles.categoryIcon}>
+                {getCategoryIcon(category.name)}
+              </Text>
+              <Text style={[
+                categoriesStyles.categoryButtonText,
+                selectedCategory === category.name && categoriesStyles.selectedButtonText
+              ]}>
+                {category.name}
+              </Text>
+              <Text style={categoriesStyles.categoryCount}>
+                {category.count} 詞
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* 清除篩選器 */}
+      {(selectedCategory || selectedLearningLevel) && (
+        <View style={categoriesStyles.section}>
+          <TouchableOpacity
+            style={categoriesStyles.clearButton}
+            onPress={() => {
+              onCategorySelect('');
+              onLearningLevelSelect('');
+            }}
+          >
+            <Text style={categoriesStyles.clearButtonText}>🗑️ 清除篩選</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </ScrollView>
+  );
+};
+
+// ===== 內嵌組件：RecommendedWords =====
+const RecommendedWords = ({ learningLevel = 'beginner', onWordPress, limit = 10 }) => {
+  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  useEffect(() => {
+    fetchRecommendations();
+  }, [learningLevel]);
+
+  const fetchRecommendations = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.RECOMMENDATIONS}`,
+        {
+          params: { learning_level: learningLevel, limit },
+          timeout: API_CONFIG.TIMEOUT
+        }
+      );
+      
+      if (response.data && Array.isArray(response.data)) {
+        setRecommendations(response.data);
+        setRetryCount(0);
+      } else {
+        throw new Error('無效的推薦數據格式');
+      }
+    } catch (error) {
+      console.error('獲取推薦詞彙失敗:', error);
+      setError('無法載入推薦詞彙');
+      
+      if (retryCount < 2) {
+        setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          fetchRecommendations();
+        }, 2000 * (retryCount + 1));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    setRetryCount(0);
+    fetchRecommendations();
+  };
+
+  const renderWordCard = ({ item, index }) => (
+    <TouchableOpacity
+      style={[recommendationsStyles.wordCard, index % 2 === 1 && recommendationsStyles.wordCardRight]}
+      onPress={() => onWordPress && onWordPress(item)}
+    >
+      <View style={recommendationsStyles.imageContainer}>
+        {item.image_url ? (
+          <Image source={{ uri: item.image_url }} style={recommendationsStyles.wordImage} />
+        ) : (
+          <View style={recommendationsStyles.placeholderImage}>
+            <Text style={recommendationsStyles.placeholderText}>📝</Text>
+          </View>
+        )}
+      </View>
+      
+      <View style={recommendationsStyles.wordInfo}>
+        <Text style={recommendationsStyles.wordTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
+        
+        <View style={recommendationsStyles.wordMeta}>
+          {item.volume && (
+            <Text style={recommendationsStyles.metaText}>{item.volume}</Text>
+          )}
+          {item.lesson && (
+            <Text style={recommendationsStyles.metaText}>第{item.lesson}課</Text>
+          )}
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  if (loading) {
+    return (
+      <View style={recommendationsStyles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4A90E2" />
+        <Text style={recommendationsStyles.loadingText}>
+          載入推薦詞彙中...
+        </Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={recommendationsStyles.errorContainer}>
+        <Text style={recommendationsStyles.errorIcon}>😔</Text>
+        <Text style={recommendationsStyles.errorTitle}>載入失敗</Text>
+        <Text style={recommendationsStyles.errorMessage}>{error}</Text>
+        <TouchableOpacity style={recommendationsStyles.retryButton} onPress={handleRetry}>
+          <Text style={recommendationsStyles.retryButtonText}>🔄 重試</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <View style={recommendationsStyles.container}>
+      <Text style={recommendationsStyles.title}>
+        💡 為您推薦 ({recommendations.length})
+      </Text>
+      <FlatList
+        data={recommendations}
+        renderItem={renderWordCard}
+        keyExtractor={item => item._id}
+        numColumns={2}
+        contentContainerStyle={recommendationsStyles.listContainer}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+};
 
 export default function WordLearningPage() {
   const router = useRouter();
@@ -762,5 +1043,273 @@ const styles = StyleSheet.create({
     height: '80%',
     maxWidth: 400,
     maxHeight: 500,
+  },
+});
+
+// ===== VocabularyCategories 樣式 =====
+const categoriesStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  section: {
+    backgroundColor: 'white',
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  levelContainer: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  levelButton: {
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  selectedButton: {
+    backgroundColor: '#4A90E2',
+    borderColor: '#4A90E2',
+  },
+  levelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  selectedButtonText: {
+    color: 'white',
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  categoryButton: {
+    width: '48%',
+    backgroundColor: '#f0f0f0',
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    marginBottom: 8,
+  },
+  categoryIcon: {
+    fontSize: 24,
+    marginBottom: 4,
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  categoryCount: {
+    fontSize: 12,
+    color: '#666',
+  },
+  clearButton: {
+    backgroundColor: '#ff6b6b',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  clearButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: '#f8f9fa',
+  },
+  errorIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  retryButton: {
+    backgroundColor: '#4A90E2',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
+
+// ===== RecommendedWords 樣式 =====
+const recommendationsStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    padding: 16,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    backgroundColor: '#f8f9fa',
+  },
+  errorIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  retryButton: {
+    backgroundColor: '#4A90E2',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  listContainer: {
+    paddingBottom: 100,
+  },
+  wordCard: {
+    backgroundColor: 'white',
+    margin: 6,
+    borderRadius: 16,
+    padding: 12,
+    flex: 1,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    maxWidth: (screenWidth - 48) / 2,
+  },
+  wordCardRight: {
+    marginLeft: 0,
+  },
+  imageContainer: {
+    width: '100%',
+    aspectRatio: 1,
+    marginBottom: 8,
+  },
+  wordImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+  },
+  placeholderImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 24,
+  },
+  wordInfo: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  wordTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1e3a8a',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  wordMeta: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  metaText: {
+    fontSize: 12,
+    color: '#666',
   },
 });
