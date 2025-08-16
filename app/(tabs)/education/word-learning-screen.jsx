@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import ArrowBack from '@/components/ArrowBack'; // 自訂返回按鈕
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -6,6 +7,18 @@ import axios from 'axios';
 import { getFavorites, toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
 import { API_CONFIG } from '@/constants/api';
 import { NetworkTester } from '@/utils/networkTester';
+=======
+import ArrowBack from "@/components/ArrowBack"; // 自訂返回按鈕
+import VocabularyCategories from "./word-learning/components/VocabularyCategories";
+import RecommendedWords from "./word-learning/components/RecommendedWords";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { getFavorites, toggleFavorite as toggleFavoriteUtil } from "@/utils/favorites";
+import { API_CONFIG } from "@/constants/api";
+import { NetworkTester } from "@/utils/networkTester";
+>>>>>>> 7a725c1666c457e5b90ce0fa890957e9550af73c
 import {
   Dimensions,
   Image,
@@ -32,10 +45,12 @@ export default function WordLearningPage() {
   const [searchText, setSearchText] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedLearningLevel, setSelectedLearningLevel] = useState('');
   const [currentWord, setCurrentWord] = useState(null);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  const [mode, setMode] = useState('list'); // 'list', 'learning', 'favorites'
+  const [mode, setMode] = useState('categories'); // 'categories', 'recommendations', 'list', 'learning', 'favorites'
   const [loading, setLoading] = useState(true);
+  const [availableCategories, setAvailableCategories] = useState([]);
 
   const userId = 'user123'; // 實際應從認證系統取得
 
@@ -74,12 +89,27 @@ export default function WordLearningPage() {
   useEffect(() => {
     fetchWords();
     fetchFavorites();
-  }, [selectedLevel, selectedCategory, searchText]);
+    fetchAvailableCategories(); // 獲取可用的分類
+  }, [selectedLevel, selectedCategory, selectedLearningLevel, searchText]);
 
   // 組件首次掛載時載入收藏數據
   useEffect(() => {
     fetchFavorites();
   }, []);
+
+  // 獲取可用的分類
+  const fetchAvailableCategories = async () => {
+    try {
+      const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`);
+      if (response.data && response.data.categories) {
+        setAvailableCategories(response.data.categories.map(cat => cat.name));
+      }
+    } catch (error) {
+      console.error('獲取分類失敗:', error);
+      // 如果 API 失敗，使用預設分類
+      setAvailableCategories(['生活用語', '情感表達', '動作描述', '物品名稱', '其他']);
+    }
+  };
 
   const fetchWords = async () => {
     try {
@@ -90,6 +120,7 @@ export default function WordLearningPage() {
       
       if (selectedLevel) params.append('level', selectedLevel);
       if (selectedCategory) params.append('category', selectedCategory);
+      if (selectedLearningLevel) params.append('learning_level', selectedLearningLevel);
       if (searchText) params.append('search', searchText);
       
       if (params.toString()) {
@@ -216,7 +247,8 @@ export default function WordLearningPage() {
           </TouchableOpacity>
         ))}
         
-        {['數字', '動物', '食物', '日常'].map(category => (
+        {/* 使用從後端獲取的實際分類 */}
+        {availableCategories.map(category => (
           <TouchableOpacity
             key={category}
             style={[styles.filterBtn, selectedCategory === category && styles.filterBtnActive]}
@@ -359,11 +391,27 @@ export default function WordLearningPage() {
         <ArrowBack />
         <View style={styles.tabContainer}>
           <TouchableOpacity 
+            style={[styles.tabBtn, mode === 'categories' && styles.tabBtnActive]}
+            onPress={() => setMode('categories')}
+          >
+            <Text style={[styles.tabBtnText, mode === 'categories' && styles.tabBtnTextActive]}>
+              📚 分類
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tabBtn, mode === 'recommendations' && styles.tabBtnActive]}
+            onPress={() => setMode('recommendations')}
+          >
+            <Text style={[styles.tabBtnText, mode === 'recommendations' && styles.tabBtnTextActive]}>
+              💡 推薦
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
             style={[styles.tabBtn, mode === 'list' && styles.tabBtnActive]}
             onPress={() => setMode('list')}
           >
             <Text style={[styles.tabBtnText, mode === 'list' && styles.tabBtnTextActive]}>
-              單詞列表
+              📝 列表
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -371,12 +419,40 @@ export default function WordLearningPage() {
             onPress={() => setMode('favorites')}
           >
             <Text style={[styles.tabBtnText, mode === 'favorites' && styles.tabBtnTextActive]}>
-              我的收藏
+              ⭐ 收藏
             </Text>
           </TouchableOpacity>
         </View>
       </View>
 
+      {/* 渲染不同模式的內容 */}
+      {mode === 'categories' && (
+        <VocabularyCategories
+          onCategorySelect={(category) => {
+            setSelectedCategory(category);
+            if (category) setMode('list');
+          }}
+          onLearningLevelSelect={(level) => {
+            setSelectedLearningLevel(level);
+            if (level) setMode('list');
+          }}
+          selectedCategory={selectedCategory}
+          selectedLearningLevel={selectedLearningLevel}
+        />
+      )}
+      
+      {mode === 'recommendations' && (
+        <RecommendedWords
+          learningLevel={selectedLearningLevel || 'beginner'}
+          onWordPress={(word) => {
+            setCurrentWord(word);
+            setCurrentWordIndex(0);
+            setMode('learning');
+          }}
+          limit={20}
+        />
+      )}
+      
       {mode === 'list' && renderListView()}
       {mode === 'learning' && renderLearningView()}
       {mode === 'favorites' && renderFavoritesView()}
@@ -415,17 +491,17 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   tabBtn: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    marginHorizontal: 8,
-    borderRadius: 20,
+    marginHorizontal: 4,
+    borderRadius: 16,
     backgroundColor: 'transparent',
   },
   tabBtnActive: {
     backgroundColor: '#3b82f6',
   },
   tabBtnText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
     fontWeight: '500',
   },

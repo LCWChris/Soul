@@ -1,15 +1,23 @@
-# 資料處理腳本使用說明
+# 手語詞彙資料處理工具
 
-## 📁 文件說明
+## 📁 檔案說明
 
-### 核心腳本
-- `data_utils.py` - 萬用資料處理工具
-- `merge.py` - 簡化版文件合併工具
-- `import_vocabulary_auto.py` - 自動匯入詞彙到 MongoDB
+### 🔧 核心腳本
+- **`data_utils.py`** - 萬用資料處理工具，支援 Excel、MongoDB 操作
+- **`import_vab_merged.py`** - 詞彙資料庫匯入工具（已完成 744 筆詞彙匯入）
+- **`quick_tools.py`** - 常用資料處理快捷工具
+- **`README.md`** - 使用說明文件
 
-### 使用範例
+### 📊 資料檔案
+- **`vab_merged_with_links.xlsx`** - 完整詞彙資料（592 筆，含圖片連結）
+- `cloudinary_link.xlsx` - 圖片連結對照表
+- `vab.xlsx` - 原始詞彙資料
+- `Book_3_Vocabulary_List.xlsx` - 第三冊詞彙原始檔
+- `Book_3_Vocabulary_List_merged.xlsx` - 第三冊詞彙處理檔
 
-## 1. 快速操作
+## 🚀 快速使用指南
+
+### 1. 資料分析
 
 ```python
 from data_utils import *
