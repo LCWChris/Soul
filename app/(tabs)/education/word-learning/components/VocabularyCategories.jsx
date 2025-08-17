@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { API_CONFIG } from '@/constants/api';
 import axios from 'axios';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../MaterialYouTheme';
 
 const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selectedCategory, selectedLearningLevel }) => {
   const [categories, setCategories] = useState([]);
@@ -89,7 +90,7 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4A90E2" />
+        <ActivityIndicator size="large" color={MaterialYouTheme.primary.primary50} />
         <Text style={styles.loadingText}>
           {retryCount > 0 ? `重試中 (${retryCount}/2)...` : '載入分類中...'}
         </Text>
@@ -100,11 +101,13 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorIcon}>😔</Text>
+        <View style={styles.errorIconContainer}>
+          <Text style={styles.errorIcon}>😔</Text>
+        </View>
         <Text style={styles.errorTitle}>載入失敗</Text>
         <Text style={styles.errorMessage}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-          <Text style={styles.retryButtonText}>🔄 重試</Text>
+          <Text style={styles.retryButtonText}>重試</Text>
         </TouchableOpacity>
       </View>
     );
@@ -114,23 +117,27 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* 學習難度選擇 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>📚 按程度學習</Text>
+        <Text style={styles.sectionTitle}>按程度學習</Text>
+        <Text style={styles.sectionSubtitle}>選擇適合您的學習難度</Text>
         <View style={styles.levelContainer}>
           {learningLevels.map((level) => (
             <TouchableOpacity
               key={level}
               style={[
-                styles.levelButton,
-                selectedLearningLevel === level && styles.selectedButton
+                styles.levelChip,
+                selectedLearningLevel === level && styles.selectedLevelChip
               ]}
               onPress={() => onLearningLevelSelect(level)}
+              activeOpacity={0.7}
             >
-              <Text style={[
-                styles.levelButtonText,
-                selectedLearningLevel === level && styles.selectedButtonText
-              ]}>
-                {getLearningLevelDisplayName(level)}
-              </Text>
+              <View style={styles.levelChipContent}>
+                <Text style={[
+                  styles.levelChipText,
+                  selectedLearningLevel === level && styles.selectedLevelChipText
+                ]}>
+                  {getLearningLevelDisplayName(level)}
+                </Text>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -138,29 +145,35 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
 
       {/* 主題分類選擇 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🏷️ 主題分類</Text>
+        <Text style={styles.sectionTitle}>主題分類</Text>
+        <Text style={styles.sectionSubtitle}>選擇感興趣的學習主題</Text>
         <View style={styles.categoryGrid}>
           {categories.map((category) => (
             <TouchableOpacity
               key={category.name}
               style={[
-                styles.categoryButton,
-                selectedCategory === category.name && styles.selectedButton
+                styles.categoryCard,
+                selectedCategory === category.name && styles.selectedCategoryCard
               ]}
               onPress={() => onCategorySelect(category.name)}
+              activeOpacity={0.7}
             >
-              <Text style={styles.categoryIcon}>
-                {getCategoryIcon(category.name)}
-              </Text>
+              <View style={styles.categoryIconContainer}>
+                <Text style={styles.categoryIcon}>
+                  {getCategoryIcon(category.name)}
+                </Text>
+              </View>
               <Text style={[
-                styles.categoryButtonText,
-                selectedCategory === category.name && styles.selectedButtonText
+                styles.categoryTitle,
+                selectedCategory === category.name && styles.selectedCategoryTitle
               ]}>
                 {category.name}
               </Text>
-              <Text style={styles.categoryCount}>
-                {category.count} 詞
-              </Text>
+              <View style={styles.categoryBadge}>
+                <Text style={styles.categoryCount}>
+                  {category.count}
+                </Text>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -175,8 +188,9 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
               onCategorySelect('');
               onLearningLevelSelect('');
             }}
+            activeOpacity={0.7}
           >
-            <Text style={styles.clearButtonText}>🗑️ 清除篩選</Text>
+            <Text style={styles.clearButtonText}>清除所有篩選</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -187,144 +201,179 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: MaterialYouTheme.neutral.neutral99,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: MaterialYouTheme.neutral.neutral99,
+    padding: Spacing.xl,
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
+    ...Typography.bodyMedium,
+    color: MaterialYouTheme.neutral.neutral40,
+    marginTop: Spacing.md,
+    textAlign: 'center',
   },
   section: {
-    backgroundColor: 'white',
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    backgroundColor: MaterialYouTheme.neutral.neutral95,
+    marginHorizontal: Spacing.md,
+    marginVertical: Spacing.sm,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    ...Elevation.level1,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
+    ...Typography.titleLarge,
+    color: MaterialYouTheme.primary.primary30,
+    marginBottom: Spacing.xs,
+    fontWeight: '600',
+  },
+  sectionSubtitle: {
+    ...Typography.bodyMedium,
+    color: MaterialYouTheme.neutral.neutral40,
+    marginBottom: Spacing.md,
   },
   levelContainer: {
-    flexDirection: 'column',
-    gap: 8,
+    gap: Spacing.sm,
   },
-  levelButton: {
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
+  levelChip: {
+    backgroundColor: MaterialYouTheme.secondary.secondary90,
+    borderRadius: BorderRadius.sm,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: MaterialYouTheme.secondary.secondary80,
+    overflow: 'hidden',
   },
-  selectedButton: {
-    backgroundColor: '#4A90E2',
-    borderColor: '#4A90E2',
+  selectedLevelChip: {
+    backgroundColor: MaterialYouTheme.primary.primary90,
+    borderColor: MaterialYouTheme.primary.primary50,
   },
-  levelButtonText: {
-    fontSize: 16,
+  levelChipContent: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    alignItems: 'center',
+  },
+  levelChipText: {
+    ...Typography.labelLarge,
+    color: MaterialYouTheme.secondary.secondary30,
+    fontWeight: '500',
+  },
+  selectedLevelChipText: {
+    color: MaterialYouTheme.primary.primary30,
     fontWeight: '600',
-    color: '#333',
-  },
-  selectedButtonText: {
-    color: 'white',
   },
   categoryGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: Spacing.sm,
   },
-  categoryButton: {
+  categoryCard: {
     width: '48%',
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    backgroundColor: MaterialYouTheme.secondary.secondary95,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    marginBottom: 8,
+    borderColor: MaterialYouTheme.secondary.secondary90,
+    minHeight: 100,
+    justifyContent: 'space-between',
+  },
+  selectedCategoryCard: {
+    backgroundColor: MaterialYouTheme.primary.primary95,
+    borderColor: MaterialYouTheme.primary.primary60,
+    borderWidth: 2,
+  },
+  categoryIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: MaterialYouTheme.secondary.secondary80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
   },
   categoryIcon: {
     fontSize: 24,
-    marginBottom: 4,
   },
-  categoryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+  categoryTitle: {
+    ...Typography.labelMedium,
+    color: MaterialYouTheme.secondary.secondary20,
     textAlign: 'center',
-    marginBottom: 2,
+    fontWeight: '500',
+    marginBottom: Spacing.xs,
+  },
+  selectedCategoryTitle: {
+    color: MaterialYouTheme.primary.primary20,
+    fontWeight: '600',
+  },
+  categoryBadge: {
+    backgroundColor: MaterialYouTheme.tertiary.tertiary90,
+    borderRadius: BorderRadius.xs,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
   },
   categoryCount: {
-    fontSize: 12,
-    color: '#666',
+    ...Typography.labelSmall,
+    color: MaterialYouTheme.tertiary.tertiary30,
+    fontWeight: '500',
   },
   clearButton: {
-    backgroundColor: '#ff6b6b',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    backgroundColor: MaterialYouTheme.error.error90,
+    borderColor: MaterialYouTheme.error.error50,
     alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
   },
   clearButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
+    ...Typography.labelLarge,
+    color: MaterialYouTheme.error.error30,
+    fontWeight: '500',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
-    backgroundColor: '#f8f9fa',
+    padding: Spacing.xl,
+    backgroundColor: MaterialYouTheme.neutral.neutral99,
+  },
+  errorIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: MaterialYouTheme.error.error90,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
   },
   errorIcon: {
-    fontSize: 48,
-    marginBottom: 16,
+    fontSize: 40,
   },
   errorTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
+    ...Typography.headlineSmall,
+    color: MaterialYouTheme.error.error30,
+    marginBottom: Spacing.sm,
     textAlign: 'center',
+    fontWeight: '600',
   },
   errorMessage: {
-    fontSize: 16,
-    color: '#666',
+    ...Typography.bodyMedium,
+    color: MaterialYouTheme.neutral.neutral40,
     textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 22,
+    marginBottom: Spacing.xl,
+    lineHeight: 20,
   },
   retryButton: {
-    backgroundColor: '#4A90E2',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 25,
+    backgroundColor: MaterialYouTheme.primary.primary50,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
   },
   retryButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+    ...Typography.labelLarge,
+    color: MaterialYouTheme.primary.primary99,
+    fontWeight: '500',
   },
 });
 

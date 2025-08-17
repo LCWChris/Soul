@@ -17,7 +17,7 @@ export default function Education() {
       {/* 單字區 */}
       <TouchableOpacity
         style={[styles.section, styles.bottomSection]}
-        onPress={() => router.push('education/word-learning/word-learning-screen')}
+        onPress={() => router.push('education/word-learning')}
       >
         <Text style={styles.text}>進入單字學習區</Text>
       </TouchableOpacity>

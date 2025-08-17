@@ -95,4 +95,36 @@ export class VocabularyService {
       return await this.getWords(params);
     });
   }
+
+  // 獲取用戶學習進度（暫時返回模擬數據）
+  static async getUserProgress(userId, filters = {}) {
+    try {
+      // 嘗試從實際 API 獲取數據
+      return this.makeRequestWithRetry(async () => {
+        const url = `${API_CONFIG.BASE_URL}/api/users/${userId}/progress`;
+        const response = await axios.get(url, { 
+          params: filters,
+          timeout: API_CONFIG.TIMEOUT 
+        });
+        
+        if (!response.data || typeof response.data !== 'object') {
+          throw new Error('無效的進度數據格式');
+        }
+        
+        return response.data;
+      });
+    } catch (error) {
+      console.warn('無法從 API 獲取進度數據，使用模擬數據:', error.message);
+      
+      // 返回模擬的進度數據
+      return {
+        totalWords: 1200,
+        learnedWords: 350,
+        masteredWords: 120,
+        progressPercentage: Math.round((350 / 1200) * 100),
+        category: filters.category || '全部',
+        level: filters.level || '全部'
+      };
+    }
+  }
 }

@@ -1,0 +1,348 @@
+// Material You 色彩系統
+export const MaterialYouTheme = {
+  // 主色彩系統
+  primary: {
+    primary0: '#000000',
+    primary10: '#1a0034',
+    primary20: '#2e0054',
+    primary30: '#440076',
+    primary40: '#5b0099',
+    primary50: '#7318bd',
+    primary60: '#8b36d8',
+    primary70: '#a353f4',
+    primary80: '#bb71ff',
+    primary90: '#d392ff',
+    primary95: '#eab3ff',
+    primary99: '#fdf7ff',
+    primary100: '#ffffff'
+  },
+
+  // 次要色彩
+  secondary: {
+    secondary0: '#000000',
+    secondary10: '#1d1929',
+    secondary20: '#322d3f',
+    secondary30: '#494356',
+    secondary40: '#615a6e',
+    secondary50: '#7a7187',
+    secondary60: '#948ba0',
+    secondary70: '#afa5bb',
+    secondary80: '#cac0d6',
+    secondary90: '#e6dcf2',
+    secondary95: '#f4eaff',
+    secondary99: '#fdf7ff',
+    secondary100: '#ffffff'
+  },
+
+  // 第三色彩
+  tertiary: {
+    tertiary0: '#000000',
+    tertiary10: '#1f1a2e',
+    tertiary20: '#342f45',
+    tertiary30: '#4a455d',
+    tertiary40: '#615c76',
+    tertiary50: '#79748f',
+    tertiary60: '#928da9',
+    tertiary70: '#aca7c4',
+    tertiary80: '#c7c2e0',
+    tertiary90: '#e3defc',
+    tertiary95: '#f1ecff',
+    tertiary99: '#fdf7ff',
+    tertiary100: '#ffffff'
+  },
+
+  // 錯誤色彩
+  error: {
+    error0: '#000000',
+    error10: '#410e0b',
+    error20: '#601410',
+    error30: '#8c1d18',
+    error40: '#b3261e',
+    error50: '#dc362e',
+    error60: '#e46962',
+    error70: '#ec928e',
+    error80: '#f2b8b5',
+    error90: '#f9dedc',
+    error95: '#fceeee',
+    error99: '#fffbf9',
+    error100: '#ffffff'
+  },
+
+  // 中性色彩
+  neutral: {
+    neutral0: '#000000',
+    neutral10: '#1c1b1f',
+    neutral20: '#313033',
+    neutral30: '#484649',
+    neutral40: '#605d62',
+    neutral50: '#79767a',
+    neutral60: '#938f94',
+    neutral70: '#aeaaae',
+    neutral80: '#c9c5ca',
+    neutral90: '#e6e1e5',
+    neutral95: '#f4eff4',
+    neutral99: '#fffbfe',
+    neutral100: '#ffffff'
+  },
+
+  // 中性變化色
+  neutralVariant: {
+    neutralVariant0: '#000000',
+    neutralVariant10: '#1d1a22',
+    neutralVariant20: '#322f37',
+    neutralVariant30: '#49454f',
+    neutralVariant40: '#605d66',
+    neutralVariant50: '#79747e',
+    neutralVariant60: '#938f99',
+    neutralVariant70: '#aea9b4',
+    neutralVariant80: '#cac4d0',
+    neutralVariant90: '#e7e0ec',
+    neutralVariant95: '#f5eefa',
+    neutralVariant99: '#fffbfe',
+    neutralVariant100: '#ffffff'
+  }
+};
+
+// 字體系統
+export const Typography = {
+  displayLarge: {
+    fontFamily: 'System',
+    fontSize: 57,
+    lineHeight: 64,
+    fontWeight: '400',
+    letterSpacing: -0.25
+  },
+  displayMedium: {
+    fontFamily: 'System',
+    fontSize: 45,
+    lineHeight: 52,
+    fontWeight: '400',
+    letterSpacing: 0
+  },
+  displaySmall: {
+    fontFamily: 'System',
+    fontSize: 36,
+    lineHeight: 44,
+    fontWeight: '400',
+    letterSpacing: 0
+  },
+  headlineLarge: {
+    fontFamily: 'System',
+    fontSize: 32,
+    lineHeight: 40,
+    fontWeight: '400',
+    letterSpacing: 0
+  },
+  headlineMedium: {
+    fontFamily: 'System',
+    fontSize: 28,
+    lineHeight: 36,
+    fontWeight: '400',
+    letterSpacing: 0
+  },
+  headlineSmall: {
+    fontFamily: 'System',
+    fontSize: 24,
+    lineHeight: 32,
+    fontWeight: '400',
+    letterSpacing: 0
+  },
+  titleLarge: {
+    fontFamily: 'System',
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '500',
+    letterSpacing: 0
+  },
+  titleMedium: {
+    fontFamily: 'System',
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '500',
+    letterSpacing: 0.15
+  },
+  titleSmall: {
+    fontFamily: 'System',
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+    letterSpacing: 0.1
+  },
+  bodyLarge: {
+    fontFamily: 'System',
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
+    letterSpacing: 0.5
+  },
+  bodyMedium: {
+    fontFamily: 'System',
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '400',
+    letterSpacing: 0.25
+  },
+  bodySmall: {
+    fontFamily: 'System',
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '400',
+    letterSpacing: 0.4
+  },
+  labelLarge: {
+    fontFamily: 'System',
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+    letterSpacing: 0.1
+  },
+  labelMedium: {
+    fontFamily: 'System',
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '500',
+    letterSpacing: 0.5
+  },
+  labelSmall: {
+    fontFamily: 'System',
+    fontSize: 11,
+    lineHeight: 16,
+    fontWeight: '500',
+    letterSpacing: 0.5
+  }
+};
+
+// 間距系統
+export const Spacing = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48
+};
+
+// 圓角
+export const BorderRadius = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  full: 999
+};
+
+// 陰影/海拔
+export const Elevation = {
+  level0: {
+    elevation: 0,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0
+  },
+  level1: {
+    elevation: 1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3
+  },
+  level2: {
+    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3
+  },
+  level3: {
+    elevation: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8
+  },
+  level4: {
+    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12
+  },
+  level5: {
+    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16
+  }
+};
+
+// 組件樣式
+export const ComponentStyles = {
+  card: {
+    backgroundColor: MaterialYouTheme.neutral.neutral99,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    ...Elevation.level1
+  },
+  button: {
+    primary: {
+      backgroundColor: MaterialYouTheme.primary.primary40,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      ...Elevation.level1
+    },
+    secondary: {
+      backgroundColor: MaterialYouTheme.secondary.secondary40,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      ...Elevation.level1
+    }
+  },
+  searchBar: {
+    backgroundColor: MaterialYouTheme.neutralVariant.neutralVariant95,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    ...Elevation.level1
+  },
+  fab: {
+    backgroundColor: MaterialYouTheme.primary.primary40,
+    borderRadius: BorderRadius.lg,
+    width: 56,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...Elevation.level3
+  }
+};
+
+// 色彩工具函數
+export const ColorUtils = {
+  // 透明度調整
+  withOpacity: (color, opacity) => {
+    return `${color}${Math.round(opacity * 255).toString(16).padStart(2, '0')}`;
+  },
+  
+  // 根據級別獲取顏色
+  getLevelColor: (level) => {
+    const levelColors = {
+      'beginner': MaterialYouTheme.secondary.secondary40,
+      'intermediate': MaterialYouTheme.tertiary.tertiary40,
+      'advanced': MaterialYouTheme.primary.primary40,
+      'expert': MaterialYouTheme.error.error40
+    };
+    return levelColors[level] || MaterialYouTheme.neutral.neutral40;
+  },
+  
+  // 根據類別獲取顏色
+  getCategoryColor: (category) => {
+    const categoryColors = {
+      'animals': MaterialYouTheme.primary.primary40,
+      'food': MaterialYouTheme.secondary.secondary40,
+      'colors': MaterialYouTheme.tertiary.tertiary40,
+      'numbers': MaterialYouTheme.error.error40,
+      'family': MaterialYouTheme.neutral.neutral40
+    };
+    return categoryColors[category] || MaterialYouTheme.neutralVariant.neutralVariant40;
+  }
+};
+
+export default MaterialYouTheme;
