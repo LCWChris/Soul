@@ -115,34 +115,6 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* 學習難度選擇 */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>按程度學習</Text>
-        <Text style={styles.sectionSubtitle}>選擇適合您的學習難度</Text>
-        <View style={styles.levelContainer}>
-          {learningLevels.map((level) => (
-            <TouchableOpacity
-              key={level}
-              style={[
-                styles.levelChip,
-                selectedLearningLevel === level && styles.selectedLevelChip
-              ]}
-              onPress={() => onLearningLevelSelect(level)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.levelChipContent}>
-                <Text style={[
-                  styles.levelChipText,
-                  selectedLearningLevel === level && styles.selectedLevelChipText
-                ]}>
-                  {getLearningLevelDisplayName(level)}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
       {/* 主題分類選擇 */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>主題分類</Text>

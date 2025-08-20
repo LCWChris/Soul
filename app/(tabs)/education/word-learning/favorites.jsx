@@ -18,6 +18,7 @@ import MaterialTopAppBar from './components/MaterialTopAppBar';
 import VocabularyCard from './components/VocabularyCard';
 import WordDetailModal from './components/WordDetailModal';
 import { getFavorites, toggleFavorite } from '@/utils/favorites';
+import { API_CONFIG } from '@/constants/api';
 
 const FavoritesScreen = () => {
   const router = useRouter();
@@ -33,40 +34,49 @@ const FavoritesScreen = () => {
   const loadFavorites = async () => {
     setLoading(true);
     try {
-      // 模擬收藏的單詞數據
-      const mockFavorites = [
-        {
-          id: 'fav1',
-          word: '早安',
-          pronunciation: 'zǎo ān',
-          definition: '用於早上問候的禮貌用語',
-          category: '其他',
+      console.log('❤️ 收藏頁面：開始載入收藏列表...');
+      const favoriteIds = await getFavorites();
+      console.log('❤️ 收藏頁面：獲取到的收藏 IDs:', favoriteIds);
+      
+      if (favoriteIds.length === 0) {
+        setFavorites([]);
+        return;
+      }
+      
+      // 嘗試從 API 獲取真實的單詞資料
+      try {
+        const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}?limit=1000`);
+        const data = await response.json();
+        const allWords = data.words || data || [];
+        
+        // 根據收藏的 ID 過濾出對應的單詞
+        const favoriteWords = allWords.filter(word => 
+          favoriteIds.includes(word._id || word.id)
+        );
+        
+        console.log('❤️ 收藏頁面：從 API 獲取的收藏單詞:', favoriteWords);
+        setFavorites(favoriteWords);
+      } catch (apiError) {
+        console.log('❤️ API 獲取失敗，使用模擬數據');
+        
+        // API 失敗時使用模擬數據，但用真實的收藏ID
+        const mockFavoriteWords = favoriteIds.map((id, index) => ({
+          _id: id,
+          id: id,
+          word: `收藏單詞${index + 1}`,
+          title: `收藏單詞${index + 1}`,
+          content: `收藏單詞${index + 1}`,
+          pronunciation: 'shōu cáng',
+          definition: `這是你收藏的第${index + 1}個單詞`,
+          category: '收藏',
           level: 'beginner',
           image_url: 'https://res.cloudinary.com/dbmrnpwxd/image/upload/v1753859928/%E6%97%A9%E5%AE%89_jnoxps.png',
-          example: '早安！今天天氣真好。'
-        },
-        {
-          id: 'fav2',
-          word: '臉',
-          pronunciation: 'liǎn',
-          definition: '人體頭部的前面部分',
-          category: '身體健康',
-          level: 'intermediate',
-          image_url: 'https://res.cloudinary.com/dbmrnpwxd/image/upload/v1753962770/%E8%87%89_c1ltth.png',
-          example: '她有一張美麗的臉。'
-        },
-        {
-          id: 'fav3',
-          word: '頭髮',
-          pronunciation: 'tóu fǎ',
-          definition: '人頭上的毛髮',
-          category: '身體健康',
-          level: 'advanced',
-          image_url: 'https://res.cloudinary.com/dbmrnpwxd/image/upload/v1754038756/%E9%A0%AD%E9%AB%AE_gho46g.png',
-          example: '她的頭髮很長很漂亮。'
-        }
-      ];
-      setFavorites(mockFavorites);
+          example: `這是你收藏的第${index + 1}個單詞的例句。`
+        }));
+        
+        console.log('❤️ 收藏頁面：使用模擬的收藏單詞:', mockFavoriteWords);
+        setFavorites(mockFavoriteWords);
+      }
     } catch (error) {
       console.error('載入收藏失敗:', error);
       setFavorites([]);
@@ -74,6 +84,10 @@ const FavoritesScreen = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadFavorites();
+  }, [router]);
 
   const handleWordPress = (word) => {
     setSelectedWord(word);
@@ -94,9 +108,9 @@ const FavoritesScreen = () => {
 
   const renderWordCard = ({ item }) => (
     <VocabularyCard
-      word={item.word}
+      word={item.word || item.title || item.content}
       pronunciation={item.pronunciation}
-      definition={item.definition}
+      definition={item.definition || item.content}
       category={item.category}
       level={item.level}
       image_url={item.image_url}

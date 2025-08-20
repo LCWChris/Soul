@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
+import { toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
+import LearningStatusSelector from './LearningStatusSelector';
+import { updateWordProgress, getWordProgress, LEARNING_STATUS } from '@/utils/learning-progress';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -31,19 +34,92 @@ const getTopSafeAreaPadding = () => {
   return 20;
 };
 
-const WordDetailModal = ({ visible, word, onClose }) => {
+const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, onFavoriteChange, onProgressChange }) => {
   const [imageIndex, setImageIndex] = useState(0);
+  const [isFavorite, setIsFavorite] = useState(word?.isFavorite || false);
+  const [learningStatus, setLearningStatus] = useState(LEARNING_STATUS.NOT_STARTED);
+
+  // 當 word 變化時，更新收藏狀態和學習狀態
+  useEffect(() => {
+    setIsFavorite(word?.isFavorite || false);
+    if (word) {
+      loadWordProgress();
+    }
+  }, [word]);
+
+  const loadWordProgress = async () => {
+    if (!word) return;
+    try {
+      const wordId = word.id || word._id;
+      const progress = await getWordProgress(wordId);
+      setLearningStatus(progress.status);
+    } catch (error) {
+      console.error('載入學習進度失敗:', error);
+      setLearningStatus(LEARNING_STATUS.NOT_STARTED);
+    }
+  };
 
   if (!word) return null;
 
+  // 多圖支援
+  const imageUrls = Array.isArray(word.imageUrls) ? word.imageUrls : (word.image_url ? [word.image_url] : []);
+
   const handleSwipeLeft = () => {
-    // 模擬多個圖片的左滑功能
-    console.log('Swipe left - next image');
+    if (imageIndex < imageUrls.length - 1) {
+      setImageIndex(imageIndex + 1);
+    }
   };
 
   const handleSwipeRight = () => {
-    // 模擬多個圖片的右滑功能
-    console.log('Swipe right - previous image');
+    if (imageIndex > 0) {
+      setImageIndex(imageIndex - 1);
+    }
+  };
+
+  // 學習進度處理
+  const handleStatusChange = async (newStatus) => {
+    if (!word) return;
+    
+    try {
+      const wordId = word.id || word._id;
+      
+      // 更新本地狀態
+      setLearningStatus(newStatus);
+      
+      // 更新儲存的學習進度
+      await updateWordProgress(wordId, newStatus);
+      
+      // 通知主頁面更新
+      if (onProgressChange) {
+        onProgressChange(wordId, newStatus);
+      }
+      
+      console.log('📚 詳情頁：更新學習狀態:', wordId, learningStatus, '->', newStatus);
+    } catch (error) {
+      console.error('更新學習進度失敗:', error);
+    }
+  };
+
+  // 收藏狀態同步
+  const handleFavoriteToggle = async () => {
+    const wordId = word.id || word._id;
+    console.log('💖 詳情頁：嘗試切換收藏:', wordId, word);
+    
+    const newFavoriteStatus = !isFavorite;
+    setIsFavorite(newFavoriteStatus);
+    
+    // 通知主頁面收藏狀態變化
+    if (onFavoriteChange) {
+      onFavoriteChange(wordId, newFavoriteStatus);
+    }
+    
+    // 實際更新收藏資料
+    try {
+      const result = await toggleFavoriteUtil(wordId);
+      console.log('💖 詳情頁：收藏操作結果:', result);
+    } catch (error) {
+      console.error('💖 詳情頁：收藏操作失敗:', error);
+    }
   };
 
   return (
@@ -60,8 +136,8 @@ const WordDetailModal = ({ visible, word, onClose }) => {
             <Ionicons name="close" size={24} color={MaterialYouTheme.neutral.neutral30} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>單詞詳情</Text>
-          <TouchableOpacity style={styles.favoriteButton}>
-            <Ionicons name="heart-outline" size={24} color={MaterialYouTheme.neutral.neutral30} />
+          <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoriteToggle}>
+            <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={24} color={isFavorite ? MaterialYouTheme.primary.primary40 : MaterialYouTheme.neutral.neutral30} />
           </TouchableOpacity>
         </View>
 
@@ -74,36 +150,24 @@ const WordDetailModal = ({ visible, word, onClose }) => {
             )}
           </View>
 
-          {/* Image Section with Swipe Functionality */}
+          {/* 單張圖片，左右切換詞彙 */}
           {(word.image_url || word.imageUrl) && (
             <View style={styles.imageSection}>
               <View style={styles.imageContainer}>
-                <TouchableOpacity 
-                  style={styles.imageSwipeArea}
-                  onPress={handleSwipeRight}
-                >
-                  <Ionicons name="chevron-back" size={24} color={MaterialYouTheme.neutral.neutral50} />
+                {/* 左滑區域：切換到上一個詞彙 */}
+                <TouchableOpacity style={styles.imageSwipeArea} onPress={onSwipeRight}>
+                  <Ionicons name="chevron-back" size={32} color={MaterialYouTheme.primary.primary40} />
                 </TouchableOpacity>
-                
-                <Image 
-                  source={{ uri: word.image_url || word.imageUrl }} 
+                {/* 圖片顯示 */}
+                <Image
+                  source={{ uri: word.image_url || word.imageUrl }}
                   style={styles.detailImage}
                   resizeMode="contain"
                 />
-                
-                <TouchableOpacity 
-                  style={styles.imageSwipeArea}
-                  onPress={handleSwipeLeft}
-                >
-                  <Ionicons name="chevron-forward" size={24} color={MaterialYouTheme.neutral.neutral50} />
+                {/* 右滑區域：切換到下一個詞彙 */}
+                <TouchableOpacity style={styles.imageSwipeArea} onPress={onSwipeLeft}>
+                  <Ionicons name="chevron-forward" size={32} color={MaterialYouTheme.primary.primary40} />
                 </TouchableOpacity>
-              </View>
-              
-              {/* Image Indicators */}
-              <View style={styles.imageIndicators}>
-                <View style={[styles.indicator, styles.indicatorActive]} />
-                <View style={styles.indicator} />
-                <View style={styles.indicator} />
               </View>
             </View>
           )}
@@ -140,21 +204,12 @@ const WordDetailModal = ({ visible, word, onClose }) => {
             </View>
           </View>
 
-          {/* Action Buttons */}
-          <View style={styles.actionSection}>
-            <TouchableOpacity style={styles.actionButton}>
-              <Ionicons name="volume-high" size={20} color={MaterialYouTheme.primary.primary50} />
-              <Text style={styles.actionText}>發音</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <Ionicons name="create" size={20} color={MaterialYouTheme.primary.primary50} />
-              <Text style={styles.actionText}>練習</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
-              <Ionicons name="share" size={20} color={MaterialYouTheme.primary.primary50} />
-              <Text style={styles.actionText}>分享</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Action Buttons - replaced with Learning Status Selector */}
+          <LearningStatusSelector
+            currentStatus={learningStatus}
+            onStatusChange={handleStatusChange}
+            style={styles.statusSelector}
+          />
         </ScrollView>
       </SafeAreaView>
     </Modal>
@@ -332,26 +387,9 @@ const styles = StyleSheet.create({
     ...Typography.labelMedium,
     fontWeight: '500',
   },
-  actionSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.xl,
-    gap: Spacing.md,
-  },
-  actionButton: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    backgroundColor: MaterialYouTheme.primary.primary95,
-    borderRadius: BorderRadius.md,
-    ...Elevation.level1,
-  },
-  actionText: {
-    ...Typography.labelMedium,
-    color: MaterialYouTheme.primary.primary30,
-    fontWeight: '500',
-    marginTop: Spacing.xs,
+  statusSelector: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
 });
 

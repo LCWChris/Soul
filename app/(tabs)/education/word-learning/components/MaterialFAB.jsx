@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, View, Platform } from 'react-native';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
 
 const MaterialFAB = ({ 
@@ -74,7 +74,8 @@ const MaterialFAB = ({
           backgroundColor: variantStyle.backgroundColor,
           ...sizeStyle,
         },
-        style
+        style,
+        { bottom: Platform.OS === 'ios' ? 80 : 60 } // 修正底部距離
       ]}
       onPress={onPress}
       activeOpacity={0.8}
@@ -97,6 +98,7 @@ const MaterialFAB = ({
 
 const styles = StyleSheet.create({
   fab: {
+    position: 'absolute',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 6,

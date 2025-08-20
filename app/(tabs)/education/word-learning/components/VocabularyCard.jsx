@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../MaterialYouTheme';
+import LearningProgressIndicator from './LearningProgressIndicator';
 
-const VocabularyCard = ({ 
+const VocabularyCard = React.memo(({ 
   word, 
   pronunciation, 
   definition, 
@@ -13,7 +14,9 @@ const VocabularyCard = ({
   onPress,
   style,
   image_url,
-  imageUrl // 支援多種命名格式
+  imageUrl, // 支援多種命名格式
+  learningStatus, // 新增學習狀態
+  onProgressChange // 新增學習狀態變更回調
 }) => {
   const getLevelColor = (level) => {
     return ColorUtils.getLevelColor(level);
@@ -62,15 +65,25 @@ const VocabularyCard = ({
             <Text style={styles.pronunciation}>/{pronunciation}/</Text>
           )}
         </View>
-        <TouchableOpacity 
-          onPress={onToggleFavorite}
-          style={styles.favoriteButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Text style={styles.favoriteIcon}>
-            {isFavorite ? '❤️' : '🤍'}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.rightSection}>
+          {learningStatus && onProgressChange && (
+            <LearningProgressIndicator
+              status={learningStatus}
+              onPress={onProgressChange}
+              size="small"
+              style={styles.progressIndicator}
+            />
+          )}
+          <TouchableOpacity 
+            onPress={onToggleFavorite}
+            style={styles.favoriteButton}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Text style={styles.favoriteIcon}>
+              {isFavorite ? '❤️' : '🤍'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {finalImageUrl && (
@@ -112,7 +125,7 @@ const VocabularyCard = ({
       </View>
     </TouchableOpacity>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -133,6 +146,14 @@ const styles = StyleSheet.create({
   },
   wordSection: {
     flex: 1,
+  },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  progressIndicator: {
+    marginRight: 4,
   },
   word: {
     ...Typography.titleLarge,
