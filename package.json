@@ -8,7 +8,12 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "lint:check": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "lint:app": "eslint app/ --ext .jsx,.js,.ts,.tsx",
+    "lint:server": "eslint server/ --ext .js",
+    "lint:all": "npm run lint:app && npm run lint:server"
   },
   "dependencies": {
     "@clerk/clerk-expo": "^2.14.3",

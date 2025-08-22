@@ -1,9 +1,17 @@
+<<<<<<< HEAD
 import { API_CONFIG } from "@/constants/api";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+=======
+import { API_CONFIG } from '@/constants/api';
+import axios from 'axios';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+>>>>>>> dea90ec490bb64a62dea4824a29d4d819186ed60
 import {
   ScrollView,
   View,
+<<<<<<< HEAD
   Text,
   Image,
   ActivityIndicator,
@@ -11,6 +19,9 @@ import {
   StyleSheet,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
+=======
+} from 'react-native';
+>>>>>>> dea90ec490bb64a62dea4824a29d4d819186ed60
 
 export default function LessonPage() {
   const { lessonId } = useLocalSearchParams();
@@ -18,15 +29,15 @@ export default function LessonPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    console.log("📦 進入教材頁面，lessonId：", lessonId);
+    console.log('📦 進入教材頁面，lessonId：', lessonId);
     axios
       .get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIAL}/${lessonId}`)
       .then((res) => {
-        console.log("✅ 成功取得教材資料", res.data);
+        console.log('✅ 成功取得教材資料', res.data);
         setData(res.data);
       })
       .catch((err) => {
-        console.error("❌ 讀取教材失敗", err);
+        console.error('❌ 讀取教材失敗', err);
         setError(true);
       });
   }, [lessonId]);
@@ -54,7 +65,7 @@ export default function LessonPage() {
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }}>
       <Image
         source={{
-          uri: data.image || "https://placehold.co/600x300?text=無圖片",
+          uri: data.image || 'https://placehold.co/600x300?text=無圖片',
         }}
         style={styles.background}
       />
@@ -89,20 +100,25 @@ export default function LessonPage() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
   },
   background: {
-    width: "100%",
+    width: '100%',
     height: 200,
-    resizeMode: "cover",
+    resizeMode: 'cover',
   },
   contentContainer: {
     padding: 20,
   },
   unit: {
     fontSize: 22,
+<<<<<<< HEAD
     fontWeight: "bold",
     color: "#1E3A8A", // 深藍
+=======
+    fontWeight: 'bold',
+    color: '#1E3A8A',
+>>>>>>> dea90ec490bb64a62dea4824a29d4d819186ed60
     marginBottom: 12,
   },
   line: {
@@ -110,30 +126,38 @@ const styles = StyleSheet.create({
   },
   sign: {
     fontSize: 16,
+<<<<<<< HEAD
     color: "#374151", // 深灰
   },
   speak: {
     fontSize: 16,
     color: "#6B7280", // 淺灰
+=======
+    color: '#374151',
+  },
+  speak: {
+    fontSize: 16,
+    color: '#6B7280',
+>>>>>>> dea90ec490bb64a62dea4824a29d4d819186ed60
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: "#555",
+    color: '#555',
   },
   errorText: {
     fontSize: 16,
-    color: "red",
+    color: 'red',
   },
   emptyText: {
     fontSize: 16,
-    color: "#999",
+    color: '#999',
     marginTop: 10,
   },
   center: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingTop: 50,
   },
   // ====== 測驗按鈕 ======

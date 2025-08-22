@@ -1,7 +1,7 @@
-import { SignedIn, useUser } from "@clerk/clerk-expo";
-import { Link } from "expo-router";
-import { useEffect } from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { SignedIn, useUser } from '@clerk/clerk-expo';
+import { Link } from 'expo-router';
+import { useEffect } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 export default function Page() {
   const { user } = useUser();
@@ -14,9 +14,9 @@ export default function Page() {
         const generatedUsername = `user${randomId}`;
         try {
           await user.update({ username: generatedUsername });
-          console.log("✅ 自動設定 username:", generatedUsername);
+          console.log('✅ 自動設定 username:', generatedUsername);
         } catch (err) {
-          console.error("❌ 設定 username 失敗:", err);
+          console.error('❌ 設定 username 失敗:', err);
         }
       }
     };

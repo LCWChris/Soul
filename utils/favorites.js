@@ -3,24 +3,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // 收藏數據管理工具
 
 // 獲取用戶收藏列表
-export const getFavorites = async (userId) => {
+export const getFavorites = async (userId = 'default') => {
   try {
     const favoritesData = await AsyncStorage.getItem(`favorites_${userId}`);
     if (favoritesData) {
       const favoritesArray = JSON.parse(favoritesData);
-      return new Set(favoritesArray);
+      return favoritesArray; // 直接返回陣列，不是 Set
     }
-    return new Set();
+    return [];
   } catch (error) {
     console.error('載入收藏失敗', error);
-    return new Set();
+    return [];
   }
 };
 
 // 保存收藏列表
-export const saveFavorites = async (userId, favoritesSet) => {
+export const saveFavorites = async (userId = 'default', favoritesArray) => {
   try {
-    const favoritesArray = Array.from(favoritesSet);
     await AsyncStorage.setItem(`favorites_${userId}`, JSON.stringify(favoritesArray));
     console.log('💾 收藏數據已保存:', favoritesArray);
     return true;
@@ -59,18 +58,22 @@ export const removeFavorite = async (userId, wordId) => {
 };
 
 // 切換收藏狀態
-export const toggleFavorite = async (userId, wordId) => {
+export const toggleFavorite = async (wordId, userId = 'default') => {
   try {
     const favorites = await getFavorites(userId);
-    if (favorites.has(wordId)) {
-      favorites.delete(wordId);
+    const favoritesArray = Array.isArray(favorites) ? favorites : [];
+    const index = favoritesArray.indexOf(wordId);
+    
+    if (index > -1) {
+      favoritesArray.splice(index, 1);
       console.log('🗑️ 移除收藏:', wordId);
     } else {
-      favorites.add(wordId);
+      favoritesArray.push(wordId);
       console.log('❤️ 加入收藏:', wordId);
     }
-    await saveFavorites(userId, favorites);
-    return favorites;
+    
+    await saveFavorites(userId, favoritesArray);
+    return favoritesArray;
   } catch (error) {
     console.error('切換收藏失敗', error);
     return null;

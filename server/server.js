@@ -17,6 +17,12 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
+// 添加請求日誌中間件
+app.use((req, res, next) => {
+  console.log(`📥 ${req.method} ${req.url}`);
+  next();
+});
+
 mongoose
   .connect(
     "mongodb+srv://soulsignteam:souls115@soulsignteam.rff3iag.mongodb.net/tsl_app?retryWrites=true&w=majority"
@@ -33,6 +39,15 @@ const VocabSchema = new mongoose.Schema({
   video_url: String,
   created_by: String,
   created_at: Date,
+  // 新增的分類欄位
+  categories: [String],        // 主題分類陣列
+  learning_level: String,      // 學習難度 (beginner/intermediate/advanced)
+  context: String,            // 使用情境
+  frequency: String,          // 使用頻率 (high/medium/low)
+  searchable_text: String,    // 搜尋文字
+  volume: String,             // 冊數
+  lesson: String,             // 課數
+  page: Number               // 頁數
 });
 
 // 使用 book_words collection
@@ -40,22 +55,50 @@ const BookWord = mongoose.model("BookWord", VocabSchema, "book_words");
 
 app.get("/api/book_words", async (req, res) => {
   try {
-    const { level, category, search } = req.query;
+    const { level, category, search, learning_level, context, frequency, volume, lesson } = req.query;
     let query = {};
 
-    // 根據等級篩選
+    // 根據舊的等級篩選 (level 欄位)
     if (level) {
       query.level = level;
     }
 
-    // 根據分類篩選 (theme 欄位)
-    if (category) {
-      query.theme = category;
+    // 根據新的學習難度篩選 (learning_level 欄位)
+    if (learning_level) {
+      query.learning_level = learning_level;
     }
 
-    // 根據搜尋關鍵字篩選 (title 欄位)
+    // 根據分類篩選 (使用 category 欄位)
+    if (category) {
+      query.category = category;
+    }
+
+    // 根據情境篩選
+    if (context) {
+      query.context = context;
+    }
+
+    // 根據頻率篩選
+    if (frequency) {
+      query.frequency = frequency;
+    }
+
+    // 根據冊數篩選
+    if (volume) {
+      query.volume = volume;
+    }
+
+    // 根據課數篩選
+    if (lesson) {
+      query.lesson = lesson;
+    }
+
+    // 根據搜尋關鍵字篩選 (使用 searchable_text 和 title)
     if (search) {
-      query.title = { $regex: search, $options: "i" };
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { searchable_text: { $regex: search, $options: "i" } }
+      ];
     }
 
     console.log("搜尋條件:", query);
@@ -78,12 +121,12 @@ app.get("/api/vocabularies", async (req, res) => {
 
     // 根據等級篩選
     if (level) {
-      query.level = level;
+      query.learning_level = level;
     }
 
-    // 根據分類篩選 (theme 欄位)
+    // 根據分類篩選 (使用 category 欄位)
     if (category) {
-      query.theme = category;
+      query.category = category;
     }
 
     // 根據搜尋關鍵字篩選 (title 欄位)
@@ -92,7 +135,7 @@ app.get("/api/vocabularies", async (req, res) => {
     }
 
     console.log("搜尋條件:", query);
-    const data = await Vocabulary.find(query);
+    const data = await BookWord.find(query);
     console.log(`找到 ${data.length} 筆資料`);
     res.json(data);
   } catch (err) {
@@ -101,8 +144,175 @@ app.get("/api/vocabularies", async (req, res) => {
   }
 });
 
-app.listen(port, "0.0.0.0", () => {
-  console.log(`🚀 Server is running at http://0.0.0.0:${port}`);
+// 新增：獲取所有可用的分類
+app.get("/api/categories", async (req, res) => {
+  try {
+    // 使用 category 欄位而不是 categories 陣列，避免 nan 值
+    const categories = await BookWord.aggregate([
+      { 
+        $match: { 
+          category: { $exists: true, $ne: null, $ne: "", $ne: "nan" } 
+        } 
+      },
+      { 
+        $group: { 
+          _id: "$category", 
+          count: { $sum: 1 } 
+        } 
+      },
+      { $sort: { count: -1 } }
+    ]);
+    
+    const learning_levels = await BookWord.distinct("learning_level", {
+      learning_level: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
+    });
+    
+    const contexts = await BookWord.distinct("context", {
+      context: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
+    });
+    
+    const frequencies = await BookWord.distinct("frequency", {
+      frequency: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
+    });
+    
+    const volumes = await BookWord.distinct("volume", {
+      volume: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
+    });
+    
+    res.json({
+      categories: categories.map(cat => ({ name: cat._id, count: cat.count })),
+      learning_levels: learning_levels.filter(level => level && level !== "nan"),
+      contexts: contexts.filter(context => context && context !== "nan"),
+      frequencies: frequencies.filter(freq => freq && freq !== "nan"),
+      volumes: volumes.filter(vol => vol && vol !== "nan")
+    });
+  } catch (err) {
+    console.error("獲取分類失敗:", err);
+    res.status(500).json({ error: "獲取分類失敗" });
+  }
+});
+
+// 新增：獲取推薦詞彙
+app.get("/api/recommendations", async (req, res) => {
+  try {
+    const { learning_level = 'beginner', limit = 10 } = req.query;
+    
+    // 獲取高頻詞彙
+    const highFrequencyWords = await BookWord.find({
+      learning_level,
+      frequency: 'high'
+    }).limit(parseInt(limit));
+    
+    // 如果高頻詞彙不足，補充中頻詞彙
+    if (highFrequencyWords.length < limit) {
+      const remaining = parseInt(limit) - highFrequencyWords.length;
+      const mediumFrequencyWords = await BookWord.find({
+        learning_level,
+        frequency: 'medium'
+      }).limit(remaining);
+      
+      res.json([...highFrequencyWords, ...mediumFrequencyWords]);
+    } else {
+      res.json(highFrequencyWords);
+    }
+  } catch (err) {
+    console.error("獲取推薦詞彙失敗:", err);
+    res.status(500).json({ error: "獲取推薦詞彙失敗" });
+  }
+});
+
+// 新增：獲取學習統計
+app.get("/api/stats", async (req, res) => {
+  try {
+    const totalWords = await BookWord.countDocuments();
+    
+    const levelStats = await BookWord.aggregate([
+      { $group: { _id: "$learning_level", count: { $sum: 1 } } }
+    ]);
+    
+    const categoryStats = await BookWord.aggregate([
+      { $unwind: "$categories" },
+      { $group: { _id: "$categories", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+    
+    res.json({
+      total: totalWords,
+      by_level: levelStats,
+      by_category: categoryStats
+    });
+  } catch (err) {
+    console.error("獲取統計失敗:", err);
+    res.status(500).json({ error: "獲取統計失敗" });
+  }
+});
+
+// 新增：批量更新詞匯分級
+app.post("/api/book_words/batch_update", async (req, res) => {
+  try {
+    const { updates } = req.body;
+    
+    if (!updates || !Array.isArray(updates)) {
+      return res.status(400).json({ error: "需要提供updates陣列" });
+    }
+    
+    let updated_count = 0;
+    let error_count = 0;
+    
+    for (const updateRequest of updates) {
+      try {
+        const { filter, update } = updateRequest;
+        const result = await BookWord.updateOne(filter, { $set: update });
+        
+        if (result.modifiedCount > 0) {
+          updated_count++;
+        }
+      } catch (error) {
+        error_count++;
+        console.error("批量更新單個詞匯失敗:", error);
+      }
+    }
+    
+    res.json({
+      updated_count,
+      error_count,
+      total_requested: updates.length
+    });
+    
+  } catch (err) {
+    console.error("批量更新失敗:", err);
+    res.status(500).json({ error: "批量更新失敗" });
+  }
+});
+
+// 新增：獲取分級統計
+app.get("/api/book_words/level_stats", async (req, res) => {
+  try {
+    const stats = await BookWord.aggregate([
+      {
+        $group: {
+          _id: "$learning_level",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    const result = {};
+    stats.forEach(stat => {
+      result[stat._id] = stat.count;
+    });
+    
+    res.json(result);
+  } catch (err) {
+    console.error("獲取分級統計失敗:", err);
+    res.status(500).json({ error: "獲取分級統計失敗" });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`🚀 Server is running at http://localhost:${port}`);
+  console.log(`🌐 Network access: http://172.20.10.3:${port}`);
 });
 app.post("/api/vocabularies", async (req, res) => {
   try {
@@ -210,7 +420,37 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "伺服器錯誤" });
 });
 
+<<<<<<< HEAD
 // ====== 啟動 ======
 app.listen(port, "0.0.0.0", () => {
   console.log(`🚀 Server is running at http://0.0.0.0:${port}`);
 });
+=======
+// 📊 伺服器狀態檢查端點
+app.get("/api/status", async (req, res) => {
+  try {
+    // 檢查資料庫連接
+    const dbStatus =
+      mongoose.connection.readyState === 1 ? "connected" : "disconnected";
+
+    // 獲取單詞數量
+    const wordCount = await BookWord.countDocuments();
+
+    res.json({
+      status: "healthy",
+      database: dbStatus,
+      wordCount: wordCount,
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
+// 移除重複的 app.listen
+>>>>>>> dea90ec490bb64a62dea4824a29d4d819186ed60

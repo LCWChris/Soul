@@ -1,11 +1,11 @@
-import ArrowBack from "@/components/ArrowBack"; // 假設你有一個返回箭頭組件
-import { styles } from "@/styles/auth.styles";
-import { useRouter } from "expo-router";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import ArrowBack from '@/components/ArrowBack'; // 假設你有一個返回箭頭組件
+import { styles } from '@/styles/auth.styles';
+import { useRouter } from 'expo-router';
+import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 const lessons = [
-  { id: 1, title: "基礎問候語", desc: "學習打招呼的手語" },
-  { id: 2, title: "日常對話", desc: "常見生活用語" },
-  { id: 3, title: "數字與時間", desc: "從1數到100" },
+  { id: 1, title: '基礎問候語', desc: '學習打招呼的手語' },
+  { id: 2, title: '日常對話', desc: '常見生活用語' },
+  { id: 3, title: '數字與時間', desc: '從1數到100' },
 ];
 export default function HomeScreen() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export default function HomeScreen() {
       {/* 🎉 Hero 區塊 */}
       <View className="items-center justify-center py-10 bg-yellow-100">
         <Image
-          source={require("@/assets/images/hero.png")}
+          source={require('@/assets/images/hero.png')}
           resizeMode="contain"
           style={styles.illustration}
         />
@@ -47,7 +47,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={item.id}
               className="mr-4 p-4 bg-green-100 rounded-xl w-44 drop-shadow-md"
-              onPress={() => router.push("/learning")}
+              onPress={() => router.push('/learning')}
             >
               <Text className="text-lg font-bold text-green-800">
                 {item.title}
@@ -64,11 +64,11 @@ export default function HomeScreen() {
           手語翻譯功能
         </Text>
         <Image
-          source={require("@/assets/images/translate-demo.png")}
+          source={require('@/assets/images/translate-demo.png')}
           resizeMode="contain"
           style={{
             height: 350,
-            width: "100%",
+            width: '100%',
             marginBottom: 24,
             borderRadius: 16,
           }}
@@ -82,13 +82,13 @@ export default function HomeScreen() {
       <View className="flex-row justify-around px-6 py-6 bg-white">
         <TouchableOpacity
           className="bg-purple-500 px-6 py-3 rounded-full shadow-md"
-          onPress={() => router.push("/learning")}
+          onPress={() => router.push('/learning')}
         >
           <Text className="text-white font-bold">立即學習</Text>
         </TouchableOpacity>
         <TouchableOpacity
           className="bg-blue-500 px-6 py-3 rounded-full shadow-md"
-          onPress={() => router.push("/translation/translate-screen")}
+          onPress={() => router.push('/translation/translate-screen')}
         >
           <Text className="text-white font-bold">開始翻譯</Text>
         </TouchableOpacity>
