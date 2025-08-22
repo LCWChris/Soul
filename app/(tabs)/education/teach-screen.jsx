@@ -3,33 +3,51 @@ import axios from "axios";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from "react-native";
+
 export default function TeachScreen() {
   const [volumes, setVolumes] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIALS}`;
+    console.log("🔗 準備打 API：", url);
+
     axios
-      .get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIALS}`)
+      .get(url)
       .then((res) => {
-        const uniqueVolumes = [...new Set(res.data.map((item) => item.volume))];
+        console.log("✅ 是否為陣列：", Array.isArray(res.data), "筆數：", res.data.length);
+        console.log("🧾 前三筆預覽：", res.data.slice(0, 3));
+        const uniqueVolumes = [...new Set(res.data.map((it) => Number(it.volume)))];
+        console.log("🧮 提取 volumes：", uniqueVolumes);
         setVolumes(uniqueVolumes);
       })
-      .catch((err) => console.error("載入冊別失敗", err));
+      .catch((err) => {
+        console.error("❌ Axios 失敗：", err.message);
+        alert(`⚠️ 無法載入教材：${err.message}`);
+      });
   }, []);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {volumes.map((vol) => {
-        console.log("🔍 渲染中的 vol：", vol); // ← 你可以加這行 debug
-        return (
-          <TouchableOpacity
-            key={vol}
-            style={styles.card}
-            onPress={() => router.push(`/education/teach/${vol}`)}
-          >
-            <Text style={styles.text}>第{vol}冊</Text>
-          </TouchableOpacity>
-        );
-      })}
+      {error && (
+        <Text style={styles.errorText}>⚠️ 載入錯誤：{error}</Text>
+      )}
+
+      {volumes.length === 0 && !error && (
+        <Text style={styles.emptyText}>
+          📭 尚未載入任何教材，請確認資料庫是否有資料
+        </Text>
+      )}
+
+      {volumes.map((vol) => (
+        <TouchableOpacity
+          key={vol}
+          style={styles.card}
+          onPress={() => router.push(`/education/teach/${vol}`)}
+        >
+          <Text style={styles.text}>第{vol}冊</Text>
+        </TouchableOpacity>
+      ))}
     </ScrollView>
   );
 }
@@ -49,5 +67,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#1E3A8A",
+  },
+  emptyText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#6B7280",
+    marginTop: 32,
+  },
+  errorText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "red",
+    marginTop: 32,
   },
 });

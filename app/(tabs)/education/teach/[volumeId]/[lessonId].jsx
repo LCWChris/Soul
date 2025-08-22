@@ -1,15 +1,16 @@
 import { API_CONFIG } from "@/constants/api";
 import axios from "axios";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Image,
   ScrollView,
-  StyleSheet,
-  Text,
   View,
+  Text,
+  Image,
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
 } from "react-native";
+import { useLocalSearchParams, router } from "expo-router";
 
 export default function LessonPage() {
   const { lessonId } = useLocalSearchParams();
@@ -47,8 +48,10 @@ export default function LessonPage() {
     );
   }
 
+  const resolvedLessonId = String(lessonId || data?._id || "");
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }}>
       <Image
         source={{
           uri: data.image || "https://placehold.co/600x300?text=無圖片",
@@ -57,6 +60,7 @@ export default function LessonPage() {
       />
       <View style={styles.contentContainer}>
         <Text style={styles.unit}>{data.unit}</Text>
+
         {data.content && data.content.length > 0 ? (
           data.content.map((item, index) => (
             <View key={index} style={styles.line}>
@@ -67,6 +71,17 @@ export default function LessonPage() {
         ) : (
           <Text style={styles.emptyText}>⚠️ 此單元尚無內容。</Text>
         )}
+
+        {/* 開始測驗按鈕 */}
+        <Pressable
+          style={styles.quizBtn}
+          onPress={() => {
+            if (!resolvedLessonId) return;
+            router.push({ pathname: "/education/quiz" });
+          }}
+        >
+          <Text style={styles.quizBtnText}>開始測驗</Text>
+        </Pressable>
       </View>
     </ScrollView>
   );
@@ -87,7 +102,7 @@ const styles = StyleSheet.create({
   unit: {
     fontSize: 22,
     fontWeight: "bold",
-    color: "#1E3A8A",
+    color: "#1E3A8A", // 深藍
     marginBottom: 12,
   },
   line: {
@@ -95,11 +110,11 @@ const styles = StyleSheet.create({
   },
   sign: {
     fontSize: 16,
-    color: "#374151",
+    color: "#374151", // 深灰
   },
   speak: {
     fontSize: 16,
-    color: "#6B7280",
+    color: "#6B7280", // 淺灰
   },
   loadingText: {
     marginTop: 10,
@@ -120,5 +135,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingTop: 50,
+  },
+  // ====== 測驗按鈕 ======
+  quizBtn: {
+    marginTop: 20,
+    backgroundColor: "#3B82F6", // 藍色 (Tailwind: bg-blue-500)
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: "center",
+  },
+  quizBtnText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

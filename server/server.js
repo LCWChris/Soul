@@ -153,12 +153,9 @@ const MaterialSchema = new mongoose.Schema(
 // 第三個參數指定 collection 名稱
 const Material = mongoose.model("Material", MaterialSchema, "material_image");
 
-// === 1️⃣ 列出所有教材（可用 volume 篩選） ===
-// GET /api/materials?volume=1
 app.get("/api/materials", async (req, res) => {
   try {
     const { volume } = req.query;
-
     let query = {};
     if (volume !== undefined) {
       const volNum = Number(volume);
@@ -167,8 +164,6 @@ app.get("/api/materials", async (req, res) => {
       }
       query = { volume: volNum };
     }
-
-    // 列表頁通常只需要基本欄位
     const list = await Material.find(query, "_id unit volume").lean();
     res.json(list);
   } catch (err) {
@@ -177,8 +172,7 @@ app.get("/api/materials", async (req, res) => {
   }
 });
 
-// === 2️⃣ 列出所有冊別（去重且排序） ===
-// GET /api/volumes
+// 2) 直接回所有冊別（去重 + 排序）
 app.get("/api/volumes", async (req, res) => {
   try {
     const volumes = await Material.distinct("volume");
@@ -190,12 +184,11 @@ app.get("/api/volumes", async (req, res) => {
   }
 });
 
-// === 3️⃣ 取得單一教材 ===
-// GET /api/material/:id
+// 3) 取得單一教材詳細
 app.get("/api/material/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    // 先驗證 ObjectId，避免非合法格式導致查詢例外或 404 誤判
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: "無效的 ID 格式" });
     }
@@ -211,47 +204,13 @@ app.get("/api/material/:id", async (req, res) => {
   }
 });
 
-// ===（可選）全域錯誤處理中介層 ===
+// === 全域錯誤處理 ===
 app.use((err, req, res, next) => {
   console.error("未攔截錯誤：", err);
   res.status(500).json({ error: "伺服器錯誤" });
 });
-// 🔧 API 連接測試端點
-app.get("/api/test", (req, res) => {
-  res.json({
-    status: "success",
-    message: "伺服器連接正常",
-    timestamp: new Date().toISOString(),
-    server: "Soul Learning App API",
-  });
-});
 
-// 📊 伺服器狀態檢查端點
-app.get("/api/status", async (req, res) => {
-  try {
-    // 檢查資料庫連接
-    const dbStatus =
-      mongoose.connection.readyState === 1 ? "connected" : "disconnected";
-
-    // 獲取單詞數量
-    const wordCount = await BookWord.countDocuments();
-
-    res.json({
-      status: "healthy",
-      database: dbStatus,
-      wordCount: wordCount,
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: error.message,
-      timestamp: new Date().toISOString(),
-    });
-  }
-});
-
-app.listen(port, () => {
-  console.log(`🚀 Server is running at http://localhost:3001`);
+// ====== 啟動 ======
+app.listen(port, "0.0.0.0", () => {
+  console.log(`🚀 Server is running at http://0.0.0.0:${port}`);
 });
