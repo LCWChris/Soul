@@ -100,6 +100,85 @@ export const MaterialYouTheme = {
     neutralVariant95: '#f5eefa',
     neutralVariant99: '#fffbfe',
     neutralVariant100: '#ffffff'
+  },
+
+  // 表面色彩
+  surface: {
+    surface: '#fffbfe',
+    surfaceBright: '#fffbfe',
+    surfaceDim: '#e7e0ec',
+    surfaceContainer: '#f3edf7',
+    surfaceContainerHigh: '#ede6f0',
+    surfaceContainerHighest: '#e6e0e9',
+    surfaceContainerLow: '#f9f2fc',
+    surfaceContainerLowest: '#ffffff'
+  },
+
+  // 表面變體
+  surfaceVariant: {
+    surfaceVariant: '#e7e0ec',
+    surfaceVariant90: '#f3edf7',
+    surfaceVariant95: '#f9f2fc'
+  },
+
+  // 容器色彩
+  primaryContainer: {
+    primaryContainer: '#eab3ff',
+    primaryContainer90: '#f4eaff',
+    primaryContainer95: '#f9f2ff'
+  },
+
+  secondaryContainer: {
+    secondaryContainer: '#e6dcf2',
+    secondaryContainer90: '#f3edf7',
+    secondaryContainer95: '#f9f2fc'
+  },
+
+  tertiaryContainer: {
+    tertiaryContainer: '#e3defc',
+    tertiaryContainer90: '#f1ecff',
+    tertiaryContainer95: '#f8f5ff'
+  },
+
+  errorContainer: {
+    errorContainer: '#f9dedc',
+    errorContainer90: '#fceeee',
+    errorContainer95: '#fef7f6'
+  },
+
+  // 文字色彩
+  onSurface: {
+    onSurface: '#1c1b1f',
+    onSurface90: '#313033',
+    onSurface60: '#79767a'
+  },
+
+  onSurfaceVariant: {
+    onSurfaceVariant: '#49454f',
+    onSurfaceVariant90: '#605d66',
+    onSurfaceVariant60: '#938f99'
+  },
+
+  onPrimaryContainer: {
+    onPrimaryContainer: '#1a0034'
+  },
+
+  onSecondaryContainer: {
+    onSecondaryContainer: '#1d1929'
+  },
+
+  onTertiaryContainer: {
+    onTertiaryContainer: '#1f1a2e'
+  },
+
+  onErrorContainer: {
+    onErrorContainer: '#410e0b'
+  },
+
+  // 邊框和分隔線
+  outline: {
+    outline: '#79747e',
+    outlineVariant: '#cac4d0'
   }
 };
 

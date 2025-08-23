@@ -1,0 +1,7 @@
+# 忽略組件文件，防止被視為路由
+components/**
+hooks/**
+services/**
+MaterialYouTheme.js
+*.styles.js
+utils/**

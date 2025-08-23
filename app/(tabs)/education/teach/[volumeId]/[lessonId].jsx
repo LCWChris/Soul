@@ -1,27 +1,16 @@
-<<<<<<< HEAD
-import { API_CONFIG } from "@/constants/api";
-import axios from "axios";
-import React, { useEffect, useState } from "react";
-=======
 import { API_CONFIG } from '@/constants/api';
 import axios from 'axios';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 import { useEffect, useState } from 'react';
->>>>>>> dea90ec490bb64a62dea4824a29d4d819186ed60
 import {
   ScrollView,
   View,
-<<<<<<< HEAD
   Text,
   Image,
   ActivityIndicator,
   Pressable,
   StyleSheet,
-} from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
-=======
 } from 'react-native';
->>>>>>> dea90ec490bb64a62dea4824a29d4d819186ed60
 
 export default function LessonPage() {
   const { lessonId } = useLocalSearchParams();
@@ -112,13 +101,8 @@ const styles = StyleSheet.create({
   },
   unit: {
     fontSize: 22,
-<<<<<<< HEAD
-    fontWeight: "bold",
-    color: "#1E3A8A", // 深藍
-=======
     fontWeight: 'bold',
     color: '#1E3A8A',
->>>>>>> dea90ec490bb64a62dea4824a29d4d819186ed60
     marginBottom: 12,
   },
   line: {
@@ -126,19 +110,11 @@ const styles = StyleSheet.create({
   },
   sign: {
     fontSize: 16,
-<<<<<<< HEAD
-    color: "#374151", // 深灰
-  },
-  speak: {
-    fontSize: 16,
-    color: "#6B7280", // 淺灰
-=======
     color: '#374151',
   },
   speak: {
     fontSize: 16,
     color: '#6B7280',
->>>>>>> dea90ec490bb64a62dea4824a29d4d819186ed60
   },
   loadingText: {
     marginTop: 10,

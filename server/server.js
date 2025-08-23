@@ -4,30 +4,53 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const cloudinary = require("cloudinary").v2;
 
+// 環境變數配置
+const PORT = process.env.PORT || 3001;
+const MONGODB_URI = process.env.MONGODB_URI || 
+  "mongodb+srv://soulsignteam:souls115@soulsignteam.rff3iag.mongodb.net/tsl_app?retryWrites=true&w=majority";
+
 // 初始化 Cloudinary
 cloudinary.config({
-  cloud_name: "dbmrnpwxd",
-  api_key: "861285683337524",
-  api_secret: "gIQ_tgM4L33AeLXq_gNNFfB0Q3A",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "dbmrnpwxd",
+  api_key: process.env.CLOUDINARY_API_KEY || "861285683337524",
+  api_secret: process.env.CLOUDINARY_API_SECRET || "gIQ_tgM4L33AeLXq_gNNFfB0Q3A",
 });
 
 const app = express();
-const port = 3001;
 
-app.use(cors());
-app.use(express.json());
+// === 中間件配置 ===
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://yourdomain.com'] 
+    : ['http://localhost:8081', 'http://172.20.10.3:8081'],
+  credentials: true
+}));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// 添加請求日誌中間件
+// 請求日誌中間件
 app.use((req, res, next) => {
-  console.log(`📥 ${req.method} ${req.url}`);
+  const timestamp = new Date().toISOString();
+  const startTime = Date.now();
+  
+  console.log(`📥 ${timestamp} - ${req.method} ${req.url}`);
+  
+  // 記錄響應時間
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+    console.log(`📤 ${req.method} ${req.url} - ${res.statusCode} - ${duration}ms`);
+  });
+  
   next();
 });
 
+// === 資料庫連接 ===
 mongoose
-  .connect(
-    "mongodb+srv://soulsignteam:souls115@soulsignteam.rff3iag.mongodb.net/tsl_app?retryWrites=true&w=majority"
-  )
-  .then(() => console.log("✅ MongoDB connected"))
+  .connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ MongoDB connected successfully"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 const VocabSchema = new mongoose.Schema({
@@ -52,6 +75,25 @@ const VocabSchema = new mongoose.Schema({
 
 // 使用 book_words collection
 const BookWord = mongoose.model("BookWord", VocabSchema, "book_words");
+
+// === 根路由 ===
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Soul Learning Platform API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      words: '/api/book_words',
+      categories: '/api/categories',
+      recommendations: '/api/recommendations',
+      stats: '/api/stats',
+      materials: '/api/materials',
+      status: '/api/status'
+    }
+  });
+});
+
+// === 詞彙相關 API ===
 
 app.get("/api/book_words", async (req, res) => {
   try {
@@ -310,26 +352,24 @@ app.get("/api/book_words/level_stats", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`🚀 Server is running at http://localhost:${port}`);
-  console.log(`🌐 Network access: http://172.20.10.3:${port}`);
-});
+// === 新增詞彙 API ===
 app.post("/api/vocabularies", async (req, res) => {
   try {
-    console.log("✅ 收到請求內容：", req.body);  // 加入這一行
+    console.log("✅ 收到請求內容：", req.body);
 
     const newVocab = new Vocabulary(req.body);
     await newVocab.save();
 
-    console.log("✅ 寫入成功：", newVocab);  // 額外 log 確認成功
+    console.log("✅ 寫入成功：", newVocab);
 
     res.status(201).json({ message: "新增成功！", data: newVocab });
   } catch (err) {
-    console.error("❌ 儲存失敗：", err);  // 顯示實際錯誤
+    console.error("❌ 儲存失敗：", err);
     res.status(500).json({ error: "新增失敗" });
   }
 });
 
+// === Cloudinary 圖片 API ===
 app.get("/api/cloudinary-images", async (req, res) => {
   try {
     const result = await cloudinary.search
@@ -420,13 +460,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "伺服器錯誤" });
 });
 
-<<<<<<< HEAD
-// ====== 啟動 ======
-app.listen(port, "0.0.0.0", () => {
-  console.log(`🚀 Server is running at http://0.0.0.0:${port}`);
-});
-=======
-// 📊 伺服器狀態檢查端點
+//  伺服器狀態檢查端點
 app.get("/api/status", async (req, res) => {
   try {
     // 檢查資料庫連接
@@ -452,5 +486,45 @@ app.get("/api/status", async (req, res) => {
   }
 });
 
-// 移除重複的 app.listen
->>>>>>> dea90ec490bb64a62dea4824a29d4d819186ed60
+// ====== 啟動伺服器 ======
+const startServer = () => {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Server is running at http://0.0.0.0:${PORT}`);
+    console.log(`🌐 Network access: http://172.20.10.3:${PORT}`);
+    console.log(`📱 Mobile access: http://172.20.10.3:${PORT}`);
+    console.log(`⏰ Started at: ${new Date().toISOString()}`);
+    
+    // 顯示可用的 API 端點
+    console.log('\n📋 Available API endpoints:');
+    console.log('  📚 GET  /api/book_words - 獲取單詞資料');
+    console.log('  📊 GET  /api/categories - 獲取分類資料');
+    console.log('  🎯 GET  /api/recommendations - 獲取推薦詞彙');
+    console.log('  📈 GET  /api/stats - 獲取統計資料');
+    console.log('  🔄 POST /api/book_words/batch_update - 批量更新');
+    console.log('  📖 GET  /api/materials - 獲取教材資料');
+    console.log('  🏥 GET  /api/status - 伺服器狀態檢查');
+    console.log('  ☁️  GET  /api/cloudinary-images - Cloudinary 圖片');
+  });
+};
+
+// 處理未捕獲的異常
+process.on('uncaughtException', (error) => {
+  console.error('❌ 未捕獲的異常:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ 未處理的 Promise 拒絕:', reason);
+  process.exit(1);
+});
+
+// 優雅關閉
+process.on('SIGTERM', () => {
+  console.log('👋 接收到 SIGTERM 信號，正在關閉伺服器...');
+  mongoose.connection.close(() => {
+    console.log('✅ MongoDB 連接已關閉');
+    process.exit(0);
+  });
+});
+
+startServer();
