@@ -153,12 +153,12 @@ app.get("/", (req, res) => {
     status: "running",
     endpoints: {
       words: "/api/book_words",
+      preferences: "/api/preferences",
       categories: "/api/categories",
       recommendations: "/api/recommendations",
       stats: "/api/stats",
       materials: "/api/materials",
       status: "/api/status",
-      preferences: "/api/preferences",
     },
   });
 });
@@ -543,7 +543,10 @@ app.get("/api/material/:id", async (req, res) => {
 // === 全域錯誤處理 ===
 app.use((err, req, res, next) => {
   console.error("未攔截錯誤：", err);
-  res.status(500).json({ error: "伺服器錯誤" });
+  res.status(500).json({
+    error: err.message || "伺服器錯誤",
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined,
+  });
 });
 
 //  伺服器狀態檢查端點
