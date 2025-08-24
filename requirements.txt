@@ -13,3 +13,6 @@ pyngrok
 requests
 matplotlib
 motor
+torch
+scikit-image
+torchvision
