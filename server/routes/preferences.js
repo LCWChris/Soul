@@ -18,6 +18,8 @@ router.post("/", async (req, res) => {
             { new: true, upsert: true }
         );
 
+        console.log(`✅ [POST] userId=${userId} → 問卷已儲存/更新`);
+
         res.json({ success: true, data: result });
     } catch (err) {
         console.error("❌ 儲存問卷失敗:", err);
@@ -35,8 +37,11 @@ router.get("/:userId", async (req, res) => {
         const preference = await UserPreference.findOne({ userId });
 
         if (!preference) {
+            console.log(`ℹ️ [GET] userId=${userId} → 找不到資料`);
             return res.status(404).json({ error: "找不到資料" });
         }
+
+        console.log(`✅ [GET] userId=${userId} → 成功讀取問卷`);
 
         res.json({ success: true, data: preference });
     } catch (err) {
@@ -48,17 +53,26 @@ router.get("/:userId", async (req, res) => {
     }
 });
 
-// 刪除某個使用者的問卷回答
+// 刪除某個使用者的問卷回答 (強化版)
 router.delete("/:userId", async (req, res) => {
     try {
         const userId = req.params.userId;
-        const result = await UserPreference.findOneAndDelete({ userId });
+        const result = await UserPreference.deleteMany({ userId }); // ✅ 改 deleteMany
 
-        if (!result) {
+        if (result.deletedCount === 0) {
+            console.log(`🗑️ [DELETE] userId=${userId} → 找不到任何偏好資料`);
             return res.status(404).json({ error: "找不到資料" });
         }
 
-        res.json({ success: true, message: "問卷已刪除" });
+        console.log(
+            `🗑️ [DELETE] userId=${userId} → 已刪除 ${result.deletedCount} 筆偏好資料`
+        );
+
+        res.json({
+            success: true,
+            message: `✅ 已刪除 ${result.deletedCount} 筆偏好資料`,
+            deletedCount: result.deletedCount,
+        });
     } catch (err) {
         console.error("❌ 刪除問卷失敗:", err);
         res.status(500).json({
