@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: `http://${process.env.EXPO_PUBLIC_IP}:3001`, // 修正字串模板語法
+  BASE_URL: process.env.EXPO_PUBLIC_IP, // 直接使用 ngrok URL（已包含協議和域名）
   ENDPOINTS: {
     BOOK_WORDS: "/api/book_words",
     CATEGORIES: "/api/categories",
@@ -8,6 +8,7 @@ export const API_CONFIG = {
     FAVORITES: "/api/favorites",
     MATERIALS: "/api/materials",
     MATERIAL: "/api/material",
+    PREFERENCES: "/api/preferences", // 使用者偏好問卷
   },
   TIMEOUT: 10000,
 };

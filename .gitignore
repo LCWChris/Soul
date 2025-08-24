@@ -37,3 +37,101 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.venv/
+.env/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# PyTorch models and weights
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.hdf5
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Video and media files
+*.mp4
+*.avi
+*.mov
+*.mkv
+temp_videos/
+
+# Machine learning datasets
+*.json
+!package.json
+!app.json
+!tsconfig.json
+!expo-env.d.ts
+
+# Temporary files
+*.tmp
+*.temp
+requirements_backup.txt

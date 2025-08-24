@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-multipart
+mediapipe
+opencv-python
+numpy
+Pillow
+tensorflow
+pandas
+pymongo
+python-dotenv
+pyngrok
+requests
+matplotlib
+motor
