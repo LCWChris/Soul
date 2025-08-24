@@ -1,7 +1,8 @@
+import { API_CONFIG } from "@/constants/api"; // ✅ 引入 API_CONFIG
 import { useUser } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Snackbar } from "react-native-paper";
 
@@ -33,11 +34,42 @@ export default function PreferenceQuestionnaire() {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
+
   const router = useRouter();
   const { user } = useUser();
 
   const total = questions.length;
   const currentQuestion = questions?.[step];
+
+  // ✅ 檢查是否已填過問卷（後端 + 本地）
+  useEffect(() => {
+    const checkIfFilled = async () => {
+      if (!user?.id) return;
+
+      try {
+        const res = await fetch(
+          `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.data) {
+            console.log("✅ 已有問卷答案:", data.data);
+            setAnswers(data.data.answers);
+            setEditMode(true);
+          }
+        }
+      } catch (err) {
+        console.error("❌ 檢查問卷狀態失敗:", err);
+      }
+
+      setLoading(false);
+    };
+
+    checkIfFilled();
+  }, [user]);
 
   const handleNext = async () => {
     if (!answers[currentQuestion?.key]) {
@@ -47,31 +79,78 @@ export default function PreferenceQuestionnaire() {
     if (step < total - 1) {
       setStep(step + 1);
     } else {
-      // 完成問卷
-      setSubmitting(true);
-      await AsyncStorage.setItem(`questionnaireFilled_${user?.id}`, "true");
-      setSubmitting(false);
-      setSnackbarVisible(true); // 顯示提示
+      // ✅ 最後一題時檢查是否所有題目都有回答
+      const unanswered = questions.filter((q) => !answers[q.key]);
+      if (unanswered.length > 0) {
+        setSnackbarMessage("⚠️ 請完成所有題目再送出");
+        setSnackbarVisible(true);
+        return;
+      }
+      await handleSubmit();
     }
   };
 
   const handlePrev = () => {
-    if (step > 0) {
-      setStep(step - 1);
+    if (step > 0) setStep(step - 1);
+  };
+
+  // ✅ 提交或更新問卷
+  const handleSubmit = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+
+    try {
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user?.id,
+            answers,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        console.log("✅ 問卷已儲存:", data.data);
+
+        await AsyncStorage.setItem(`questionnaireFilled_${user?.id}`, "true");
+
+        setSnackbarMessage(editMode ? "✅ 問卷已更新" : "✅ 問卷已提交");
+        setSnackbarVisible(true);
+
+        setTimeout(() => router.replace("/(tabs)"), 1500);
+      } else {
+        setSnackbarMessage("❌ 儲存失敗：" + (data.error || "未知錯誤"));
+        setSnackbarVisible(true);
+      }
+    } catch (err) {
+      console.error("❌ 提交問卷失敗:", err);
+      setSnackbarMessage("❌ 提交問卷失敗，請稍後再試");
+      setSnackbarVisible(true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleSnackbarDismiss = () => {
-    setSnackbarVisible(false);
-    router.replace("/(tabs)");
-  };
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>檢查中...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {/* 標題 */}
-      <Text style={styles.title}>使用者偏好問卷</Text>
+      <Text style={styles.title}>
+        {editMode ? "編輯使用者偏好問卷" : "使用者偏好問卷"}
+      </Text>
 
-      {/* Stepper dots */}
+      {/* Stepper Dots */}
       <View style={styles.stepper}>
         {Array.from({ length: total }).map((_, index) => (
           <View
@@ -86,9 +165,7 @@ export default function PreferenceQuestionnaire() {
       </View>
 
       {/* 題目 */}
-      <Text style={styles.question}>
-        {currentQuestion?.title || "❌ 沒有題目"}
-      </Text>
+      <Text style={styles.question}>{currentQuestion?.title}</Text>
 
       {/* 選項 */}
       {(currentQuestion?.options || []).map((option) => {
@@ -115,7 +192,7 @@ export default function PreferenceQuestionnaire() {
             style={[styles.navBtn, { backgroundColor: "#9ca3af" }]}
             onPress={handlePrev}
           >
-            <Text style={{ color: "white", fontWeight: "bold" }}>上一題</Text>
+            <Text style={styles.navBtnText}>上一題</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity
@@ -123,20 +200,20 @@ export default function PreferenceQuestionnaire() {
           onPress={handleNext}
           disabled={submitting}
         >
-          <Text style={{ color: "white", fontWeight: "bold" }}>
-            {step === total - 1 ? "送出" : "下一題"}
+          <Text style={styles.navBtnText}>
+            {step === total - 1 ? (editMode ? "更新" : "送出") : "下一題"}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Snackbar 成功提示 */}
+      {/* Snackbar */}
       <Snackbar
         visible={snackbarVisible}
-        onDismiss={handleSnackbarDismiss}
-        duration={1500} // 1.5 秒後自動消失
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={1500}
         style={styles.snackbar}
       >
-        ✅ 問卷已提交
+        {snackbarMessage}
       </Snackbar>
     </View>
   );
@@ -146,12 +223,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20, backgroundColor: "#f9fafb" },
   title: { fontSize: 22, fontWeight: "bold", marginBottom: 20, color: "#1E3A8A" },
 
-  /* Stepper dots */
-  stepper: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 20,
-  },
+  stepper: { flexDirection: "row", justifyContent: "center", marginBottom: 20 },
   dot: {
     width: 12,
     height: 12,
@@ -162,7 +234,7 @@ const styles = StyleSheet.create({
   dotActive: { backgroundColor: "#3b82f6" },
   dotDone: { backgroundColor: "#10b981" },
 
-  question: { fontSize: 18, marginBottom: 16, color: "black" },
+  question: { fontSize: 18, marginBottom: 16, color: "#111827" },
   option: {
     padding: 14,
     borderWidth: 1,
@@ -175,11 +247,7 @@ const styles = StyleSheet.create({
   optionText: { fontSize: 16, color: "#111827" },
   optionTextSelected: { color: "white", fontWeight: "bold" },
 
-  navButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
-  },
+  navButtons: { flexDirection: "row", justifyContent: "space-between", marginTop: 20 },
   navBtn: {
     flex: 1,
     marginHorizontal: 4,
@@ -188,8 +256,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
+  navBtnText: { color: "white", fontWeight: "bold" },
 
-  snackbar: {
-    backgroundColor: "#10b981", // 成功綠色
-  },
+  snackbar: { backgroundColor: "#10b981" },
 });

@@ -4,9 +4,12 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const cloudinary = require("cloudinary").v2;
 
+// 匯入問卷路由
+const preferencesRouter = require("./routes/preferences");
+
 // 環境變數配置
 const PORT = process.env.PORT || 3001;
-const MONGODB_URI = process.env.MONGODB_URI || 
+const MONGODB_URI = process.env.MONGODB_URI ||
   "mongodb+srv://soulsignteam:souls115@soulsignteam.rff3iag.mongodb.net/tsl_app?retryWrites=true&w=majority";
 
 // 初始化 Cloudinary
@@ -20,8 +23,8 @@ const app = express();
 
 // === 中間件配置 ===
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] 
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://yourdomain.com']
     : ['http://localhost:8081', 'http://172.20.10.3:8081'],
   credentials: true
 }));
@@ -32,15 +35,15 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use((req, res, next) => {
   const timestamp = new Date().toISOString();
   const startTime = Date.now();
-  
+
   console.log(`📥 ${timestamp} - ${req.method} ${req.url}`);
-  
+
   // 記錄響應時間
   res.on('finish', () => {
     const duration = Date.now() - startTime;
     console.log(`📤 ${req.method} ${req.url} - ${res.statusCode} - ${duration}ms`);
   });
-  
+
   next();
 });
 
@@ -84,6 +87,7 @@ app.get('/', (req, res) => {
     status: 'running',
     endpoints: {
       words: '/api/book_words',
+      preferences: '/api/preferences',
       categories: '/api/categories',
       recommendations: '/api/recommendations',
       stats: '/api/stats',
@@ -92,6 +96,9 @@ app.get('/', (req, res) => {
     }
   });
 });
+
+// === 掛載問卷相關 API ===
+app.use("/api/preferences", preferencesRouter);
 
 // === 詞彙相關 API ===
 
@@ -191,36 +198,36 @@ app.get("/api/categories", async (req, res) => {
   try {
     // 使用 category 欄位而不是 categories 陣列，避免 nan 值
     const categories = await BookWord.aggregate([
-      { 
-        $match: { 
-          category: { $exists: true, $ne: null, $ne: "", $ne: "nan" } 
-        } 
+      {
+        $match: {
+          category: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
+        }
       },
-      { 
-        $group: { 
-          _id: "$category", 
-          count: { $sum: 1 } 
-        } 
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 }
+        }
       },
       { $sort: { count: -1 } }
     ]);
-    
+
     const learning_levels = await BookWord.distinct("learning_level", {
       learning_level: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
     });
-    
+
     const contexts = await BookWord.distinct("context", {
       context: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
     });
-    
+
     const frequencies = await BookWord.distinct("frequency", {
       frequency: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
     });
-    
+
     const volumes = await BookWord.distinct("volume", {
       volume: { $exists: true, $ne: null, $ne: "", $ne: "nan" }
     });
-    
+
     res.json({
       categories: categories.map(cat => ({ name: cat._id, count: cat.count })),
       learning_levels: learning_levels.filter(level => level && level !== "nan"),
@@ -238,13 +245,13 @@ app.get("/api/categories", async (req, res) => {
 app.get("/api/recommendations", async (req, res) => {
   try {
     const { learning_level = 'beginner', limit = 10 } = req.query;
-    
+
     // 獲取高頻詞彙
     const highFrequencyWords = await BookWord.find({
       learning_level,
       frequency: 'high'
     }).limit(parseInt(limit));
-    
+
     // 如果高頻詞彙不足，補充中頻詞彙
     if (highFrequencyWords.length < limit) {
       const remaining = parseInt(limit) - highFrequencyWords.length;
@@ -252,7 +259,7 @@ app.get("/api/recommendations", async (req, res) => {
         learning_level,
         frequency: 'medium'
       }).limit(remaining);
-      
+
       res.json([...highFrequencyWords, ...mediumFrequencyWords]);
     } else {
       res.json(highFrequencyWords);
@@ -267,18 +274,18 @@ app.get("/api/recommendations", async (req, res) => {
 app.get("/api/stats", async (req, res) => {
   try {
     const totalWords = await BookWord.countDocuments();
-    
+
     const levelStats = await BookWord.aggregate([
       { $group: { _id: "$learning_level", count: { $sum: 1 } } }
     ]);
-    
+
     const categoryStats = await BookWord.aggregate([
       { $unwind: "$categories" },
       { $group: { _id: "$categories", count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 10 }
     ]);
-    
+
     res.json({
       total: totalWords,
       by_level: levelStats,
@@ -294,19 +301,19 @@ app.get("/api/stats", async (req, res) => {
 app.post("/api/book_words/batch_update", async (req, res) => {
   try {
     const { updates } = req.body;
-    
+
     if (!updates || !Array.isArray(updates)) {
       return res.status(400).json({ error: "需要提供updates陣列" });
     }
-    
+
     let updated_count = 0;
     let error_count = 0;
-    
+
     for (const updateRequest of updates) {
       try {
         const { filter, update } = updateRequest;
         const result = await BookWord.updateOne(filter, { $set: update });
-        
+
         if (result.modifiedCount > 0) {
           updated_count++;
         }
@@ -315,13 +322,13 @@ app.post("/api/book_words/batch_update", async (req, res) => {
         console.error("批量更新單個詞匯失敗:", error);
       }
     }
-    
+
     res.json({
       updated_count,
       error_count,
       total_requested: updates.length
     });
-    
+
   } catch (err) {
     console.error("批量更新失敗:", err);
     res.status(500).json({ error: "批量更新失敗" });
@@ -339,12 +346,12 @@ app.get("/api/book_words/level_stats", async (req, res) => {
         }
       }
     ]);
-    
+
     const result = {};
     stats.forEach(stat => {
       result[stat._id] = stat.count;
     });
-    
+
     res.json(result);
   } catch (err) {
     console.error("獲取分級統計失敗:", err);
@@ -457,7 +464,10 @@ app.get("/api/material/:id", async (req, res) => {
 // === 全域錯誤處理 ===
 app.use((err, req, res, next) => {
   console.error("未攔截錯誤：", err);
-  res.status(500).json({ error: "伺服器錯誤" });
+  res.status(500).json({
+    error: err.message || "伺服器錯誤",
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined
+  });
 });
 
 //  伺服器狀態檢查端點
@@ -493,10 +503,12 @@ const startServer = () => {
     console.log(`🌐 Network access: http://172.20.10.3:${PORT}`);
     console.log(`📱 Mobile access: http://172.20.10.3:${PORT}`);
     console.log(`⏰ Started at: ${new Date().toISOString()}`);
-    
+
     // 顯示可用的 API 端點
     console.log('\n📋 Available API endpoints:');
     console.log('  📚 GET  /api/book_words - 獲取單詞資料');
+    console.log('  📝 POST /api/preferences - 儲存/更新問卷回答');
+    console.log('  🔍 GET  /api/preferences/:userId - 查詢使用者問卷');
     console.log('  📊 GET  /api/categories - 獲取分類資料');
     console.log('  🎯 GET  /api/recommendations - 獲取推薦詞彙');
     console.log('  📈 GET  /api/stats - 獲取統計資料');
