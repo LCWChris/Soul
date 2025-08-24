@@ -18,17 +18,35 @@ export default function LessonPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    console.log('📦 進入教材頁面，lessonId：', lessonId);
-    axios
-      .get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIAL}/${lessonId}`)
-      .then((res) => {
-        console.log('✅ 成功取得教材資料', res.data);
-        setData(res.data);
-      })
-      .catch((err) => {
-        console.error('❌ 讀取教材失敗', err);
+    const loadLessonData = async () => {
+      try {
+        console.log('📦 進入教材頁面，lessonId：', lessonId);
+        
+        const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIAL}/${lessonId}`;
+        console.log('🔗 載入教材詳情，URL：', url);
+        
+        const response = await axios.get(url, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+        });
+        
+        console.log('📦 完整回應：', response);
+        console.log('📄 回應資料：', response.data);
+        console.log('✅ 成功取得教材資料', response.data);
+        
+        setData(response.data);
+      } catch (err) {
+        console.error('❌ 讀取教材失敗：', err);
+        console.error('❌ 錯誤訊息：', err.message);
+        console.error('❌ 錯誤回應：', err.response?.data);
         setError(true);
-      });
+      }
+    };
+
+    if (lessonId) {
+      loadLessonData();
+    }
   }, [lessonId]);
 
   if (error) {
@@ -61,11 +79,11 @@ export default function LessonPage() {
       <View style={styles.contentContainer}>
         <Text style={styles.unit}>{data.unit}</Text>
 
-        {data.content && data.content.length > 0 ? (
+        {data.content && Array.isArray(data.content) && data.content.length > 0 ? (
           data.content.map((item, index) => (
             <View key={index} style={styles.line}>
-              <Text style={styles.sign}>✋ {item.sign_text}</Text>
-              <Text style={styles.speak}>🗣 {item.spoken_text}</Text>
+              <Text style={styles.sign}>✋ {item.sign_text || '無手語內容'}</Text>
+              <Text style={styles.speak}>🗣 {item.spoken_text || '無語音內容'}</Text>
             </View>
           ))
         ) : (
