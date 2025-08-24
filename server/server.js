@@ -89,9 +89,7 @@ app.post(
 app.use(
   cors({
     origin:
-      process.env.NODE_ENV === "production"
-        ? ["https://yourdomain.com"]
-        : ["http://localhost:8081", "http://172.20.10.3:8081"],
+      process.env.NODE_ENV === "production" ? ["https://yourdomain.com"] : true, // 開發環境允許所有來源
     credentials: true,
   })
 );

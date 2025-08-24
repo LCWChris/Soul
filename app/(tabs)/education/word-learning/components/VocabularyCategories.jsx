@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  Alert
+  Alert,
+  Platform
 } from 'react-native';
 import { API_CONFIG } from '@/constants/api';
 import axios from 'axios';
@@ -29,12 +30,19 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`);
+      console.log('🏷️ 正在獲取分類數據...');
+      const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`, {
+        headers: {
+          'ngrok-skip-browser-warning': 'true'
+        }
+      });
       const data = response.data;
+      console.log('🏷️ 分類數據獲取成功:', data);
       
       setCategories(data.categories || []);
       setLearningLevels(data.learning_levels || []);
       setVolumes(data.volumes || []);
+      console.log('🏷️ 已設定分類:', data.categories?.length || 0, '個');
       setRetryCount(0); // 重置重試計數
     } catch (error) {
       console.error('獲取分類失敗:', error);
@@ -113,8 +121,23 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
     );
   }
 
+  // 如果沒有分類數據，顯示提示
+  if (!categories || categories.length === 0) {
+    return (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyIcon}>📚</Text>
+        <Text style={styles.emptyTitle}>暫無分類</Text>
+        <Text style={styles.emptyMessage}>正在載入分類數據...</Text>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      style={[styles.container, Platform.OS === 'web' && { minHeight: 400 }]} 
+      contentContainerStyle={Platform.OS === 'web' ? { flexGrow: 1 } : {}}
+      showsVerticalScrollIndicator={false}
+    >
       {/* 主題分類選擇 */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>主題分類</Text>
@@ -239,10 +262,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: Spacing.sm,
+    gap: Platform.OS === 'web' ? Spacing.sm : undefined,
+    marginHorizontal: Platform.OS === 'web' ? -Spacing.sm/2 : 0,
   },
   categoryCard: {
-    width: '48%',
+    width: Platform.OS === 'web' ? 'calc(50% - 8px)' : '48%',
     backgroundColor: MaterialYouTheme.secondary.secondary95,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
@@ -251,6 +275,7 @@ const styles = StyleSheet.create({
     borderColor: MaterialYouTheme.secondary.secondary90,
     minHeight: 100,
     justifyContent: 'space-between',
+    marginBottom: Platform.OS === 'web' ? 0 : Spacing.sm,
   },
   selectedCategoryCard: {
     backgroundColor: MaterialYouTheme.primary.primary95,
@@ -346,6 +371,31 @@ const styles = StyleSheet.create({
     ...Typography.labelLarge,
     color: MaterialYouTheme.primary.primary99,
     fontWeight: '500',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.xl,
+    backgroundColor: MaterialYouTheme.neutral.neutral99,
+    minHeight: 200,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: Spacing.md,
+  },
+  emptyTitle: {
+    ...Typography.headlineSmall,
+    color: MaterialYouTheme.neutral.neutral30,
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  emptyMessage: {
+    ...Typography.bodyMedium,
+    color: MaterialYouTheme.neutral.neutral40,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 
