@@ -1,17 +1,20 @@
-import InitialLayout from "@/components/initialLayout"; // 導入初始布局組件
+import InitialLayout from "@/components/initialLayout";
 import { ClerkProvider } from "@clerk/clerk-expo";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
-import { StatusBar } from "expo-status-bar"; // 導入狀態欄組件
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"; // 導入 SafeAreaProvider
-import "./globals.css"; // 確保全局 CSS 導入
+import { StatusBar } from "expo-status-bar";
+import { PaperProvider } from "react-native-paper"; // ⬅️ 新增
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import "./globals.css";
 
 export default function RootLayout() {
   return (
     <ClerkProvider tokenCache={tokenCache}>
       <SafeAreaProvider>
         <SafeAreaView style={{ flex: 1 }}>
-          <StatusBar style="dark" />
-          <InitialLayout />
+          <PaperProvider>  {/* ⬅️ 新增：全域 PaperProvider */}
+            <StatusBar style="dark" />
+            <InitialLayout />
+          </PaperProvider>
         </SafeAreaView>
       </SafeAreaProvider>
     </ClerkProvider>

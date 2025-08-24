@@ -2,7 +2,8 @@ import { useUser } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Snackbar } from "react-native-paper";
 
 const questions = [
   {
@@ -29,77 +30,166 @@ const questions = [
 
 export default function PreferenceQuestionnaire() {
   const [answers, setAnswers] = useState({});
+  const [step, setStep] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
   const router = useRouter();
   const { user } = useUser();
 
-  const selectAnswer = (questionKey, option) => {
-    setAnswers((prev) => ({ ...prev, [questionKey]: option }));
+  const total = questions.length;
+  const currentQuestion = questions?.[step];
+
+  const handleNext = async () => {
+    if (!answers[currentQuestion?.key]) {
+      return alert("請先選擇一個選項");
+    }
+
+    if (step < total - 1) {
+      setStep(step + 1);
+    } else {
+      // 完成問卷
+      setSubmitting(true);
+      await AsyncStorage.setItem(`questionnaireFilled_${user?.id}`, "true");
+      setSubmitting(false);
+      setSnackbarVisible(true); // 顯示提示
+    }
   };
 
-  const handleSubmit = async () => {
-    const unanswered = questions.find((q) => !answers[q.key]);
-    if (unanswered) {
-      Alert.alert('請完成所有問題', `尚未作答：${unanswered.title}`);
-      return;
+  const handlePrev = () => {
+    if (step > 0) {
+      setStep(step - 1);
     }
+  };
 
-    console.log("使用者偏好：", answers);
-
-    try {
-      await AsyncStorage.setItem(`questionnaireFilled_${user.id}`, "true");
-      console.log("提交問卷後導向主頁");
-      router.replace("/(tabs)");
-    } catch (error) {
-      console.error("問卷提交失敗：", error);
-      Alert.alert("錯誤", "提交問卷時發生錯誤，請稍後再試");
-    }
+  const handleSnackbarDismiss = () => {
+    setSnackbarVisible(false);
+    router.replace("/(tabs)");
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 20 }}>
-        使用者偏好問卷
+    <View style={styles.container}>
+      {/* 標題 */}
+      <Text style={styles.title}>使用者偏好問卷</Text>
+
+      {/* Stepper dots */}
+      <View style={styles.stepper}>
+        {Array.from({ length: total }).map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              index === step && styles.dotActive,
+              index < step && styles.dotDone,
+            ]}
+          />
+        ))}
+      </View>
+
+      {/* 題目 */}
+      <Text style={styles.question}>
+        {currentQuestion?.title || "❌ 沒有題目"}
       </Text>
-      {questions.map((question) => (
-        <View key={question.key} style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 18, marginBottom: 8 }}>{question.title}</Text>
-          {question.options.map((option) => (
-            <TouchableOpacity
-              key={option}
-              onPress={() => selectAnswer(question.key, option)}
-              style={{
-                backgroundColor:
-                  answers[question.key] === option ? "#60a5fa" : "#e5e7eb",
-                padding: 12,
-                borderRadius: 8,
-                marginVertical: 4,
-              }}
-            >
-              <Text
-                style={{
-                  color: answers[question.key] === option ? "white" : "#1f2937",
-                }}
-              >
-                {option}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      ))}
-      <TouchableOpacity
-        onPress={handleSubmit}
-        style={{ backgroundColor: '#10b981', padding: 14, borderRadius: 10 }}
-      >
-        <Text
-          style={{
-            color: "white",
-            fontWeight: "bold",
-            textAlign: "center",
-          }}
+
+      {/* 選項 */}
+      {(currentQuestion?.options || []).map((option) => {
+        const selected = answers[currentQuestion?.key] === option;
+        return (
+          <TouchableOpacity
+            key={option}
+            style={[styles.option, selected && styles.optionSelected]}
+            onPress={() =>
+              setAnswers((prev) => ({ ...prev, [currentQuestion.key]: option }))
+            }
+          >
+            <Text style={[styles.optionText, selected && styles.optionTextSelected]}>
+              {option}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+
+      {/* 導覽按鈕 */}
+      <View style={styles.navButtons}>
+        {step > 0 && (
+          <TouchableOpacity
+            style={[styles.navBtn, { backgroundColor: "#9ca3af" }]}
+            onPress={handlePrev}
+          >
+            <Text style={{ color: "white", fontWeight: "bold" }}>上一題</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          style={[styles.navBtn, submitting && { opacity: 0.6 }]}
+          onPress={handleNext}
+          disabled={submitting}
         >
-          送出
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <Text style={{ color: "white", fontWeight: "bold" }}>
+            {step === total - 1 ? "送出" : "下一題"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Snackbar 成功提示 */}
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={handleSnackbarDismiss}
+        duration={1500} // 1.5 秒後自動消失
+        style={styles.snackbar}
+      >
+        ✅ 問卷已提交
+      </Snackbar>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, backgroundColor: "#f9fafb" },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 20, color: "#1E3A8A" },
+
+  /* Stepper dots */
+  stepper: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  dot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: "#d1d5db",
+    marginHorizontal: 6,
+  },
+  dotActive: { backgroundColor: "#3b82f6" },
+  dotDone: { backgroundColor: "#10b981" },
+
+  question: { fontSize: 18, marginBottom: 16, color: "black" },
+  option: {
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    marginBottom: 10,
+    backgroundColor: "#f3f4f6",
+  },
+  optionSelected: { backgroundColor: "#3b82f6", borderColor: "#3b82f6" },
+  optionText: { fontSize: 16, color: "#111827" },
+  optionTextSelected: { color: "white", fontWeight: "bold" },
+
+  navButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+  navBtn: {
+    flex: 1,
+    marginHorizontal: 4,
+    backgroundColor: "#2563eb",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+
+  snackbar: {
+    backgroundColor: "#10b981", // 成功綠色
+  },
+});
