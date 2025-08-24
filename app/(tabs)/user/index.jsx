@@ -1,5 +1,5 @@
 import { API_CONFIG } from "@/constants/api";
-import { useClerk, useUser } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -20,7 +20,6 @@ import {
 
 export default function UserScreen() {
   const { user } = useUser();
-  const { signOut, deleteUser } = useClerk();
   const router = useRouter();
 
   const [preferences, setPreferences] = useState(null);
@@ -77,7 +76,7 @@ export default function UserScreen() {
   // ✅ 登出
   const handleSignOut = async () => {
     try {
-      await signOut();
+      await user.signOut();
       setSnackbarMessage("✅ 已登出");
       setSnackbarVisible(true);
       router.replace("/(auth)/sign-in");
@@ -88,12 +87,20 @@ export default function UserScreen() {
     }
   };
 
-  // ✅ 確認註銷帳號
+  // ✅ 確認註銷帳號（先刪 MongoDB → 再刪 Clerk）
   const handleConfirmDelete = async () => {
     try {
+      // 1) 刪除 MongoDB 偏好
+      await fetch(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`,
+        { method: "DELETE" }
+      );
+
+      // 2) 刪除 Clerk 帳號
       await user.delete();
+
       setDeleteDialogVisible(false);
-      setSnackbarMessage("✅ 帳號已刪除");
+      setSnackbarMessage("✅ 帳號與偏好資料已刪除");
       setSnackbarVisible(true);
       router.replace("/(auth)/sign-up");
     } catch (e) {
@@ -273,7 +280,7 @@ export default function UserScreen() {
           <Dialog.Title>⚠️ 確認註銷帳號</Dialog.Title>
           <Dialog.Content>
             <Paragraph>
-              此動作無法恢復，帳號資料將永久刪除。確定要繼續嗎？
+              此動作無法恢復，帳號及相關資料將永久刪除。確定要繼續嗎？
             </Paragraph>
           </Dialog.Content>
           <Dialog.Actions>
