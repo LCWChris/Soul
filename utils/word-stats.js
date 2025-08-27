@@ -17,10 +17,17 @@ export const getWordStats = async (filters = {}) => {
       params: {
         ...filters,
         limit: 1000 // 獲取足夠多的數據用於統計
+      },
+      headers: {
+        'ngrok-skip-browser-warning': 'true'
       }
     });
     
-    const words = response.data.words || response.data || [];
+    // API 直接返回陣列，確保數據格式正確
+    let words = response.data;
+    if (!Array.isArray(words)) {
+      words = words.words || words.data || [];
+    }
     console.log('📊 獲取到單詞數據:', words.length, '個');
     
     // 獲取學習進度和收藏數據
@@ -224,12 +231,19 @@ export const getWordsNeedReview = async (limit = 10) => {
   try {
     const [response, learningProgress] = await Promise.all([
       axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}`, {
-        params: { limit: 200 }
+        params: { limit: 200 },
+        headers: {
+          'ngrok-skip-browser-warning': 'true'
+        }
       }),
       getLearningProgress()
     ]);
     
-    const words = response.data.words || response.data || [];
+    // API 直接返回陣列，確保數據格式正確
+    let words = response.data;
+    if (!Array.isArray(words)) {
+      words = words.words || words.data || [];
+    }
     
     // 篩選需要複習的單詞
     const reviewWords = words.filter(word => {

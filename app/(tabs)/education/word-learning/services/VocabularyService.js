@@ -25,6 +25,9 @@ export class VocabularyService {
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}`;
       const response = await axios.get(url, { 
         params,
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
         timeout: API_CONFIG.TIMEOUT 
       });
       
@@ -41,7 +44,12 @@ export class VocabularyService {
   static async getCategories() {
     return this.makeRequestWithRetry(async () => {
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`;
-      const response = await axios.get(url, { timeout: API_CONFIG.TIMEOUT });
+      const response = await axios.get(url, { 
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+        timeout: API_CONFIG.TIMEOUT 
+      });
       
       // 數據驗證
       if (!response.data || typeof response.data !== 'object') {
@@ -58,6 +66,9 @@ export class VocabularyService {
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.RECOMMENDATIONS}`;
       const response = await axios.get(url, { 
         params,
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
         timeout: API_CONFIG.TIMEOUT 
       });
       
@@ -74,7 +85,12 @@ export class VocabularyService {
   static async getStats() {
     return this.makeRequestWithRetry(async () => {
       const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.STATS}`;
-      const response = await axios.get(url, { timeout: API_CONFIG.TIMEOUT });
+      const response = await axios.get(url, { 
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+        timeout: API_CONFIG.TIMEOUT 
+      });
       
       // 數據驗證
       if (!response.data || typeof response.data !== 'object') {
@@ -104,6 +120,9 @@ export class VocabularyService {
         const url = `${API_CONFIG.BASE_URL}/api/users/${userId}/progress`;
         const response = await axios.get(url, { 
           params: filters,
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
           timeout: API_CONFIG.TIMEOUT 
         });
         

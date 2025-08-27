@@ -38,14 +38,22 @@ export default function LessonPage() {
 
   // 讀教材
   useEffect(() => {
-    if (!lessonId) return;
+    console.log('📦 進入教材頁面，lessonId：', lessonId);
     axios
       .get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIAL}/${lessonId}`)
-      .then((res) => setData(res.data))
+      .then((res) => {
+        console.log('✅ 成功取得教材資料', res.data);
+        setData(res.data);
+      })
       .catch((err) => {
         console.error('❌ 讀取教材失敗', err);
         setError(true);
-      });
+      }
+    };
+
+    if (lessonId) {
+      loadLessonData();
+    }
   }, [lessonId]);
 
   // 從 unit 文字嘗試抓單元數字（例：'第3單元 …' -> 3）
@@ -135,12 +143,11 @@ export default function LessonPage() {
         {/* 單元標題 */}
         <Text style={styles.unit}>{data.unit}</Text>
 
-        {/* 對話內容 */}
         {data.content && data.content.length > 0 ? (
           data.content.map((item, index) => (
             <View key={index} style={styles.line}>
-              <Text style={styles.sign}>✋ {item.sign_text}</Text>
-              <Text style={styles.speak}>🗣 {item.spoken_text}</Text>
+              <Text style={styles.sign}>✋ {item.sign_text || '無手語內容'}</Text>
+              <Text style={styles.speak}>🗣 {item.spoken_text || '無語音內容'}</Text>
             </View>
           ))
         ) : (

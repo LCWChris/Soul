@@ -45,9 +45,17 @@ const FavoritesScreen = () => {
       
       // 嘗試從 API 獲取真實的單詞資料
       try {
-        const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}?limit=1000`);
+        const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}?limit=1000`, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true'
+          }
+        });
         const data = await response.json();
-        const allWords = data.words || data || [];
+        // API 直接返回陣列，確保數據格式正確
+        let allWords = data;
+        if (!Array.isArray(allWords)) {
+          allWords = allWords.words || allWords.data || [];
+        }
         
         // 根據收藏的 ID 過濾出對應的單詞
         const favoriteWords = allWords.filter(word => 

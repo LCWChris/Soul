@@ -130,9 +130,16 @@ const MaterialWordLearningScreen = () => {
       if (selectedLearningStatus) {
         // 先獲取所有單詞，然後根據學習狀態篩選
         const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}`, { 
-          params: { limit: 100 } // 獲取更多數據用於篩選
+          params: { limit: 100 }, // 獲取更多數據用於篩選
+          headers: {
+            'ngrok-skip-browser-warning': 'true'
+          }
         });
-        const allWords = response.data.words || response.data || [];
+        // API 直接返回陣列，確保數據格式正確
+        let allWords = response.data;
+        if (!Array.isArray(allWords)) {
+          allWords = allWords.words || allWords.data || [];
+        }
         
         // 根據學習狀態篩選
         const filteredWords = await filterWordsByProgress(allWords, selectedLearningStatus);
@@ -146,8 +153,17 @@ const MaterialWordLearningScreen = () => {
           limit: 20,
         };
 
-        const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}`, { params });
-        const wordsData = response.data.words || response.data || [];
+        const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}`, { 
+          params,
+          headers: {
+            'ngrok-skip-browser-warning': 'true'
+          }
+        });
+        // API 直接返回陣列，確保數據格式正確
+        let wordsData = response.data;
+        if (!Array.isArray(wordsData)) {
+          wordsData = wordsData.words || wordsData.data || [];
+        }
         setWords(wordsData);
       }
       

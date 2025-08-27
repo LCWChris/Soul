@@ -18,9 +18,28 @@ export default function TeachScreen() {
         const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIALS}`;
         console.log("🔗 準備打 API：", url);
 
-        const response = await axios.get(url);
+        const response = await axios.get(url, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+        });
         
-        console.log("✅ 是否為陣列：", Array.isArray(response.data), "筆數：", response.data.length);
+        console.log("📦 完整回應：", response);
+        console.log("📄 回應資料：", response.data);
+        console.log("🔍 資料型別：", typeof response.data);
+        console.log("✅ 是否為陣列：", Array.isArray(response.data));
+        
+        // 驗證資料格式
+        if (!response.data) {
+          throw new Error("API 回應為空");
+        }
+        
+        if (!Array.isArray(response.data)) {
+          console.error("❌ API 回應不是陣列：", response.data);
+          throw new Error("API 回應格式錯誤，預期為陣列");
+        }
+        
+        console.log("📊 資料筆數：", response.data.length);
         console.log("🧾 前三筆預覽：", response.data.slice(0, 3));
         
         const uniqueVolumes = [...new Set(response.data.map((item) => Number(item.volume)))];
@@ -28,8 +47,21 @@ export default function TeachScreen() {
         
         setVolumes(uniqueVolumes.sort((a, b) => a - b));
       } catch (err) {
-        console.error("❌ 載入教材失敗：", err.message);
-        setError(`無法載入教材：${err.message}`);
+        console.error("❌ 載入教材失敗：", err);
+        console.error("❌ 錯誤訊息：", err.message);
+        console.error("❌ 錯誤回應：", err.response?.data);
+        
+        let errorMessage = '載入教材時發生未知錯誤';
+        
+        if (err.response) {
+          errorMessage = `伺服器錯誤 (${err.response.status}): ${err.response.data?.message || err.message}`;
+        } else if (err.request) {
+          errorMessage = '無法連線到伺服器，請檢查網路連線';
+        } else {
+          errorMessage = err.message;
+        }
+        
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }

@@ -31,24 +31,29 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Get started
 
-1. Install dependencies
+1. 下載套件並啟用虛擬環境 (python 的套件都在 requirements.txt 裡面)
 
    ```bash
-   npm install
+   .\setup.bat
    ```
-
-2. Start the app
 
    ```bash
-   npx expo start
+   & .venv\Scripts\Activate.ps1
    ```
-4. 修改.env中的EXPO_PUBLIC_IP為自己的網域，取得方式可以參考NETWORK_SETUP_GUIDE.md
 
-# 翻譯 API 啟動指南
+2. 後端開啟 (首次使用需要啟用 ngrok)
 
-此指南說明如何啟動 FastAPI 翻譯伺服器，並透過 ngrok 建立公開網域給 React Native 前端使用。
+   ```bash
+   python dev_server.py
+   ```
 
----
+3. 前端開啟
+
+   ```bash
+   npx expo
+   ```
+
+# API 啟動指南
 
 ## 1️⃣ 安裝 ngrok
 
@@ -63,6 +68,7 @@ brew install ngrok
 1. 前往 [ngrok 官方下載頁](https://ngrok.com/download)
 2. 選擇 Windows，下載 ZIP 並解壓縮（建議放在 C:\ngrok）
 3. 開啟 PowerShell 或 CMD：
+
 ```powershell
 cd C:\ngrok
 ```
@@ -81,9 +87,8 @@ sudo snap install ngrok
 登入帳號後複製你的 token，然後執行（只需設定一次）：
 
 ```bash
-ngrok config add-authtoken <你的 authtoken>
+ngrok config add-authtoken 30o0QI89ZKsJzIzx34NPdRzFLs2_259yBR7RP6RPGiT4iwuga
 ```
-我們的authtoken:30o0QI89ZKsJzIzx34NPdRzFLs2_259yBR7RP6RPGiT4iwuga
 
 設定成功會看到：
 
@@ -93,9 +98,9 @@ Authtoken saved to configuration file: ~/.ngrok2/ngrok.yml
 
 ---
 
-## 3️⃣ 啟動翻譯 API
+## 以下為舊版啟動翻譯 api (可省略不看)
 
-以下方法都建議在anaconda 環境中操作
+以下方法都建議在 anaconda 環境中操作
 
 ### 方法一：手動啟動
 
@@ -166,6 +171,7 @@ npx expo start --clear
 ```
 
 ---
+
 In the output, you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)
