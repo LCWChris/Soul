@@ -1,4 +1,4 @@
-// app/education/[lessonId].jsx  (或你的 LessonPage 檔案)
+// app/education/[lessonId].jsx
 import { API_CONFIG } from '@/constants/api';
 import axios from 'axios';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -38,14 +38,15 @@ export default function LessonPage() {
 
   // 讀教材
   useEffect(() => {
-    console.log('📦 進入教材頁面，lessonId：', lessonId);
-    axios
-      .get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIAL}/${lessonId}`)
-      .then((res) => {
+    const loadLessonData = async () => {
+      try {
+        console.log('📦 進入教材頁面，lessonId：', lessonId);
+        const res = await axios.get(
+          `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIAL}/${lessonId}`
+        );
         console.log('✅ 成功取得教材資料', res.data);
         setData(res.data);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error('❌ 讀取教材失敗', err);
         setError(true);
       }
@@ -69,14 +70,13 @@ export default function LessonPage() {
     const volumeNo =
       typeof data.volume === 'number'
         ? data.volume
-        : Number(data.volume ?? NaN); // 盡量轉為數字
+        : Number(data.volume ?? NaN);
 
     const lessonNo =
       typeof data.lesson === 'number'
         ? data.lesson
-        : extractLessonNo(data.unit); // 從 unit 文字萃取
+        : extractLessonNo(data.unit);
 
-    // 若 volume 缺失就不查（避免撈整庫）
     if (!Number.isFinite(volumeNo)) return;
 
     const BOOK_WORDS = API_CONFIG.ENDPOINTS?.BOOK_WORDS || '/api/book_words';
@@ -88,7 +88,6 @@ export default function LessonPage() {
         params: {
           volume: volumeNo,
           ...(Number.isFinite(lessonNo) ? { lesson: lessonNo } : {}),
-          // 你的後端若有分頁/限制，也可加：limit: 30
         },
       })
       .then((res) => {
@@ -154,7 +153,7 @@ export default function LessonPage() {
           <Text style={styles.emptyText}>⚠️ 此單元尚無內容。</Text>
         )}
 
-        {/* ===== 詞彙總覽（依 volume+lesson 從 book_words 撈） ===== */}
+        {/* ===== 詞彙總覽 ===== */}
         <Card mode="elevated" style={styles.vocabCard}>
           <Card.Title
             title="詞彙總覽"
@@ -182,7 +181,7 @@ export default function LessonPage() {
               </View>
             )}
 
-            {/* 圖片詞卡（水平捲動） */}
+            {/* 圖片詞卡 */}
             {!vocabLoading && !vocabError && total > 0 && (
               <ScrollView
                 horizontal
@@ -218,7 +217,7 @@ export default function LessonPage() {
               </ScrollView>
             )}
 
-            {/* Chips（快速點選） */}
+            {/* Chips */}
             <View style={styles.chipsWrap}>
               {vocabLoading && <Text>載入詞彙中...</Text>}
               {vocabError && <Text style={{ color: 'tomato' }}>無法載入詞彙</Text>}
@@ -229,7 +228,7 @@ export default function LessonPage() {
                   const id = String(w._id || idx);
                   const label = w.title || '未命名';
                   const selected = !!mastered[id];
-                  const level = w.level || w.difficulty; // 若有等級欄位可顯示
+                  const level = w.level || w.difficulty;
                   const chipText = level ? `${label} · ${level}` : label;
 
                   return (
@@ -325,7 +324,6 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 16, color: '#999', marginTop: 10 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 50 },
 
-  // ===== 詞彙卡片 =====
   vocabCard: {
     marginTop: 8,
     marginBottom: 16,
@@ -333,15 +331,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
-  // thumbs（有圖）
-  thumbRow: {
-    gap: 12,
-    paddingVertical: 4,
-  },
-  thumb: {
-    width: 92,
-    alignItems: 'center',
-  },
+  thumbRow: { gap: 12, paddingVertical: 4 },
+  thumb: { width: 92, alignItems: 'center' },
   thumbImage: {
     width: 92,
     height: 92,
@@ -356,7 +347,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // chips（快速操作）
   chipsWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -372,7 +362,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
 
-  // ====== 測驗按鈕 ======
   quizBtn: {
     marginTop: 8,
     backgroundColor: '#3B82F6',
