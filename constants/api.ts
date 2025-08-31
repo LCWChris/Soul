@@ -9,6 +9,13 @@ export const API_CONFIG = {
     MATERIALS: "/api/materials",
     MATERIAL: "/api/material",
     PREFERENCES: "/api/preferences", // 使用者偏好問卷
+    
+    // 學習統計相關
+    LEARNING_STATS: "/api/learning-stats",
+    USER_STATS: "/api/learning-stats/user",
+    LEARNING_ACTIVITY: "/api/learning-stats/activity",
+    LEARNING_HISTORY: "/api/learning-stats/history",
+    ACHIEVEMENTS: "/api/learning-stats/achievements",
   },
   TIMEOUT: 10000,
 };

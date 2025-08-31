@@ -112,6 +112,95 @@ export class VocabularyService {
     });
   }
 
+  // 獲取用戶學習統計
+  static async getUserLearningStats(userId) {
+    return this.makeRequestWithRetry(async () => {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.USER_STATS}/${userId}`;
+      console.log('🔗 請求統計數據 URL:', url);
+      console.log('🔧 API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+      
+      const response = await axios.get(url, { 
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+        timeout: API_CONFIG.TIMEOUT 
+      });
+      
+      console.log('📊 API 響應狀態:', response.status);
+      console.log('📊 API 響應數據:', response.data);
+      
+      if (!response.data || typeof response.data !== 'object') {
+        throw new Error('無效的統計數據格式');
+      }
+      
+      return response.data;
+    });
+  }
+
+  // 記錄學習活動
+  static async recordLearningActivity(userId, wordId, action, options = {}) {
+    return this.makeRequestWithRetry(async () => {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LEARNING_ACTIVITY}`;
+      const response = await axios.post(url, {
+        userId,
+        wordId,
+        action,
+        ...options
+      }, { 
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+          'Content-Type': 'application/json'
+        },
+        timeout: API_CONFIG.TIMEOUT 
+      });
+      
+      if (!response.data || typeof response.data !== 'object') {
+        throw new Error('無效的活動記錄響應');
+      }
+      
+      return response.data;
+    });
+  }
+
+  // 獲取學習記錄歷史
+  static async getLearningHistory(userId, params = {}) {
+    return this.makeRequestWithRetry(async () => {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.LEARNING_HISTORY}/${userId}`;
+      const response = await axios.get(url, { 
+        params,
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+        timeout: API_CONFIG.TIMEOUT 
+      });
+      
+      if (!response.data || typeof response.data !== 'object') {
+        throw new Error('無效的學習記錄格式');
+      }
+      
+      return response.data;
+    });
+  }
+
+  // 獲取學習成就
+  static async getUserAchievements(userId) {
+    return this.makeRequestWithRetry(async () => {
+      const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ACHIEVEMENTS}/${userId}`;
+      const response = await axios.get(url, { 
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+        timeout: API_CONFIG.TIMEOUT 
+      });
+      
+      if (!response.data || typeof response.data !== 'object') {
+        throw new Error('無效的成就數據格式');
+      }
+      
+      return response.data;
+    });
+  }
+
   // 獲取用戶學習進度（暫時返回模擬數據）
   static async getUserProgress(userId, filters = {}) {
     try {

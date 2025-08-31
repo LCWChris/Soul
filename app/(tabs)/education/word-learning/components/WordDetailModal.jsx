@@ -12,10 +12,12 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useUser } from '@clerk/clerk-expo';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
 import { toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
 import LearningStatusSelector from './LearningStatusSelector';
 import { updateWordProgress, getWordProgress, LEARNING_STATUS } from '@/utils/learning-progress';
+import VocabularyService from '../services/VocabularyService';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -35,6 +37,7 @@ const getTopSafeAreaPadding = () => {
 };
 
 const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, onFavoriteChange, onProgressChange }) => {
+  const { user } = useUser();
   const [imageIndex, setImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(word?.isFavorite || false);
   const [learningStatus, setLearningStatus] = useState(LEARNING_STATUS.NOT_STARTED);
@@ -82,6 +85,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
     
     try {
       const wordId = word.id || word._id;
+      const oldStatus = learningStatus;
       
       // 更新本地狀態
       setLearningStatus(newStatus);
@@ -89,12 +93,42 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
       // 更新儲存的學習進度
       await updateWordProgress(wordId, newStatus);
       
+      // 記錄學習活動到後端
+      if (user?.id && newStatus !== LEARNING_STATUS.NOT_STARTED) {
+        try {
+          let action = 'review';
+          
+          // 根據狀態變化確定動作類型
+          if (oldStatus === LEARNING_STATUS.NOT_STARTED && newStatus === LEARNING_STATUS.LEARNING) {
+            action = 'learn';
+          } else if (newStatus === LEARNING_STATUS.MASTERED) {
+            action = 'master';
+          } else {
+            action = 'review';
+          }
+          
+          await VocabularyService.recordLearningActivity(
+            user.id, 
+            wordId, 
+            action, 
+            {
+              timeSpent: 8000, // 估計8秒詳情頁學習時間
+              isCorrect: true
+            }
+          );
+          console.log('✅ 詳情頁學習活動已記錄:', { userId: user.id, wordId, action });
+        } catch (recordError) {
+          console.warn('記錄學習活動失敗:', recordError);
+          // 即使記錄失敗也不影響本地進度更新
+        }
+      }
+      
       // 通知主頁面更新
       if (onProgressChange) {
         onProgressChange(wordId, newStatus);
       }
       
-      console.log('📚 詳情頁：更新學習狀態:', wordId, learningStatus, '->', newStatus);
+      console.log('📚 詳情頁：更新學習狀態:', wordId, oldStatus, '->', newStatus);
     } catch (error) {
       console.error('更新學習進度失敗:', error);
     }

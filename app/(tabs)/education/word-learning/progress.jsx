@@ -8,54 +8,85 @@ import {
   StatusBar,
   Dimensions,
   Platform,
+  Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from './MaterialYouTheme';
 import MaterialTopAppBar from './components/MaterialTopAppBar';
+import AchievementModal from './components/AchievementModal';
+import { VocabularyService } from './services/VocabularyService';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 const ProgressScreen = () => {
   const router = useRouter();
-  const [progressData, setProgressData] = useState({});
+  const { user } = useUser();
+  const [progressData, setProgressData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showAchievements, setShowAchievements] = useState(false);
 
   useEffect(() => {
-    loadProgressData();
-  }, []);
+    if (user?.id) {
+      loadProgressData();
+    }
+  }, [user]);
 
-  const loadProgressData = () => {
-    // 模擬進度統計數據
-    const mockProgress = {
-      overall: {
-        totalWords: 1250,
-        learnedWords: 485,
-        masteredWords: 168,
-        progressPercentage: 39,
-        streak: 7,
-        totalStudyTime: 125, // 分鐘
-      },
-      categories: [
-        { name: '身體健康', total: 250, learned: 120, mastered: 60, percentage: 48 },
-        { name: '其他', total: 220, learned: 110, mastered: 50, percentage: 50 },
-        { name: '生活用語', total: 200, learned: 95, mastered: 45, percentage: 48 },
-        { name: '情感表達', total: 150, learned: 85, mastered: 40, percentage: 57 },
-        { name: '動作描述', total: 180, learned: 75, mastered: 28, percentage: 42 },
-      ],
-      levels: [
-        { name: 'beginner', displayName: '初學', total: 450, learned: 285, percentage: 63 },
-        { name: 'intermediate', displayName: '進階', total: 500, learned: 150, percentage: 30 },
-        { name: 'advanced', displayName: '熟練', total: 300, learned: 50, percentage: 17 },
-      ],
-      recentActivity: [
-        { date: '今天', wordsLearned: 12, timeSpent: 25 },
-        { date: '昨天', wordsLearned: 15, timeSpent: 30 },
-        { date: '2天前', wordsLearned: 8, timeSpent: 18 },
-        { date: '3天前', wordsLearned: 20, timeSpent: 35 },
-        { date: '4天前', wordsLearned: 10, timeSpent: 22 },
-      ]
-    };
-    setProgressData(mockProgress);
+  const loadProgressData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // 暫時使用 test-user 來測試功能，因為我們的測試數據是用這個 userId
+      const testUserId = 'test-user';
+      console.log('🔍 載入統計數據，使用 userId:', testUserId);
+      
+      // 獲取用戶學習統計
+      const stats = await VocabularyService.getUserLearningStats(testUserId);
+      console.log('📊 獲取到的統計數據:', stats);
+      setProgressData(stats);
+      
+    } catch (error) {
+      console.error('載入進度數據失敗:', error);
+      setError('載入統計數據失敗，請稍後再試');
+      
+      // 如果 API 失敗，使用模擬數據作為後備
+      const mockProgress = {
+        overall: {
+          totalWords: 1250,
+          learnedWords: 485,
+          masteredWords: 168,
+          progressPercentage: 39,
+          streak: 7,
+          totalStudyTime: 125, // 分鐘
+        },
+        categories: [
+          { name: '身體健康', total: 250, learned: 120, mastered: 60, percentage: 48 },
+          { name: '其他', total: 220, learned: 110, mastered: 50, percentage: 50 },
+          { name: '生活用語', total: 200, learned: 95, mastered: 45, percentage: 48 },
+          { name: '情感表達', total: 150, learned: 85, mastered: 40, percentage: 57 },
+          { name: '動作描述', total: 180, learned: 75, mastered: 28, percentage: 42 },
+        ],
+        levels: [
+          { name: 'beginner', displayName: '初學', total: 450, learned: 285, percentage: 63 },
+          { name: 'intermediate', displayName: '進階', total: 500, learned: 150, percentage: 30 },
+          { name: 'advanced', displayName: '熟練', total: 300, learned: 50, percentage: 17 },
+        ],
+        recentActivity: [
+          { date: '今天', wordsLearned: 12, timeSpent: 25 },
+          { date: '昨天', wordsLearned: 15, timeSpent: 30 },
+          { date: '2天前', wordsLearned: 8, timeSpent: 18 },
+          { date: '3天前', wordsLearned: 20, timeSpent: 35 },
+          { date: '4天前', wordsLearned: 10, timeSpent: 22 },
+        ]
+      };
+      setProgressData(mockProgress);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const ProgressCard = ({ title, children }) => (
@@ -91,7 +122,7 @@ const ProgressScreen = () => {
     </View>
   );
 
-  if (!progressData.overall) {
+  if (loading || !progressData || !progressData.overall) {
     return (
       <View style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
@@ -100,7 +131,12 @@ const ProgressScreen = () => {
             onBackPress={() => router.back()}
           />
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>載入中...</Text>
+            <Text style={styles.loadingText}>
+              {loading ? '載入中...' : '載入統計數據失敗'}
+            </Text>
+            {error && (
+              <Text style={styles.errorText}>{error}</Text>
+            )}
           </View>
         </SafeAreaView>
       </View>
@@ -153,6 +189,16 @@ const ProgressScreen = () => {
                 />
               </View>
             </View>
+            
+            {/* 成就按鈕 */}
+            <TouchableOpacity 
+              style={styles.achievementButton}
+              onPress={() => setShowAchievements(true)}
+            >
+              <Ionicons name="trophy" size={20} color={MaterialYouTheme.secondary.secondary40} />
+              <Text style={styles.achievementButtonText}>查看成就</Text>
+              <Ionicons name="chevron-forward" size={16} color={MaterialYouTheme.neutral.neutral50} />
+            </TouchableOpacity>
           </ProgressCard>
 
           {/* 分類進度 */}
@@ -205,6 +251,12 @@ const ProgressScreen = () => {
             ))}
           </ProgressCard>
         </ScrollView>
+        
+        {/* 成就模態框 */}
+        <AchievementModal
+          visible={showAchievements}
+          onClose={() => setShowAchievements(false)}
+        />
       </SafeAreaView>
     </View>
   );
@@ -388,6 +440,30 @@ const styles = StyleSheet.create({
   activityStat: {
     ...Typography.bodySmall,
     color: MaterialYouTheme.neutral.neutral50,
+  },
+  errorText: {
+    ...Typography.bodyMedium,
+    color: MaterialYouTheme.error.error50,
+    textAlign: 'center',
+    marginTop: Spacing.sm,
+  },
+  achievementButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    backgroundColor: MaterialYouTheme.secondary.secondary95,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: MaterialYouTheme.secondary.secondary90,
+  },
+  achievementButtonText: {
+    ...Typography.labelLarge,
+    color: MaterialYouTheme.secondary.secondary30,
+    flex: 1,
+    marginLeft: Spacing.sm,
   },
 });
 

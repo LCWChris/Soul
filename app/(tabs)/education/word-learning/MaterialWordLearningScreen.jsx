@@ -11,6 +11,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useUser } from '@clerk/clerk-expo';
 
 // Material You Components
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from './MaterialYouTheme';
@@ -26,6 +27,7 @@ import WordDetailModal from './components/WordDetailModal';
 // Services and Utilities
 import { API_CONFIG } from '@/constants/api';
 import { getFavorites, toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
+import VocabularyService from './services/VocabularyService';
 import { 
   updateWordProgress, 
   getWordProgress, 
@@ -37,6 +39,7 @@ import axios from 'axios';
 
 const MaterialWordLearningScreen = () => {
   const router = useRouter();
+  const { user } = useUser();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
@@ -304,25 +307,52 @@ const MaterialWordLearningScreen = () => {
       
       // 狀態循環：未開始 -> 學習中 -> 複習中 -> 已掌握 -> 未開始
       let nextStatus;
+      let action = 'review'; // 默認動作
+      
       switch (currentProgress.status) {
         case LEARNING_STATUS.NOT_STARTED:
           nextStatus = LEARNING_STATUS.LEARNING;
+          action = 'learn';
           break;
         case LEARNING_STATUS.LEARNING:
           nextStatus = LEARNING_STATUS.REVIEWING;
+          action = 'review';
           break;
         case LEARNING_STATUS.REVIEWING:
           nextStatus = LEARNING_STATUS.MASTERED;
+          action = 'master';
           break;
         case LEARNING_STATUS.MASTERED:
           nextStatus = LEARNING_STATUS.NOT_STARTED;
+          action = 'reset';
           break;
         default:
           nextStatus = LEARNING_STATUS.LEARNING;
+          action = 'learn';
       }
 
       // 更新學習進度
       await updateWordProgress(wordId, nextStatus);
+      
+      // 記錄學習活動到後端
+      if (user?.id && action !== 'reset') {
+        try {
+          const startTime = Date.now();
+          await VocabularyService.recordLearningActivity(
+            user.id, 
+            wordId, 
+            action, 
+            {
+              timeSpent: 5000, // 估計5秒學習時間
+              isCorrect: true
+            }
+          );
+          console.log('✅ 學習活動已記錄:', { userId: user.id, wordId, action });
+        } catch (recordError) {
+          console.warn('記錄學習活動失敗:', recordError);
+          // 即使記錄失敗也不影響本地進度更新
+        }
+      }
       
       // 重新載入學習進度數據
       await loadLearningProgress();

@@ -8,6 +8,8 @@ require("dotenv").config({ path: "../.env" });
 const User = require("./user"); // 引入 User 模型
 // 匯入問卷路由
 const preferencesRouter = require("./routes/preferences");
+// 匯入學習統計路由
+const learningStatsRouter = require("./routes/learningStats");
 
 // 環境變數配置
 const PORT = process.env.PORT || 3001;
@@ -140,8 +142,13 @@ const VocabSchema = new mongoose.Schema({
   page: Number, // 頁數
 });
 
-// 使用 book_words collection
-const BookWord = mongoose.model("BookWord", VocabSchema, "book_words");
+// 使用 book_words collection (安全的模型定義)
+let BookWord;
+try {
+  BookWord = mongoose.model('BookWord');
+} catch (error) {
+  BookWord = mongoose.model("BookWord", VocabSchema, "book_words");
+}
 
 // === 根路由 ===
 app.get("/", (req, res) => {
@@ -157,12 +164,21 @@ app.get("/", (req, res) => {
       stats: "/api/stats",
       materials: "/api/materials",
       status: "/api/status",
+      // 學習統計相關
+      learningStats: "/api/learning-stats",
+      userStats: "/api/learning-stats/user/:userId",
+      learningActivity: "/api/learning-stats/activity",
+      learningHistory: "/api/learning-stats/history/:userId",
+      achievements: "/api/learning-stats/achievements/:userId",
     },
   });
 });
 
 // === 掛載問卷相關 API ===
 app.use("/api/preferences", preferencesRouter);
+
+// === 掛載學習統計相關 API ===
+app.use("/api/learning-stats", learningStatsRouter);
 
 // === 詞彙相關 API ===
 
