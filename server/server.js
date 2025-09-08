@@ -137,8 +137,8 @@ const VocabSchema = new mongoose.Schema({
   context: String, // 使用情境
   frequency: String, // 使用頻率 (high/medium/low)
   searchable_text: String, // 搜尋文字
-  volume: String, // 冊數
-  lesson: String, // 課數
+  volume: Number, // 冊數
+  lesson: Number, // 課數
   page: Number, // 頁數
 });
 
@@ -223,12 +223,18 @@ app.get("/api/book_words", async (req, res) => {
 
     // 根據冊數篩選
     if (volume) {
-      query.volume = volume;
+      const volNum = Number(volume);
+      if (!Number.isNaN(volNum)) {
+        query.volume = volNum;
+      }
     }
 
     // 根據課數篩選
     if (lesson) {
-      query.lesson = lesson;
+      const lessonNum = Number(lesson);
+      if (!Number.isNaN(lessonNum)) {
+        query.lesson = lessonNum;
+      }
     }
 
     // 根據搜尋關鍵字篩選 (使用 searchable_text 和 title)

@@ -24,8 +24,8 @@ try {
     context: String,
     frequency: String,
     searchable_text: String,
-    volume: String,
-    lesson: String,
+    volume: Number,
+    lesson: Number,
     page: Number,
   });
 
