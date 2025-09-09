@@ -493,8 +493,9 @@ app.get("/api/cloudinary-images", async (req, res) => {
 // === 教材模型 ===
 const MaterialSchema = new mongoose.Schema(
   {
-    unit: { type: String, required: true },
+    unitname: { type: String, required: true },  // 改成 unitname
     volume: { type: Number, required: true },
+    lesson: { type: Number, required: true },
     image: { type: String, default: "" },
     content: [
       {
@@ -509,6 +510,7 @@ const MaterialSchema = new mongoose.Schema(
 // 第三個參數指定 collection 名稱
 const Material = mongoose.model("Material", MaterialSchema, "material_image");
 
+// 1) 取得某冊所有單元（只回 id + unitname + volume + lesson）
 app.get("/api/materials", async (req, res) => {
   try {
     const { volume } = req.query;
@@ -520,7 +522,8 @@ app.get("/api/materials", async (req, res) => {
       }
       query = { volume: volNum };
     }
-    const list = await Material.find(query, "_id unit volume").lean();
+    // ✅ 回傳 unitname + lesson
+    const list = await Material.find(query, "_id unitname volume lesson").lean();
     res.json(list);
   } catch (err) {
     console.error("讀取資料錯誤：", err);
