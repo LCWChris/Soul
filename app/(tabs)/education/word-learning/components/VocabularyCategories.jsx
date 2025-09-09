@@ -143,30 +143,30 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
         <Text style={styles.sectionTitle}>主題分類</Text>
         <Text style={styles.sectionSubtitle}>選擇感興趣的學習主題</Text>
         <View style={styles.categoryGrid}>
-          {categories.map((category) => (
+          {categories.map((category, index) => (
             <TouchableOpacity
-              key={category.name}
+              key={`category-${index}-${category}`}
               style={[
                 styles.categoryCard,
-                selectedCategory === category.name && styles.selectedCategoryCard
+                selectedCategory === category && styles.selectedCategoryCard
               ]}
-              onPress={() => onCategorySelect(category.name)}
+              onPress={() => onCategorySelect(category)}
               activeOpacity={0.7}
             >
               <View style={styles.categoryIconContainer}>
                 <Text style={styles.categoryIcon}>
-                  {getCategoryIcon(category.name)}
+                  {getCategoryIcon(category)}
                 </Text>
               </View>
               <Text style={[
                 styles.categoryTitle,
-                selectedCategory === category.name && styles.selectedCategoryTitle
+                selectedCategory === category && styles.selectedCategoryTitle
               ]}>
-                {category.name}
+                {category}
               </Text>
               <View style={styles.categoryBadge}>
                 <Text style={styles.categoryCount}>
-                  {category.count}
+                  詞彙
                 </Text>
               </View>
             </TouchableOpacity>

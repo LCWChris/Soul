@@ -1,6 +1,6 @@
 // @ts-nocheck
 // This is a component file, not a route
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -9,9 +9,11 @@ import {
   Image, 
   Animated, 
   Pressable,
-  Dimensions 
+  Dimensions,
+  Alert 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Video } from 'expo-av';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../MaterialYouTheme';
 // import LearningProgressIndicator from './LearningProgressIndicator'; // 暫時註解掉
 
@@ -29,6 +31,8 @@ const EnhancedVocabularyCard = React.memo(({
   style,
   image_url,
   imageUrl,
+  video_url,
+  videoUrl,
   learningStatus,
   onProgressChange,
   example // 新增例句支援
@@ -36,7 +40,11 @@ const EnhancedVocabularyCard = React.memo(({
   const [isPressed, setIsPressed] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [showExample, setShowExample] = useState(false);
-
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  
+  const videoRef = useRef(null);
   const scaleValue = new Animated.Value(1);
 
   const handlePressIn = () => {
@@ -88,6 +96,58 @@ const EnhancedVocabularyCard = React.memo(({
         return '高級';
       default:
         return level || '未分級';
+    }
+  };
+
+  // 影片相關函數
+  const handleVideoPress = async () => {
+    const finalVideoUrl = video_url || videoUrl;
+    
+    if (!finalVideoUrl) {
+      Alert.alert('提示', '此詞彙暫無影片資源');
+      return;
+    }
+
+    try {
+      if (showVideo && videoRef.current) {
+        // 如果影片已顯示，控制播放/暫停
+        if (isVideoPlaying) {
+          await videoRef.current.pauseAsync();
+          setIsVideoPlaying(false);
+        } else {
+          await videoRef.current.playAsync();
+          setIsVideoPlaying(true);
+        }
+      } else {
+        // 首次點擊，顯示影片
+        setShowVideo(true);
+        setVideoError(false);
+      }
+    } catch (error) {
+      console.warn('影片播放錯誤:', error);
+      Alert.alert('錯誤', '影片播放失敗，請稍後再試');
+      setVideoError(true);
+    }
+  };
+
+  const handleVideoLoad = () => {
+    setVideoError(false);
+  };
+
+  const handleVideoError = (error) => {
+    console.warn('影片加載錯誤:', error);
+    setVideoError(true);
+    Alert.alert('錯誤', '影片載入失敗');
+  };
+
+  const handleVideoPlaybackStatusUpdate = (status) => {
+    if (status.isLoaded) {
+      setIsVideoPlaying(status.isPlaying);
+      
+      // 如果影片播放完畢，重置狀態
+      if (status.didJustFinish) {
+        setIsVideoPlaying(false);
+      }
     }
   };
 
@@ -205,29 +265,121 @@ const EnhancedVocabularyCard = React.memo(({
 
           {/* 右側圖片和操作區域 */}
           <View style={styles.rightSection}>
-            {finalImageUrl && (
-              <View style={styles.imageContainer}>
-                <Image 
-                  source={{ uri: finalImageUrl }} 
-                  style={[
-                    styles.wordImage,
-                    imageLoaded && styles.imageLoaded
-                  ]}
-                  resizeMode="cover"
-                  onLoad={() => setImageLoaded(true)}
-                  onError={(error) => console.warn('圖片加載失敗:', error.nativeEvent.error)}
-                />
-                {!imageLoaded && (
-                  <View style={styles.imagePlaceholder}>
+            {/* 圖片/影片容器 */}
+            <View style={styles.mediaContainer}>
+              {showVideo && (video_url || videoUrl) ? (
+                <View style={styles.videoContainer}>
+                  <Video
+                    ref={videoRef}
+                    source={{ uri: video_url || videoUrl }}
+                    style={styles.videoPlayer}
+                    useNativeControls={false}
+                    shouldPlay={false}
+                    isLooping={false}
+                    onLoad={handleVideoLoad}
+                    onError={handleVideoError}
+                    onPlaybackStatusUpdate={handleVideoPlaybackStatusUpdate}
+                    resizeMode="contain"
+                  />
+                  
+                  {/* 影片控制覆蓋層 */}
+                  <TouchableOpacity 
+                    style={styles.videoOverlay}
+                    onPress={handleVideoPress}
+                    activeOpacity={0.7}
+                  >
+                    {!isVideoPlaying && (
+                      <View style={styles.playButton}>
+                        <Ionicons 
+                          name="play" 
+                          size={24} 
+                          color="white" 
+                        />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  
+                  {/* 關閉影片按鈕 */}
+                  <TouchableOpacity 
+                    style={styles.closeVideoButton}
+                    onPress={() => {
+                      setShowVideo(false);
+                      setIsVideoPlaying(false);
+                      if (videoRef.current) {
+                        videoRef.current.pauseAsync();
+                      }
+                    }}
+                    activeOpacity={0.7}
+                  >
                     <Ionicons 
-                      name="image-outline" 
-                      size={24} 
-                      color={MaterialYouTheme.neutralVariant.neutralVariant50} 
+                      name="close" 
+                      size={16} 
+                      color="white" 
                     />
-                  </View>
-                )}
-              </View>
-            )}
+                  </TouchableOpacity>
+                </View>
+              ) : finalImageUrl ? (
+                <View style={styles.imageContainer}>
+                  <Image 
+                    source={{ uri: finalImageUrl }} 
+                    style={[
+                      styles.wordImage,
+                      imageLoaded && styles.imageLoaded
+                    ]}
+                    resizeMode="cover"
+                    onLoad={() => setImageLoaded(true)}
+                    onError={(error) => console.warn('圖片加載失敗:', error.nativeEvent.error)}
+                  />
+                  {!imageLoaded && (
+                    <View style={styles.imagePlaceholder}>
+                      <Ionicons 
+                        name="image-outline" 
+                        size={24} 
+                        color={MaterialYouTheme.neutralVariant.neutralVariant50} 
+                      />
+                    </View>
+                  )}
+                  
+                  {/* 影片播放按鈕覆蓋在圖片上 */}
+                  {(video_url || videoUrl) && (
+                    <TouchableOpacity 
+                      style={styles.videoPlayButton}
+                      onPress={handleVideoPress}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.playButtonBackground}>
+                        <Ionicons 
+                          name="play" 
+                          size={20} 
+                          color="white" 
+                        />
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <Ionicons 
+                    name="image-outline" 
+                    size={24} 
+                    color={MaterialYouTheme.neutralVariant.neutralVariant50} 
+                  />
+                  {(video_url || videoUrl) && (
+                    <TouchableOpacity 
+                      style={styles.videoPlayButtonAlt}
+                      onPress={handleVideoPress}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons 
+                        name="play-circle" 
+                        size={32} 
+                        color={MaterialYouTheme.primary.primary50} 
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+            </View>
             
             <TouchableOpacity 
               onPress={onToggleFavorite}
@@ -254,13 +406,30 @@ const EnhancedVocabularyCard = React.memo(({
             <Text style={styles.quickActionText}>發音</Text>
           </TouchableOpacity>
           
+          {(video_url || videoUrl) && (
+            <TouchableOpacity 
+              style={styles.quickAction} 
+              activeOpacity={0.7}
+              onPress={handleVideoPress}
+            >
+              <Ionicons 
+                name={showVideo ? (isVideoPlaying ? "pause" : "play") : "videocam-outline"} 
+                size={18} 
+                color={MaterialYouTheme.tertiary.tertiary40} 
+              />
+              <Text style={styles.quickActionText}>
+                {showVideo ? (isVideoPlaying ? "暫停" : "播放") : "影片"}
+              </Text>
+            </TouchableOpacity>
+          )}
+          
           <TouchableOpacity style={styles.quickAction} activeOpacity={0.7}>
             <Ionicons name="create-outline" size={18} color={MaterialYouTheme.secondary.secondary40} />
             <Text style={styles.quickActionText}>練習</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.quickAction} activeOpacity={0.7}>
-            <Ionicons name="share-outline" size={18} color={MaterialYouTheme.tertiary.tertiary40} />
+            <Ionicons name="share-outline" size={18} color={MaterialYouTheme.secondary.secondary40} />
             <Text style={styles.quickActionText}>分享</Text>
           </TouchableOpacity>
         </View>
@@ -372,13 +541,84 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 80,
   },
+  mediaContainer: {
+    width: 72,
+    height: 72,
+    marginBottom: Spacing.md,
+    position: 'relative',
+  },
   imageContainer: {
     width: 72,
     height: 72,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
-    marginBottom: Spacing.md,
     backgroundColor: MaterialYouTheme.surfaceVariant.surfaceVariant,
+    position: 'relative',
+  },
+  videoContainer: {
+    width: 72,
+    height: 72,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    backgroundColor: MaterialYouTheme.surfaceVariant.surfaceVariant,
+    position: 'relative',
+  },
+  videoPlayer: {
+    width: '100%',
+    height: '100%',
+  },
+  videoOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  playButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeVideoButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoPlayButton: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  playButtonBackground: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoPlayButtonAlt: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -16 }, { translateY: -16 }],
   },
   wordImage: {
     width: '100%',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,8 +10,10 @@ import {
   ScrollView,
   SafeAreaView,
   Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Video } from 'expo-av';
 import { useUser } from '@clerk/clerk-expo';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
 import { toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
@@ -41,12 +43,31 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
   const [imageIndex, setImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(word?.isFavorite || false);
   const [learningStatus, setLearningStatus] = useState(LEARNING_STATUS.NOT_STARTED);
+  
+  // 影片相關狀態
+  const [showVideo, setShowVideo] = useState(true); // 預設顯示影片
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const videoRef = useRef(null);
+
+  // 媒體切換功能
+  const hasVideo = word?.video_url;
+  const hasImage = word?.image_url || word?.imageUrl;
+  const hasBothMedia = hasVideo && hasImage;
 
   // 當 word 變化時，更新收藏狀態和學習狀態
   useEffect(() => {
     setIsFavorite(word?.isFavorite || false);
     if (word) {
       loadWordProgress();
+      // 根據可用媒體設置初始顯示狀態
+      const hasVideo = word.video_url;
+      const hasImage = word.image_url || word.imageUrl;
+      if (hasVideo) {
+        setShowVideo(true); // 有影片時優先顯示影片
+      } else if (hasImage) {
+        setShowVideo(false); // 只有圖片時顯示圖片
+      }
     }
   }, [word]);
 
@@ -156,6 +177,38 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
     }
   };
 
+  // 影片處理函數
+  const handleVideoPlay = async () => {
+    if (videoRef.current) {
+      setIsVideoPlaying(true);
+      await videoRef.current.playAsync();
+    }
+  };
+
+  const handleVideoPause = async () => {
+    if (videoRef.current) {
+      setIsVideoPlaying(false);
+      await videoRef.current.pauseAsync();
+    }
+  };
+
+  const handleVideoStatusUpdate = (status) => {
+    if (status.isLoaded) {
+      setIsVideoPlaying(status.isPlaying);
+    }
+  };
+
+  // 媒體切換函數
+  const toggleMediaType = () => {
+    if (hasBothMedia) {
+      setShowVideo(!showVideo);
+      // 如果切換到圖片，暫停影片
+      if (showVideo && videoRef.current) {
+        handleVideoPause();
+      }
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -184,20 +237,78 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
             )}
           </View>
 
-          {/* 單張圖片，左右切換詞彙 */}
-          {(word.image_url || word.imageUrl) && (
+          {/* 媒體區域：圖片或影片，左右切換詞彙 */}
+          {(word.image_url || word.imageUrl || word.video_url) && (
             <View style={styles.imageSection}>
               <View style={styles.imageContainer}>
                 {/* 左滑區域：切換到上一個詞彙 */}
                 <TouchableOpacity style={styles.imageSwipeArea} onPress={onSwipeRight}>
                   <Ionicons name="chevron-back" size={32} color={MaterialYouTheme.primary.primary40} />
                 </TouchableOpacity>
-                {/* 圖片顯示 */}
-                <Image
-                  source={{ uri: word.image_url || word.imageUrl }}
-                  style={styles.detailImage}
-                  resizeMode="contain"
-                />
+                
+                {/* 媒體顯示區域 */}
+                <View style={styles.mediaContainer}>
+                  {/* 根據 showVideo 狀態和媒體可用性決定顯示內容 */}
+                  {(showVideo && hasVideo) ? (
+                    <View style={styles.videoContainer}>
+                      <Video
+                        ref={videoRef}
+                        source={{ uri: word.video_url }}
+                        style={styles.detailVideo}
+                        resizeMode="contain"
+                        isLooping={false}
+                        shouldPlay={false}
+                        onPlaybackStatusUpdate={handleVideoStatusUpdate}
+                      />
+                      {/* 影片控制覆蓋層 - 只在暫停時顯示 */}
+                      {!isVideoPlaying && (
+                        <View style={styles.videoOverlay}>
+                          <TouchableOpacity
+                            style={styles.playButton}
+                            onPress={handleVideoPlay}
+                          >
+                            <Ionicons
+                              name="play"
+                              size={32}
+                              color="white"
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                      {/* 播放時的暫停按鈕 - 點擊影片任意位置暫停 */}
+                      {isVideoPlaying && (
+                        <TouchableOpacity
+                          style={styles.videoTouchArea}
+                          onPress={handleVideoPause}
+                        />
+                      )}
+                    </View>
+                  ) : (
+                    /* 顯示圖片 */
+                    hasImage && (
+                      <Image
+                        source={{ uri: word.image_url || word.imageUrl }}
+                        style={styles.detailImage}
+                        resizeMode="contain"
+                      />
+                    )
+                  )}
+                  
+                  {/* 媒體切換按鈕 - 只有當同時有影片和圖片時才顯示 */}
+                  {hasBothMedia && (
+                    <TouchableOpacity 
+                      style={styles.mediaToggleButton}
+                      onPress={toggleMediaType}
+                    >
+                      <Ionicons 
+                        name={showVideo ? "image" : "play-circle"} 
+                        size={24} 
+                        color="white" 
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+                
                 {/* 右滑區域：切換到下一個詞彙 */}
                 <TouchableOpacity style={styles.imageSwipeArea} onPress={onSwipeLeft}>
                   <Ionicons name="chevron-forward" size={32} color={MaterialYouTheme.primary.primary40} />
@@ -329,7 +440,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: screenWidth - (Spacing.lg * 2),
-    height: 200, // 減少高度讓寬圖片有更好的顯示
+    height: 250, // 增加高度以更好地顯示影片
     marginVertical: Spacing.md,
   },
   imageSwipeArea: {
@@ -343,6 +454,61 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: BorderRadius.lg,
     backgroundColor: MaterialYouTheme.neutral.neutral95,
+  },
+  mediaContainer: {
+    flex: 1,
+    height: '100%',
+    position: 'relative',
+  },
+  videoContainer: {
+    flex: 1,
+    height: '100%',
+    position: 'relative',
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    backgroundColor: MaterialYouTheme.neutral.neutral95,
+  },
+  detailVideo: {
+    flex: 1,
+    height: '100%',
+    backgroundColor: MaterialYouTheme.neutral.neutral95,
+  },
+  videoOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)', // 減少透明度讓背景更清晰
+  },
+  playButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoTouchArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  mediaToggleButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
   imageIndicators: {
     flexDirection: 'row',

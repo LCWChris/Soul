@@ -276,6 +276,7 @@ const EnhancedWordLearningScreen = () => {
           category={word.category}
           level={word.level}
           imageUrl={word.image_url}
+          videoUrl={word.video_url}
           example={word.example}
           learningStatus={word.learningStatus}
           isFavorite={favorites.includes(word.word)}

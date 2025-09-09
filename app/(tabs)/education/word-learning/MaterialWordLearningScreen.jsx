@@ -428,6 +428,7 @@ const MaterialWordLearningScreen = () => {
         category={item.category}
         level={item.level}
         image_url={item.image_url}
+        video_url={item.video_url}
         isFavorite={favorites.has(wordId)}
         onToggleFavorite={() => handleToggleFavorite(item)}
         onPress={() => handleWordPress(item, index)}

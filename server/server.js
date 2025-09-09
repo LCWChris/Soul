@@ -291,53 +291,95 @@ app.get("/api/vocabularies", async (req, res) => {
 // 新增：獲取所有可用的分類
 app.get("/api/categories", async (req, res) => {
   try {
-    // 使用 category 欄位而不是 categories 陣列，避免 nan 值
-    const categories = await BookWord.aggregate([
-      {
-        $match: {
-          category: { $exists: true, $ne: null, $ne: "", $ne: "nan" },
+    console.log("🔍 開始獲取分類資料...");
+    
+    // 使用聚合管道來獲取所有唯一值，並過濾掉無效值
+    const [categories, learning_levels, contexts, frequencies, volumes] = await Promise.all([
+      // 獲取所有分類
+      BookWord.aggregate([
+        { $match: { category: { $exists: true, $ne: null, $ne: "" } } },
+        { $group: { _id: "$category" } },
+        { $sort: { _id: 1 } }
+      ]),
+      
+      // 獲取所有學習等級
+      BookWord.aggregate([
+        { $match: { learning_level: { $exists: true, $ne: null, $ne: "" } } },
+        { $group: { _id: "$learning_level" } },
+        { $sort: { _id: 1 } }
+      ]),
+      
+      // 獲取所有上下文
+      BookWord.aggregate([
+        { $match: { context: { $exists: true, $ne: null, $ne: "" } } },
+        { $group: { _id: "$context" } },
+        { $sort: { _id: 1 } }
+      ]),
+      
+      // 獲取所有頻率
+      BookWord.aggregate([
+        { $match: { frequency: { $exists: true, $ne: null, $ne: "" } } },
+        { $group: { _id: "$frequency" } },
+        { $sort: { _id: 1 } }
+      ]),
+      
+      // 獲取所有冊數，過濾掉 "nan" 和無效值
+      BookWord.aggregate([
+        { 
+          $match: { 
+            volume: { 
+              $exists: true, 
+              $ne: null, 
+              $ne: "", 
+              $ne: "nan",
+              $type: ["number", "string"]
+            } 
+          } 
         },
-      },
-      {
-        $group: {
-          _id: "$category",
-          count: { $sum: 1 },
+        { 
+          $addFields: {
+            volumeNum: {
+              $cond: {
+                if: { $eq: [{ $type: "$volume" }, "string"] },
+                then: { 
+                  $cond: {
+                    if: { $eq: ["$volume", "nan"] },
+                    then: null,
+                    else: { $toInt: "$volume" }
+                  }
+                },
+                else: "$volume"
+              }
+            }
+          }
         },
-      },
-      { $sort: { count: -1 } },
+        { $match: { volumeNum: { $ne: null, $type: "number" } } },
+        { $group: { _id: "$volumeNum" } },
+        { $sort: { _id: 1 } }
+      ])
     ]);
 
-    const learning_levels = await BookWord.distinct("learning_level", {
-      learning_level: { $exists: true, $ne: null, $ne: "", $ne: "nan" },
+    const result = {
+      categories: categories.map(item => item._id).filter(Boolean),
+      learning_levels: learning_levels.map(item => item._id).filter(Boolean),
+      contexts: contexts.map(item => item._id).filter(Boolean),
+      frequencies: frequencies.map(item => item._id).filter(Boolean),
+      volumes: volumes.map(item => item._id).filter(v => v !== null && !isNaN(v))
+    };
+    
+    console.log("✅ 成功獲取分類資料:", {
+      categories: result.categories.length,
+      learning_levels: result.learning_levels.length,
+      contexts: result.contexts.length,
+      frequencies: result.frequencies.length,
+      volumes: result.volumes.length
     });
-
-    const contexts = await BookWord.distinct("context", {
-      context: { $exists: true, $ne: null, $ne: "", $ne: "nan" },
-    });
-
-    const frequencies = await BookWord.distinct("frequency", {
-      frequency: { $exists: true, $ne: null, $ne: "", $ne: "nan" },
-    });
-
-    const volumes = await BookWord.distinct("volume", {
-      volume: { $exists: true, $ne: null, $ne: "", $ne: "nan" },
-    });
-
-    res.json({
-      categories: categories.map((cat) => ({
-        name: cat._id,
-        count: cat.count,
-      })),
-      learning_levels: learning_levels.filter(
-        (level) => level && level !== "nan"
-      ),
-      contexts: contexts.filter((context) => context && context !== "nan"),
-      frequencies: frequencies.filter((freq) => freq && freq !== "nan"),
-      volumes: volumes.filter((vol) => vol && vol !== "nan"),
-    });
+    
+    res.json(result);
   } catch (err) {
-    console.error("獲取分類失敗:", err);
-    res.status(500).json({ error: "獲取分類失敗" });
+    console.error("❌ 獲取分類失敗:", err);
+    console.error("錯誤堆棧:", err.stack);
+    res.status(500).json({ error: "獲取分類失敗", message: err.message });
   }
 });
 
