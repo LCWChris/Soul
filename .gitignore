@@ -135,3 +135,4 @@ temp_videos/
 *.tmp
 *.temp
 requirements_backup.txt
+.env
