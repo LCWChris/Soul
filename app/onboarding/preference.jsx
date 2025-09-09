@@ -1,50 +1,141 @@
-import { API_CONFIG } from "@/constants/api"; // ✅ 引入 API_CONFIG
+// app/onboarding/preference.jsx
+import { API_CONFIG } from "@/constants/api";
 import { useUser } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Snackbar } from "react-native-paper";
 
-const questions = [
-  {
-    key: "purpose",
-    title: "使用本 App 的主要目的為何？",
-    options: ["學習手語", "進行手語翻譯", "兩者皆是"],
+// ---- 本地預設（後端抓不到時的備援） ----
+const FALLBACK = {
+  categories: ["日常生活", "學校", "家庭", "朋友", "購物", "醫療"],
+  levels: ["beginner", "intermediate", "advanced"], // 保留英文值，畫面用 DISPLAY_LABELS 翻成中文
+  contexts: ["日常", "學校", "職場"],
+};
+
+// ---- 顯示字典：英文值 -> 中文標籤 ----
+const DISPLAY_LABELS = {
+  learningLevel: {
+    beginner: "初級",
+    intermediate: "中級",
+    advanced: "高級",
   },
-  {
-    key: "frequency",
-    title: "你預期使用「手語翻譯」功能的頻率？",
-    options: ["每天", "每週數次", "偶爾", "幾乎不會"],
-  },
-  {
-    key: "experience",
-    title: "你是否有學習手語的經驗？",
-    options: ["是，曾經上過課或自學過", "否，完全沒有經驗"],
-  },
-  {
-    key: "studyTime",
-    title: "若使用此 App 學習手語，每日希望學習時間？",
-    options: ["5 分鐘內", "約 10 分鐘", "10～20 分鐘", "超過 20 分鐘"],
-  },
-];
+  // 後續若有需要也可加：useContext、interestCategory 等
+  // useContext: { daily: "日常", school: "學校", workplace: "職場" }
+};
+
+// 將純字串選項轉成 { value, label }；若沒有字典則原樣顯示
+const toDisplayOptions = (key, rawOptions) =>
+  (rawOptions || []).map((v) => ({
+    value: v,
+    label: DISPLAY_LABELS[key]?.[v] ?? v,
+  }));
 
 export default function PreferenceQuestionnaire() {
+  const router = useRouter();
+  const { user } = useUser();
+
+  // 問卷與流程
   const [answers, setAnswers] = useState({});
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+
+  // 後端中繼資料（主題/程度/情境）
+  const [metaLoading, setMetaLoading] = useState(true);
+  const [metaError, setMetaError] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [levels, setLevels] = useState([]);
+  const [contexts, setContexts] = useState([]);
+
+  // UI
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
 
-  const router = useRouter();
-  const { user } = useUser();
+  // 依照中繼資料組合題目
+  const questions = useMemo(() => {
+    const q = [
+      {
+        key: "purpose",
+        title: "使用本 App 的主要目的為何？",
+        options: ["學習手語", "進行手語翻譯", "兩者皆是"],
+      },
+      {
+        key: "frequency",
+        title: "你預期使用「手語翻譯」功能的頻率？",
+        options: ["每天", "每週數次", "偶爾", "幾乎不會"],
+      },
+      {
+        key: "experience",
+        title: "你是否有學習手語的經驗？",
+        options: ["是，曾經上過課或自學過", "否，完全沒有經驗"],
+      },
+      {
+        key: "studyTime",
+        title: "若使用此 App 學習手語，每日希望學習時間？",
+        options: ["5 分鐘內", "約 10 分鐘", "10～20 分鐘", "超過 20 分鐘"],
+      },
+
+      // —— 用於推薦主題：主題 / 程度 / 情境 ——
+      {
+        key: "interestCategory",
+        title: "你對哪些主題最感興趣？（先選一個作為起點）",
+        options: (categories?.length ? categories : FALLBACK.categories).slice(0, 12),
+      },
+      {
+        key: "learningLevel",
+        title: "目前的手語程度？",
+        // 將英文值包成 { value, label }，畫面顯示中文但仍送英文值
+        options: toDisplayOptions(
+          "learningLevel",
+          levels?.length ? levels : FALLBACK.levels
+        ),
+      },
+      {
+        key: "useContext",
+        title: "最常在哪種情境需要手語？",
+        options: contexts?.length ? contexts : FALLBACK.contexts,
+      },
+    ];
+
+    return q;
+  }, [categories, levels, contexts]);
 
   const total = questions.length;
   const currentQuestion = questions?.[step];
 
-  // ✅ 檢查是否已填過問卷（後端 + 本地）
+  // 讀取「主題/程度/情境」中繼資料
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadMeta = async () => {
+      try {
+        const res = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`);
+        const data = await res.json();
+
+        // 你的後端會回 { categories:[{name,count}], learning_levels:[...], contexts:[...] }
+        const catNames = (data?.categories || []).map((c) => c.name).filter(Boolean);
+        if (!cancelled) {
+          setCategories(catNames);
+          setLevels(data?.learning_levels || []);
+          setContexts(data?.contexts || []);
+        }
+      } catch (err) {
+        if (!cancelled) setMetaError(err?.message || "載入分類失敗");
+      } finally {
+        if (!cancelled) setMetaLoading(false);
+      }
+    };
+
+    loadMeta();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 檢查是否已填過問卷
   useEffect(() => {
     const checkIfFilled = async () => {
       if (!user?.id) return;
@@ -56,32 +147,36 @@ export default function PreferenceQuestionnaire() {
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.data) {
-            console.log("✅ 已有問卷答案:", data.data);
-            setAnswers(data.data.answers);
+            setAnswers(data.data.answers || {});
             setEditMode(true);
           }
         }
       } catch (err) {
         console.error("❌ 檢查問卷狀態失敗:", err);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     checkIfFilled();
   }, [user]);
 
+  const handlePrev = () => {
+    if (step > 0) setStep((s) => s - 1);
+  };
+
   const handleNext = async () => {
     if (!answers[currentQuestion?.key]) {
-      return alert("請先選擇一個選項");
+      setSnackbarMessage("⚠️ 請先選擇一個選項");
+      setSnackbarVisible(true);
+      return;
     }
 
     if (step < total - 1) {
-      setStep(step + 1);
+      setStep((s) => s + 1);
     } else {
-      // ✅ 最後一題時檢查是否所有題目都有回答
-      const unanswered = questions.filter((q) => !answers[q.key]);
-      if (unanswered.length > 0) {
+      const un = questions.filter((q) => !answers[q.key]);
+      if (un.length) {
         setSnackbarMessage("⚠️ 請完成所有題目再送出");
         setSnackbarVisible(true);
         return;
@@ -90,41 +185,25 @@ export default function PreferenceQuestionnaire() {
     }
   };
 
-  const handlePrev = () => {
-    if (step > 0) setStep(step - 1);
-  };
-
-  // ✅ 提交或更新問卷
   const handleSubmit = async () => {
     if (submitting) return;
     setSubmitting(true);
 
     try {
-      const response = await fetch(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: user?.id,
-            answers,
-          }),
-        }
-      );
+      const res = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user?.id, answers }),
+      });
 
-      const data = await response.json();
-
-      if (data.success) {
-        console.log("✅ 問卷已儲存:", data.data);
-
+      const data = await res.json();
+      if (data?.success) {
         await AsyncStorage.setItem(`questionnaireFilled_${user?.id}`, "true");
-
         setSnackbarMessage(editMode ? "✅ 問卷已更新" : "✅ 問卷已提交");
         setSnackbarVisible(true);
-
-        setTimeout(() => router.replace("/(tabs)"), 1500);
+        setTimeout(() => router.replace("/(tabs)"), 1200);
       } else {
-        setSnackbarMessage("❌ 儲存失敗：" + (data.error || "未知錯誤"));
+        setSnackbarMessage("❌ 儲存失敗：" + (data?.error || "未知錯誤"));
         setSnackbarVisible(true);
       }
     } catch (err) {
@@ -136,30 +215,27 @@ export default function PreferenceQuestionnaire() {
     }
   };
 
-  if (loading) {
+  if (loading || metaLoading) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>檢查中...</Text>
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text style={{ marginTop: 12, color: "#374151" }}>
+          {loading ? "載入中..." : metaError ? "載入分類失敗，使用預設選項" : "載入選項中..."}
+        </Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        {editMode ? "編輯使用者偏好問卷" : "使用者偏好問卷"}
-      </Text>
+      <Text style={styles.title}>{editMode ? "編輯使用者偏好問卷" : "使用者偏好問卷"}</Text>
 
-      {/* Stepper Dots */}
+      {/* Stepper */}
       <View style={styles.stepper}>
-        {Array.from({ length: total }).map((_, index) => (
+        {Array.from({ length: total }).map((_, i) => (
           <View
-            key={index}
-            style={[
-              styles.dot,
-              index === step && styles.dotActive,
-              index < step && styles.dotDone,
-            ]}
+            key={i}
+            style={[styles.dot, i === step && styles.dotActive, i < step && styles.dotDone]}
           />
         ))}
       </View>
@@ -167,31 +243,31 @@ export default function PreferenceQuestionnaire() {
       {/* 題目 */}
       <Text style={styles.question}>{currentQuestion?.title}</Text>
 
-      {/* 選項 */}
-      {(currentQuestion?.options || []).map((option) => {
-        const selected = answers[currentQuestion?.key] === option;
+      {/* 選項（同時支援字串或 {value,label} 物件） */}
+      {(currentQuestion?.options || []).map((opt) => {
+        const val = typeof opt === "string" ? opt : opt.value;
+        const label = typeof opt === "string" ? opt : opt.label;
+        const selected = answers[currentQuestion.key] === val;
+
         return (
           <TouchableOpacity
-            key={option}
+            key={val}
             style={[styles.option, selected && styles.optionSelected]}
             onPress={() =>
-              setAnswers((prev) => ({ ...prev, [currentQuestion.key]: option }))
+              setAnswers((prev) => ({ ...prev, [currentQuestion.key]: val }))
             }
           >
             <Text style={[styles.optionText, selected && styles.optionTextSelected]}>
-              {option}
+              {label}
             </Text>
           </TouchableOpacity>
         );
       })}
 
-      {/* 導覽按鈕 */}
-      <View style={styles.navButtons}>
+      {/* 導覽 */}
+      <View style={styles.nav}>
         {step > 0 && (
-          <TouchableOpacity
-            style={[styles.navBtn, { backgroundColor: "#9ca3af" }]}
-            onPress={handlePrev}
-          >
+          <TouchableOpacity style={[styles.navBtn, { backgroundColor: "#9ca3af" }]} onPress={handlePrev}>
             <Text style={styles.navBtnText}>上一題</Text>
           </TouchableOpacity>
         )}
@@ -206,11 +282,10 @@ export default function PreferenceQuestionnaire() {
         </TouchableOpacity>
       </View>
 
-      {/* Snackbar */}
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
-        duration={1500}
+        duration={1600}
         style={styles.snackbar}
       >
         {snackbarMessage}
@@ -220,43 +295,38 @@ export default function PreferenceQuestionnaire() {
 }
 
 const styles = StyleSheet.create({
+  loader: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#fff" },
   container: { flex: 1, padding: 20, backgroundColor: "#f9fafb" },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 20, color: "#1E3A8A" },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 16, color: "#1E3A8A" },
 
-  stepper: { flexDirection: "row", justifyContent: "center", marginBottom: 20 },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#d1d5db",
-    marginHorizontal: 6,
-  },
+  stepper: { flexDirection: "row", justifyContent: "center", marginBottom: 16 },
+  dot: { width: 12, height: 12, borderRadius: 6, backgroundColor: "#d1d5db", marginHorizontal: 6 },
   dotActive: { backgroundColor: "#3b82f6" },
   dotDone: { backgroundColor: "#10b981" },
 
-  question: { fontSize: 18, marginBottom: 16, color: "#111827" },
+  question: { fontSize: 18, marginBottom: 14, color: "#111827" },
   option: {
     padding: 14,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#e5e7eb",
     borderRadius: 8,
     marginBottom: 10,
     backgroundColor: "#f3f4f6",
   },
   optionSelected: { backgroundColor: "#3b82f6", borderColor: "#3b82f6" },
   optionText: { fontSize: 16, color: "#111827" },
-  optionTextSelected: { color: "white", fontWeight: "bold" },
+  optionTextSelected: { color: "#fff", fontWeight: "bold" },
 
-  navButtons: { flexDirection: "row", justifyContent: "space-between", marginTop: 20 },
+  nav: { flexDirection: "row", justifyContent: "space-between", marginTop: 18 },
   navBtn: {
     flex: 1,
     marginHorizontal: 4,
     backgroundColor: "#2563eb",
-    padding: 16,
+    padding: 14,
     borderRadius: 8,
     alignItems: "center",
   },
-  navBtnText: { color: "white", fontWeight: "bold" },
+  navBtnText: { color: "#fff", fontWeight: "bold" },
 
   snackbar: { backgroundColor: "#10b981" },
 });

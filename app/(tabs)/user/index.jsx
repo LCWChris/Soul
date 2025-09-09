@@ -115,12 +115,34 @@ export default function UserScreen() {
     if (!user?.id) return;
     setLoading(true);
 
-    try {
-      const res = await fetch(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`
-      );
-      const data = await res.json();
+    const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`;
 
+    try {
+      const res = await fetch(url, { method: "GET" });
+
+      // 先檢查狀態與 content-type，避免把 HTML 當成 JSON 解析
+      const contentType = res.headers.get("content-type") || "";
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("❌ API 非 2xx 回應",
+          { url, status: res.status, statusText: res.statusText, body: text.slice(0, 300) });
+        setPreferences(null);
+        setSnackbarMessage(`❌ 取得問卷失敗（${res.status}）`);
+        setSnackbarVisible(true);
+        return;
+      }
+
+      if (!contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("❌ 回應不是 JSON",
+          { url, contentType, sample: text.slice(0, 300) });
+        setSnackbarMessage("❌ 取得問卷失敗（回應不是 JSON）");
+        setSnackbarVisible(true);
+        return;
+      }
+
+      const data = await res.json();
       if (data.success && data.data) {
         setPreferences(data.data.answers);
         setSnackbarMessage("✅ 已載入問卷答案");
@@ -131,7 +153,7 @@ export default function UserScreen() {
         setSnackbarVisible(true);
       }
     } catch (err) {
-      console.error("❌ 取得問卷失敗:", err);
+      console.error("❌ 取得問卷失敗（網路/解析）:", err, { url });
       setSnackbarMessage("❌ 取得問卷失敗，請稍後再試");
       setSnackbarVisible(true);
     } finally {
