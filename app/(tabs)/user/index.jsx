@@ -37,11 +37,29 @@ export default function UserScreen() {
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
+  // 問卷題目 key -> 中文標題
   const labels = {
-    purpose: "使用目的",
-    frequency: "使用頻率",
-    experience: "學習經驗",
-    studyTime: "每日學習時間",
+    purpose: "使用本 App 的主要目的",
+    frequency: "使用翻譯功能的頻率",
+    experience: "是否有學習手語的經驗",
+    studyTime: "每日希望學習時間",
+    interestCategory: "最感興趣的主題",
+    learningLevel: "目前的手語程度",
+    useContext: "最常使用手語的情境",
+  };
+
+  // 額外對應：英文值 -> 中文顯示
+  const valueLabels = {
+    learningLevel: {
+      beginner: "初級",
+      intermediate: "中級",
+      advanced: "高級",
+    },
+    useContext: {
+      daily: "日常",
+      school: "學校",
+      workplace: "職場",
+    },
   };
 
   // ✅ 即時檢查使用者名稱
@@ -240,16 +258,33 @@ export default function UserScreen() {
               <Card style={{ marginTop: 12, backgroundColor: "#f3f4f6" }}>
                 <Card.Content>
                   <Title>📋 問卷答案</Title>
-                  {Object.entries(preferences).map(([key, value]) => (
-                    <Paragraph key={key}>
-                      • {labels[key] || key}：{value}
-                    </Paragraph>
-                  ))}
+                  {Object.entries(preferences).map(([key, value]) => {
+                    const label = labels[key] || key;
+                    const displayValue =
+                      valueLabels[key]?.[value] ?? value; // 如果有對應表就轉換，否則原樣
+
+                    return (
+                      <Paragraph key={key}>
+                        {label}：{displayValue}
+                      </Paragraph>
+                    );
+                  })}
+
                 </Card.Content>
               </Card>
             )}
           </Card.Content>
         </Card>
+
+        {/* 區塊：學習進度 */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <Title>📊 學習進度</Title>
+            <Paragraph>這裡將會顯示使用者的學習進度。</Paragraph>
+            {/* TODO: 協作者未來可在這裡放進度條、統計數字、圖表等 */}
+          </Card.Content>
+        </Card>
+
 
         {/* 區塊：安全性 */}
         <Card style={styles.card}>
