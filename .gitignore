@@ -136,3 +136,5 @@ temp_videos/
 *.temp
 requirements_backup.txt
 .env
+"__pycache__/" 
+"*.pyc" 

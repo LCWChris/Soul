@@ -132,9 +132,10 @@ export default function TranslateScreen() {
     try {
       // ① 上傳到 Cloudinary
       const cloudUrl = await uploadVideoToCloudinary(videoUri);
+      console.log("✅ Cloudinary 上傳成功：", cloudUrl);
 
-      // ② 傳給 Node.js 寫入 MongoDB
-      await fetch(`${NODE_API}/api/vocabularies`, {
+      // ② 寫入 MongoDB
+      const nodeRes = await fetch(`${NODE_API}/api/vocabularies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -143,27 +144,28 @@ export default function TranslateScreen() {
           level: "",
           theme: "",
           image_url: "",
-          video_url: cloudUrl, // 這是 Cloudinary 回傳網址
-          created_by: "frontend", // 可省略
+          video_url: cloudUrl,
+          created_by: "frontend",
           created_at: new Date().toISOString(),
         }),
       });
+      console.log("📤 Node.js API 回應狀態：", nodeRes.status);
 
-      // ③ 傳影片給 FastAPI 翻譯
-      const formData = new FormData();
-      formData.append("file", {
-        uri: videoUri,
-        name: "video.mp4",
-        type: "video/mp4",
-      });
-
-      const response = await fetch(`${BACKEND_URL}/translate`, {
+      // ③ 傳 Cloudinary 連結給 FastAPI 翻譯（by-url 模式）
+      console.log("🌍 發送到翻譯 API：", `${BACKEND_URL}/translate-by-url`);
+      const res = await fetch(`${BACKEND_URL}/translate-by-url`, {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ video_url: cloudUrl }),
       });
 
-      const data = await response.json();
-      setTranslationResult(data.translation || "未取得翻譯結果");
+      const data = await res.json();
+      if (res.ok && data.translation) {
+        setTranslationResult(data.translation);
+      } else {
+        console.warn("⚠️ 無法解析 JSON：", JSON.stringify(data));
+        throw new Error("無法解析翻譯結果");
+      }
     } catch (error) {
       console.error("上傳或翻譯失敗：", error);
       setTranslationResult("翻譯失敗，請稍後再試");
@@ -212,13 +214,16 @@ export default function TranslateScreen() {
       </View>
 
       {photoUri && <Image source={{ uri: photoUri }} style={styles.preview} />}
+
       {videoUri && (
-        <Video
-          source={{ uri: videoUri }}
-          style={styles.preview}
-          useNativeControls
-          resizeMode="contain"
-        />
+        <View style={styles.videoContainer}>
+          <Video
+            source={{ uri: videoUri }}
+            style={styles.video}
+            useNativeControls
+            resizeMode="contain"
+          />
+        </View>
       )}
 
       <View
@@ -294,5 +299,23 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 2,
     borderColor: "#fff",
+  },
+  videoContainer: {
+    alignSelf: "center",
+    width: "90%",
+    height: 200,
+    marginTop: 20,
+    backgroundColor: "#000",
+    borderRadius: 12,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  video: {
+    width: "100%",
+    height: "100%",
   },
 });
