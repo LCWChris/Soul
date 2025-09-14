@@ -1,5 +1,5 @@
 import { API_CONFIG } from "@/constants/api";
-import { useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -21,6 +21,7 @@ import {
 export default function UserScreen() {
   const { user } = useUser();
   const router = useRouter();
+  const { signOut } = useAuth();
 
   const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -36,6 +37,32 @@ export default function UserScreen() {
   // === Snackbar 狀態 ===
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+
+  // ✅ 共用 API fetch 工具
+  async function apiFetch(url, options = {}) {
+    const defaultHeaders = { "ngrok-skip-browser-warning": "true" };
+    const res = await fetch(url, {
+      ...options,
+      headers: { ...defaultHeaders, ...(options.headers || {}) },
+    });
+
+    const contentType = res.headers.get("content-type") || "";
+    let data = null;
+
+    if (contentType.includes("application/json")) {
+      try {
+        data = await res.json();
+      } catch (err) {
+        console.error("❌ JSON 解析失敗:", err);
+      }
+    } else {
+      const text = await res.text();
+      console.warn("⚠️ 回應不是 JSON，取回原始文字:", text.slice(0, 300));
+    }
+
+    return { res, data };
+  }
+
 
   // 問卷題目 key -> 中文標題
   const labels = {
@@ -59,7 +86,9 @@ export default function UserScreen() {
       daily: "日常",
       school: "學校",
       workplace: "職場",
+      home_school: "學校", // 修正異常值
     },
+
   };
 
   // ✅ 即時檢查使用者名稱
@@ -94,7 +123,7 @@ export default function UserScreen() {
   // ✅ 登出
   const handleSignOut = async () => {
     try {
-      await user.signOut();
+      await signOut();
       setSnackbarMessage("✅ 已登出");
       setSnackbarVisible(true);
       router.replace("/(auth)/sign-in");
@@ -109,10 +138,12 @@ export default function UserScreen() {
   const handleConfirmDelete = async () => {
     try {
       // 1) 刪除 MongoDB 偏好
-      await fetch(
+      await apiFetch(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`,
         { method: "DELETE" }
       );
+
+
 
       // 2) 刪除 Clerk 帳號
       await user.delete();
@@ -136,32 +167,17 @@ export default function UserScreen() {
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`;
 
     try {
-      const res = await fetch(url, { method: "GET" });
+      const { res, data } = await apiFetch(url, { method: "GET" });
 
-      // 先檢查狀態與 content-type，避免把 HTML 當成 JSON 解析
-      const contentType = res.headers.get("content-type") || "";
 
       if (!res.ok) {
-        const text = await res.text();
-        console.error("❌ API 非 2xx 回應",
-          { url, status: res.status, statusText: res.statusText, body: text.slice(0, 300) });
         setPreferences(null);
         setSnackbarMessage(`❌ 取得問卷失敗（${res.status}）`);
         setSnackbarVisible(true);
         return;
       }
 
-      if (!contentType.includes("application/json")) {
-        const text = await res.text();
-        console.error("❌ 回應不是 JSON",
-          { url, contentType, sample: text.slice(0, 300) });
-        setSnackbarMessage("❌ 取得問卷失敗（回應不是 JSON）");
-        setSnackbarVisible(true);
-        return;
-      }
-
-      const data = await res.json();
-      if (data.success && data.data) {
+      if (data?.success && data.data) {
         setPreferences(data.data.answers);
         setSnackbarMessage("✅ 已載入問卷答案");
         setSnackbarVisible(true);
@@ -183,11 +199,11 @@ export default function UserScreen() {
   const clearPreferences = async () => {
     if (!user?.id) return;
     try {
-      const res = await fetch(
+      const { data } = await apiFetch(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`,
         { method: "DELETE" }
       );
-      const data = await res.json();
+
       if (data.success) {
         setPreferences(null);
         await AsyncStorage.removeItem(`questionnaireFilled_${user.id}`);
@@ -207,7 +223,11 @@ export default function UserScreen() {
 
   return (
     <>
-      <ScrollView style={{ flex: 1, padding: 16 }}>
+      <ScrollView
+        style={{ flex: 1, padding: 16 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+      >
+
         <Text variant="headlineMedium" style={{ marginBottom: 16 }}>
           使用者設定
         </Text>
@@ -217,7 +237,7 @@ export default function UserScreen() {
           <Card.Content>
             <Title>👤 帳號設定</Title>
             <Paragraph>帳號：{user?.primaryEmailAddress?.emailAddress}</Paragraph>
-            <Paragraph>用戶 ID：{user?.id}</Paragraph>
+            <Paragraph>使用者名稱：{user?.username || "未設定"}</Paragraph>
             <Divider style={{ marginVertical: 8 }} />
             <Button mode="contained-tonal" onPress={() => setShowDialog(true)}>
               修改使用者名稱
@@ -258,17 +278,17 @@ export default function UserScreen() {
               <Card style={{ marginTop: 12, backgroundColor: "#f3f4f6" }}>
                 <Card.Content>
                   <Title>📋 問卷答案</Title>
-                  {Object.entries(preferences).map(([key, value]) => {
+                  {Object.entries(preferences).map(([key, value], index) => {
                     const label = labels[key] || key;
-                    const displayValue =
-                      valueLabels[key]?.[value] ?? value; // 如果有對應表就轉換，否則原樣
+                    const displayValue = valueLabels[key]?.[value] ?? value;
 
                     return (
                       <Paragraph key={key}>
-                        {label}：{displayValue}
+                        {index + 1}. {label}：{displayValue}
                       </Paragraph>
                     );
                   })}
+
 
                 </Card.Content>
               </Card>

@@ -11,7 +11,7 @@ import { Snackbar } from "react-native-paper";
 const FALLBACK = {
   categories: ["日常生活", "學校", "家庭", "朋友", "購物", "醫療"],
   levels: ["beginner", "intermediate", "advanced"], // 保留英文值，畫面用 DISPLAY_LABELS 翻成中文
-  contexts: ["日常", "學校", "職場"],
+  contexts: ["daily", "school", "workplace"],
 };
 
 // ---- 顯示字典：英文值 -> 中文標籤 ----
@@ -20,6 +20,12 @@ const DISPLAY_LABELS = {
     beginner: "初級",
     intermediate: "中級",
     advanced: "高級",
+  },
+  useContext: {
+    daily: "日常",
+    school: "學校",
+    workplace: "職場",
+    home_school: "學校", // 修正異常值
   },
   // 後續若有需要也可加：useContext、interestCategory 等
   // useContext: { daily: "日常", school: "學校", workplace: "職場" }
@@ -40,6 +46,7 @@ export default function PreferenceQuestionnaire() {
   const [answers, setAnswers] = useState({});
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const FIXED_LEVELS = ["beginner", "intermediate", "advanced"];
 
   // 後端中繼資料（主題/程度/情境）
   const [metaLoading, setMetaLoading] = useState(true);
@@ -53,6 +60,7 @@ export default function PreferenceQuestionnaire() {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [snackbarType, setSnackbarType] = useState("success");
 
   // 依照中繼資料組合題目
   const questions = useMemo(() => {
@@ -90,13 +98,18 @@ export default function PreferenceQuestionnaire() {
         // 將英文值包成 { value, label }，畫面顯示中文但仍送英文值
         options: toDisplayOptions(
           "learningLevel",
-          levels?.length ? levels : FALLBACK.levels
+          (levels?.length ? levels : FALLBACK.levels).sort(
+            (a, b) => FIXED_LEVELS.indexOf(a) - FIXED_LEVELS.indexOf(b)
+          )
         ),
       },
       {
         key: "useContext",
         title: "最常在哪種情境需要手語？",
-        options: contexts?.length ? contexts : FALLBACK.contexts,
+        options: toDisplayOptions(
+          "useContext",
+          contexts?.length ? contexts : FALLBACK.contexts
+        ),
       },
     ];
 
@@ -118,9 +131,15 @@ export default function PreferenceQuestionnaire() {
         // 你的後端會回 { categories:[{name,count}], learning_levels:[...], contexts:[...] }
         const catNames = (data?.categories || []).map((c) => c.name).filter(Boolean);
         if (!cancelled) {
+          const VALID_CONTEXTS = ["daily", "school", "workplace"];
           setCategories(catNames);
           setLevels(data?.learning_levels || []);
-          setContexts(data?.contexts || []);
+          setContexts(
+            (data?.contexts?.length ? data.contexts : FALLBACK.contexts).filter((c) =>
+              VALID_CONTEXTS.includes(c)
+            )
+          );
+
         }
       } catch (err) {
         if (!cancelled) setMetaError(err?.message || "載入分類失敗");
@@ -168,6 +187,7 @@ export default function PreferenceQuestionnaire() {
   const handleNext = async () => {
     if (!answers[currentQuestion?.key]) {
       setSnackbarMessage("⚠️ 請先選擇一個選項");
+      setSnackbarType("info");
       setSnackbarVisible(true);
       return;
     }
@@ -178,6 +198,7 @@ export default function PreferenceQuestionnaire() {
       const un = questions.filter((q) => !answers[q.key]);
       if (un.length) {
         setSnackbarMessage("⚠️ 請完成所有題目再送出");
+        setSnackbarType("info");   // ✅ 加上這行
         setSnackbarVisible(true);
         return;
       }
@@ -192,24 +213,39 @@ export default function PreferenceQuestionnaire() {
     try {
       const res = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true", // 跳過 ngrok 警告頁
+        },
         body: JSON.stringify({ userId: user?.id, answers }),
       });
 
-      const data = await res.json();
-      if (data?.success) {
-        await AsyncStorage.setItem(`questionnaireFilled_${user?.id}`, "true");
-        setSnackbarMessage(editMode ? "✅ 問卷已更新" : "✅ 問卷已提交");
-        setSnackbarVisible(true);
-        setTimeout(() => router.replace("/(tabs)"), 1200);
+      const contentType = res.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data?.success) {
+          await AsyncStorage.setItem(`questionnaireFilled_${user?.id}`, "true");
+          setSnackbarMessage(editMode ? "✅ 問卷已更新" : "✅ 問卷已提交");
+          setSnackbarType("success");
+          setSnackbarVisible(true);
+          setTimeout(() => router.replace("/(tabs)"), 1200);
+        } else {
+          setSnackbarMessage("❌ 儲存失敗：" + (data?.error || "未知錯誤"));
+          setSnackbarVisible(true);
+        }
       } else {
-        setSnackbarMessage("❌ 儲存失敗：" + (data?.error || "未知錯誤"));
+        const text = await res.text();
+        console.error("❌ 伺服器回應不是 JSON:", text);
+        setSnackbarMessage("⚠️ 伺服器暫時無法處理，請稍後再試");
         setSnackbarVisible(true);
       }
     } catch (err) {
       console.error("❌ 提交問卷失敗:", err);
       setSnackbarMessage("❌ 提交問卷失敗，請稍後再試");
+      setSnackbarType("error");
       setSnackbarVisible(true);
+
     } finally {
       setSubmitting(false);
     }
@@ -286,15 +322,24 @@ export default function PreferenceQuestionnaire() {
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
         duration={1600}
-        style={styles.snackbar}
+        style={[
+          snackbarType === "success" && styles.snackbarSuccess,
+          snackbarType === "error" && styles.snackbarError,
+          snackbarType === "info" && styles.snackbarInfo,
+        ]}
       >
         {snackbarMessage}
       </Snackbar>
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  snackbarSuccess: { backgroundColor: "#10b981" }, // 綠色
+  snackbarError: { backgroundColor: "#ef4444" },   // 紅色
+  snackbarInfo: { backgroundColor: "#f59e0b" },    // 黃色
+
   loader: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#fff" },
   container: { flex: 1, padding: 20, backgroundColor: "#f9fafb" },
   title: { fontSize: 22, fontWeight: "bold", marginBottom: 16, color: "#1E3A8A" },
@@ -328,5 +373,4 @@ const styles = StyleSheet.create({
   },
   navBtnText: { color: "#fff", fontWeight: "bold" },
 
-  snackbar: { backgroundColor: "#10b981" },
 });
