@@ -1,14 +1,14 @@
-# SOUL/app/(tabs)/translation/backend/main.py
-
+# soul/app/(tabs)/translation/backend/main.py
 from fastapi import FastAPI, UploadFile, File, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import uuid
-from model_infer import predict  # ✅ 模型推論
+from model_infer import predict
 from dotenv import load_dotenv
 import motor.motor_asyncio
 from datetime import datetime
+import requests
 
 # 讀取 .env（可設定 MONGO_URL）
 load_dotenv()
@@ -23,7 +23,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ MongoDB 設定（選擇性）
 MONGO_URL = os.getenv("MONGO_URL")
 if MONGO_URL:
     mongo_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_URL)
@@ -41,7 +40,7 @@ async def translate(file: UploadFile = File(...)):
         with open(file_path, "wb") as f:
             f.write(await file.read())
 
-        top3 = predict(file_path)  # 返回 list[dict]
+        top3 = predict(file_path)
         os.remove(file_path)
 
         if top3:
@@ -52,7 +51,39 @@ async def translate(file: UploadFile = File(...)):
 
         print("🔍 Top-3 預測：", top3)
         return JSONResponse(content={"translation": result_text})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
+@app.post("/translate-by-url")
+async def translate_by_url(request: Request):
+    try:
+        data = await request.json()
+        video_url = data.get("video_url")
+
+        if not video_url:
+            return JSONResponse(status_code=400, content={"error": "video_url 缺失"})
+
+        filename = f"{uuid.uuid4()}.mp4"
+        save_dir = "temp_videos"
+        os.makedirs(save_dir, exist_ok=True)
+        file_path = os.path.join(save_dir, filename)
+
+        # 下載影片
+        r = requests.get(video_url)
+        with open(file_path, "wb") as f:
+            f.write(r.content)
+
+        top3 = predict(file_path)
+        os.remove(file_path)
+
+        if top3:
+            best = top3[0]
+            result_text = f"{best['label']}（信心值：{best['confidence']*100:.1f}%）"
+        else:
+            result_text = "未知手語"
+
+        print("🌐 Cloudinary URL 翻譯 Top-3：", top3)
+        return JSONResponse(content={"translation": result_text})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -66,7 +97,6 @@ async def save_cloudinary_url(request: Request):
         print(f"✅ 收到影片標題：{title}")
         print(f"✅ Cloudinary 影片網址：{video_url}")
 
-        # ✅ 儲存進 MongoDB（若已設定）
         if MONGO_URL:
             record = {
                 "title": title,
