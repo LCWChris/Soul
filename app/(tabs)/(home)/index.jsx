@@ -1,8 +1,12 @@
+import { API_CONFIG } from "@/constants/api";
+import { useUser } from "@clerk/clerk-expo";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   Image,
   ScrollView,
@@ -17,14 +21,74 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight(); // 新增
+  const { user } = useUser(); // 新增用戶資訊
+
+  // 個人化推薦狀態
+  const [personalizedRecs, setPersonalizedRecs] = useState([]);
+  const [loadingRecs, setLoadingRecs] = useState(true);
 
   // 模擬用戶數據
-  const user = {
+  const mockUserData = {
     name: "仕彥",
     lastLesson: { volume: 4, unit: 2, title: "學校生活" },
     progress: 0.45,
     weeklyTarget: 20,
     weeklyCompleted: 9,
+  };
+
+  // 載入個人化推薦
+  useEffect(() => {
+    loadPersonalizedRecommendations();
+  }, [user]);
+
+  const loadPersonalizedRecommendations = async () => {
+    if (!user?.id) {
+      setLoadingRecs(false);
+      return;
+    }
+
+    try {
+      setLoadingRecs(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/api/recommendations/personalized/${user.id}?limit=4`,
+        {
+          headers: { "ngrok-skip-browser-warning": "true" },
+        }
+      );
+
+      const data = await response.json();
+      if (data.recommendations && data.recommendations.length > 0) {
+        setPersonalizedRecs(data.recommendations);
+      } else {
+        // 如果沒有個人化推薦，使用預設推薦
+        setPersonalizedRecs(recommendedList);
+      }
+    } catch (error) {
+      console.error("載入個人化推薦失敗:", error);
+      // 使用現有的靜態推薦作為後備
+      setPersonalizedRecs(recommendedList);
+    } finally {
+      setLoadingRecs(false);
+    }
+  };
+
+  const handleRecommendationPress = (recommendation) => {
+    if (recommendation.action) {
+      const { action } = recommendation;
+      if (action.type === "navigate") {
+        if (action.params && Object.keys(action.params).length > 0) {
+          router.push({
+            pathname: action.route,
+            params: action.params,
+          });
+        } else {
+          router.push(action.route);
+        }
+      }
+    } else {
+      // 原有的靜態推薦處理
+      router.push("/education/teach-screen");
+    }
   };
 
   // 模擬推薦課程資料
@@ -77,29 +141,31 @@ export default function HomeScreen() {
           style={styles.headerImage}
         />
         <View style={styles.headerTextWrap}>
-          <Text style={styles.greeting}>👋 Hi，{user.name}</Text>
+          <Text style={styles.greeting}>
+            👋 Hi，{user?.firstName || mockUserData.name}
+          </Text>
           <Text style={styles.subtitleMuted}>今天再學一點點，就更接近目標</Text>
         </View>
 
         <LinearGradient colors={["#2563EB", "#1D4ED8"]} style={styles.heroCard}>
           <View style={{ flex: 1 }}>
             <Text style={styles.heroTitle}>
-              繼續「{user.lastLesson.title}」
+              繼續「{mockUserData.lastLesson.title}」
             </Text>
             <Text style={styles.heroSub}>
-              上次：第 {user.lastLesson.volume} 冊 第 {user.lastLesson.unit}{" "}
-              單元
+              上次：第 {mockUserData.lastLesson.volume} 冊 第{" "}
+              {mockUserData.lastLesson.unit} 單元
             </Text>
 
             {/* 進度條重構 */}
             <View style={styles.progressBlock}>
               <ProgressBar
-                progress={user.progress}
+                progress={mockUserData.progress}
                 color="#fff"
                 style={styles.heroProgress}
               />
               <Text style={styles.heroProgressPercent}>
-                {Math.round(user.progress * 100)}%
+                {Math.round(mockUserData.progress * 100)}%
               </Text>
             </View>
 
@@ -110,7 +176,7 @@ export default function HomeScreen() {
               style={[styles.ctaButton, styles.blackButton]}
               onPress={() =>
                 router.push(
-                  `/education/teach/${user.lastLesson.volume}/${user.lastLesson.unit}`
+                  `/education/teach/${mockUserData.lastLesson.volume}/${mockUserData.lastLesson.unit}`
                 )
               }
             >
@@ -164,24 +230,37 @@ export default function HomeScreen() {
         {/* 推薦課程 */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionBar} />
-          <Text style={styles.sectionTitle}>📖 推薦課程</Text>
+          <Text style={styles.sectionTitle}>
+            {personalizedRecs.length > 0 && personalizedRecs[0].type
+              ? "🎯 為你推薦"
+              : "📖 推薦課程"}
+          </Text>
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.recommendScrollContent}
-          decelerationRate="fast"
-          snapToAlignment="start"
-          snapToInterval={240} // 220 寬 + 20 邊距
-        >
-          {recommendedList.map((item) => (
-            <RecommendCard
-              key={item.id}
-              item={item}
-              onPress={() => router.push("/education/teach-screen")}
-            />
-          ))}
-        </ScrollView>
+
+        {loadingRecs ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color="#3b82f6" />
+            <Text style={styles.loadingText}>載入推薦內容...</Text>
+          </View>
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.recommendScrollContent}
+            decelerationRate="fast"
+            snapToAlignment="start"
+            snapToInterval={240} // 220 寬 + 20 邊距
+          >
+            {personalizedRecs.map((item, index) => (
+              <RecommendCard
+                key={item.id || `rec-${index}`}
+                item={item}
+                onPress={() => handleRecommendationPress(item)}
+                isPersonalized={!!item.type}
+              />
+            ))}
+          </ScrollView>
+        )}
 
         {/* 每日一句 */}
         <View style={styles.sectionHeader}>
@@ -218,13 +297,13 @@ export default function HomeScreen() {
             <View style={styles.progressTopRow}>
               <Text style={styles.progressTitle}>本週完成度</Text>
               <Text style={styles.progressSub}>
-                {user.weeklyCompleted}/{user.weeklyTarget}
+                {mockUserData.weeklyCompleted}/{mockUserData.weeklyTarget}
               </Text>
             </View>
 
             <View style={styles.progressBarWrap}>
               <ProgressBar
-                progress={user.progress}
+                progress={mockUserData.progress}
                 color="#1D4ED8"
                 style={styles.progressBarLite}
               />
@@ -232,7 +311,7 @@ export default function HomeScreen() {
 
             <View style={styles.progressBottomRow}>
               <Text style={styles.progressPercentLite}>
-                {Math.round(user.progress * 100)}%
+                {Math.round(mockUserData.progress * 100)}%
               </Text>
               <Button
                 mode="contained"
@@ -359,9 +438,36 @@ const styles = StyleSheet.create({
     marginTop: 14,
     borderRadius: 14,
   },
+  loadingContainer: {
+    paddingVertical: 40,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    marginTop: 12,
+    color: "#64748B",
+    fontSize: 14,
+  },
   recommendScrollContent: {
     paddingRight: 16,
     paddingVertical: 4,
+  },
+  personalizedCard: {
+    borderWidth: 2,
+    borderColor: "#3b82f6",
+    backgroundColor: "#f8faff",
+  },
+  placeholderImage: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#E2E8F0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recSubtitle: {
+    color: "rgba(255,255,255,0.85)",
+    fontSize: 12,
+    fontWeight: "500",
+    marginTop: 2,
   },
 
   recOuter: {
@@ -520,25 +626,43 @@ const styles = StyleSheet.create({
   },
 });
 
-function RecommendCard({ item, onPress }) {
+function RecommendCard({ item, onPress, isPersonalized = false }) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+
+  // 處理個人化推薦和原始推薦的不同結構
+  const title = item.title;
+  const subtitle = item.subtitle || "";
+  const description = item.description;
+  const imageUrl =
+    item.image ||
+    (item.image_url ? item.image_url.replace(".gif", ".png") : null);
 
   return (
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={onPress}
-      style={styles.recOuter}
+      style={[styles.recOuter, isPersonalized && styles.personalizedCard]}
     >
       <View style={styles.recImageWrap}>
         {!loaded && !error && <View style={styles.recSkeleton} />}
-        {error ? (
-          <View style={styles.recErrorBox}>
-            <Text style={styles.recErrorText}>載入失敗</Text>
+        {error || !imageUrl ? (
+          <View style={styles.placeholderImage}>
+            <Ionicons
+              name={
+                item.type === "vocabulary"
+                  ? "book"
+                  : item.type === "material"
+                  ? "school"
+                  : "apps"
+              }
+              size={32}
+              color="#666"
+            />
           </View>
         ) : (
           <Image
-            source={{ uri: item.image.replace(".gif", ".png") }}
+            source={{ uri: imageUrl }}
             style={styles.recImage}
             resizeMode="cover"
             onLoad={() => setLoaded(true)}
@@ -550,15 +674,22 @@ function RecommendCard({ item, onPress }) {
           style={styles.recOverlay}
         >
           <Text style={styles.recTitle} numberOfLines={1}>
-            {item.title}
+            {title}
           </Text>
+          {subtitle && (
+            <Text style={styles.recSubtitle} numberOfLines={1}>
+              {subtitle}
+            </Text>
+          )}
         </LinearGradient>
       </View>
       <View style={styles.recBody}>
         <Text style={styles.recDesc} numberOfLines={2}>
-          {item.description}
+          {description}
         </Text>
-        <Text style={styles.recLinkBtn}>查看</Text>
+        <Text style={styles.recLinkBtn}>
+          {isPersonalized ? "開始學習" : "查看"}
+        </Text>
       </View>
     </TouchableOpacity>
   );
