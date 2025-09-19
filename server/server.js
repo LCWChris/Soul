@@ -145,7 +145,7 @@ const VocabSchema = new mongoose.Schema({
 // 使用 book_words collection (安全的模型定義)
 let BookWord;
 try {
-  BookWord = mongoose.model('BookWord');
+  BookWord = mongoose.model("BookWord");
 } catch (error) {
   BookWord = mongoose.model("BookWord", VocabSchema, "book_words");
 }
@@ -161,6 +161,7 @@ app.get("/", (req, res) => {
       preferences: "/api/preferences",
       categories: "/api/categories",
       recommendations: "/api/recommendations",
+      personalizedRecommendations: "/api/recommendations/personalized/:userId",
       stats: "/api/stats",
       materials: "/api/materials",
       status: "/api/status",
@@ -292,89 +293,92 @@ app.get("/api/vocabularies", async (req, res) => {
 app.get("/api/categories", async (req, res) => {
   try {
     console.log("🔍 開始獲取分類資料...");
-    
+
     // 使用聚合管道來獲取所有唯一值，並過濾掉無效值
-    const [categories, learning_levels, contexts, frequencies, volumes] = await Promise.all([
-      // 獲取所有分類
-      BookWord.aggregate([
-        { $match: { category: { $exists: true, $ne: null, $ne: "" } } },
-        { $group: { _id: "$category" } },
-        { $sort: { _id: 1 } }
-      ]),
-      
-      // 獲取所有學習等級
-      BookWord.aggregate([
-        { $match: { learning_level: { $exists: true, $ne: null, $ne: "" } } },
-        { $group: { _id: "$learning_level" } },
-        { $sort: { _id: 1 } }
-      ]),
-      
-      // 獲取所有上下文
-      BookWord.aggregate([
-        { $match: { context: { $exists: true, $ne: null, $ne: "" } } },
-        { $group: { _id: "$context" } },
-        { $sort: { _id: 1 } }
-      ]),
-      
-      // 獲取所有頻率
-      BookWord.aggregate([
-        { $match: { frequency: { $exists: true, $ne: null, $ne: "" } } },
-        { $group: { _id: "$frequency" } },
-        { $sort: { _id: 1 } }
-      ]),
-      
-      // 獲取所有冊數，過濾掉 "nan" 和無效值
-      BookWord.aggregate([
-        { 
-          $match: { 
-            volume: { 
-              $exists: true, 
-              $ne: null, 
-              $ne: "", 
-              $ne: "nan",
-              $type: ["number", "string"]
-            } 
-          } 
-        },
-        { 
-          $addFields: {
-            volumeNum: {
-              $cond: {
-                if: { $eq: [{ $type: "$volume" }, "string"] },
-                then: { 
-                  $cond: {
-                    if: { $eq: ["$volume", "nan"] },
-                    then: null,
-                    else: { $toInt: "$volume" }
-                  }
+    const [categories, learning_levels, contexts, frequencies, volumes] =
+      await Promise.all([
+        // 獲取所有分類
+        BookWord.aggregate([
+          { $match: { category: { $exists: true, $ne: null, $ne: "" } } },
+          { $group: { _id: "$category" } },
+          { $sort: { _id: 1 } },
+        ]),
+
+        // 獲取所有學習等級
+        BookWord.aggregate([
+          { $match: { learning_level: { $exists: true, $ne: null, $ne: "" } } },
+          { $group: { _id: "$learning_level" } },
+          { $sort: { _id: 1 } },
+        ]),
+
+        // 獲取所有上下文
+        BookWord.aggregate([
+          { $match: { context: { $exists: true, $ne: null, $ne: "" } } },
+          { $group: { _id: "$context" } },
+          { $sort: { _id: 1 } },
+        ]),
+
+        // 獲取所有頻率
+        BookWord.aggregate([
+          { $match: { frequency: { $exists: true, $ne: null, $ne: "" } } },
+          { $group: { _id: "$frequency" } },
+          { $sort: { _id: 1 } },
+        ]),
+
+        // 獲取所有冊數，過濾掉 "nan" 和無效值
+        BookWord.aggregate([
+          {
+            $match: {
+              volume: {
+                $exists: true,
+                $ne: null,
+                $ne: "",
+                $ne: "nan",
+                $type: ["number", "string"],
+              },
+            },
+          },
+          {
+            $addFields: {
+              volumeNum: {
+                $cond: {
+                  if: { $eq: [{ $type: "$volume" }, "string"] },
+                  then: {
+                    $cond: {
+                      if: { $eq: ["$volume", "nan"] },
+                      then: null,
+                      else: { $toInt: "$volume" },
+                    },
+                  },
+                  else: "$volume",
                 },
-                else: "$volume"
-              }
-            }
-          }
-        },
-        { $match: { volumeNum: { $ne: null, $type: "number" } } },
-        { $group: { _id: "$volumeNum" } },
-        { $sort: { _id: 1 } }
-      ])
-    ]);
+              },
+            },
+          },
+          { $match: { volumeNum: { $ne: null, $type: "number" } } },
+          { $group: { _id: "$volumeNum" } },
+          { $sort: { _id: 1 } },
+        ]),
+      ]);
 
     const result = {
-      categories: categories.map(item => item._id).filter(Boolean),
-      learning_levels: learning_levels.map(item => item._id).filter(Boolean),
-      contexts: contexts.map(item => item._id).filter(Boolean),
-      frequencies: frequencies.map(item => item._id).filter(Boolean),
-      volumes: volumes.map(item => item._id).filter(v => v !== null && !isNaN(v))
+      categories: categories.map((item) => item._id).filter(Boolean),
+      learning_levels: learning_levels.map((item) => item._id).filter(Boolean),
+      contexts: contexts.map((item) => item._id).filter(Boolean),
+      frequencies: frequencies.map((item) => item._id).filter(Boolean),
+      volumes: volumes
+        .map((item) => item._id)
+        .filter((v) => v !== null && !isNaN(v)),
     };
-    
+
     console.log("✅ 成功獲取分類資料:", {
       categories: result.categories.length,
       learning_levels: result.learning_levels.length,
       contexts: result.contexts.length,
       frequencies: result.frequencies.length,
-      volumes: result.volumes.length
+      volumes: result.volumes.length,
     });
-    
+
     res.json(result);
   } catch (err) {
     console.error("❌ 獲取分類失敗:", err);
@@ -411,6 +415,243 @@ app.get("/api/recommendations", async (req, res) => {
     res.status(500).json({ error: "獲取推薦詞彙失敗" });
   }
 });
+
+// 新增：個人化推薦 API
+app.get("/api/recommendations/personalized/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { limit = 5 } = req.query;
+
+    console.log(`🎯 開始為用戶 ${userId} 生成個人化推薦...`);
+
+    // 1. 獲取用戶偏好
+    const UserPreference = require("./models/UserPreference");
+    const userPreference = await UserPreference.findOne({ userId });
+
+    if (!userPreference) {
+      console.log(`⚠️ 用戶 ${userId} 尚未填寫問卷，返回預設推薦`);
+      return res.json({ recommendations: [] });
+    }
+
+    // 2. 基於偏好生成推薦
+    const recommendations = await generatePersonalizedRecommendations(
+      userPreference.answers,
+      parseInt(limit)
+    );
+
+    console.log(`✅ 為用戶 ${userId} 生成 ${recommendations.length} 個推薦`);
+    res.json({ recommendations });
+  } catch (error) {
+    console.error("❌ 獲取個人化推薦失敗:", error);
+    res.status(500).json({ error: "推薦系統暫時無法使用" });
+  }
+});
+
+// 推薦演算法核心函數
+async function generatePersonalizedRecommendations(preferences, limit) {
+  const recommendations = [];
+
+  try {
+    console.log("🔍 用戶偏好:", preferences);
+
+    // 將 Map 轉換為普通物件
+    const prefs = {};
+    if (preferences instanceof Map) {
+      preferences.forEach((value, key) => {
+        prefs[key] = value;
+      });
+    } else {
+      Object.assign(prefs, preferences);
+    }
+
+    // 1. 詞彙推薦 (基於興趣主題和學習程度)
+    if (prefs.interestCategory && prefs.learningLevel) {
+      console.log(
+        `🎯 基於興趣主題: ${prefs.interestCategory}, 學習程度: ${prefs.learningLevel}`
+      );
+
+      const vocabularyRecs = await BookWord.find({
+        $or: [
+          { category: prefs.interestCategory },
+          { theme: prefs.interestCategory },
+        ],
+        learning_level: prefs.learningLevel,
+        $or: [{ frequency: "high" }, { frequency: "medium" }],
+      })
+        .limit(2)
+        .lean();
+
+      console.log(`📚 找到 ${vocabularyRecs.length} 個詞彙推薦`);
+
+      vocabularyRecs.forEach((word) => {
+        recommendations.push({
+          type: "vocabulary",
+          title: `學習「${word.title}」`,
+          subtitle: `${word.category || word.theme || "詞彙學習"} • ${
+            word.learning_level || "初級"
+          }`,
+          description:
+            word.content || `學習手語詞彙「${word.title}」，提升你的表達能力`,
+          image: word.image_url,
+          action: {
+            type: "navigate",
+            route: "/education/word-learning",
+            params: {
+              category: word.category || word.theme,
+              level: word.learning_level,
+              word: word.title,
+            },
+          },
+          priority: calculatePriority(word, prefs),
+        });
+      });
+    }
+
+    // 2. 教材單元推薦 (基於學習程度和使用情境)
+    try {
+      const materialRecs = await Material.find({}).limit(2).lean();
+      console.log(`📖 找到 ${materialRecs.length} 個教材推薦`);
+
+      materialRecs.forEach((material) => {
+        recommendations.push({
+          type: "material",
+          title: material.unitname || `第${material.lesson}課`,
+          subtitle: `第${material.volume}冊 第${material.lesson}課`,
+          description: `繼續學習「${
+            material.unitname || "手語基礎"
+          }」，掌握更多實用技能`,
+          image: material.image,
+          action: {
+            type: "navigate",
+            route: `/education/teach/${material.volume}/${material.lesson}`,
+            params: {},
+          },
+          priority: calculateMaterialPriority(material, prefs),
+        });
+      });
+    } catch (materialError) {
+      console.warn("⚠️ 載入教材推薦時發生錯誤:", materialError.message);
+    }
+
+    // 3. 基於使用目的的推薦
+    if (prefs.purpose) {
+      if (prefs.purpose.includes("翻譯")) {
+        recommendations.push({
+          type: "feature",
+          title: "即時手語翻譯",
+          subtitle: "根據你的使用目的推薦",
+          description: "體驗即時手語翻譯功能，讓溝通更順暢",
+          image: null,
+          action: {
+            type: "navigate",
+            route: "/translation",
+            params: {},
+          },
+          priority: 80,
+        });
+      }
+
+      if (prefs.purpose.includes("學習")) {
+        recommendations.push({
+          type: "feature",
+          title: "開始學習之旅",
+          subtitle: "根據你的學習需求推薦",
+          description: "從基礎開始，循序漸進學習手語",
+          image: null,
+          action: {
+            type: "navigate",
+            route: "/education",
+            params: {},
+          },
+          priority: 75,
+        });
+      }
+    }
+
+    // 4. 依據優先級排序並限制數量
+    const finalRecommendations = recommendations
+      .sort((a, b) => b.priority - a.priority)
+      .slice(0, limit);
+
+    console.log(
+      `🎯 最終推薦 ${finalRecommendations.length} 項，優先級排序完成`
+    );
+    return finalRecommendations;
+  } catch (error) {
+    console.error("❌ 生成推薦時發生錯誤:", error);
+    return [];
+  }
+}
+
+function calculatePriority(item, preferences) {
+  let priority = 50; // 基礎分數
+
+  try {
+    // 根據興趣主題加分
+    if (
+      item.category === preferences.interestCategory ||
+      item.theme === preferences.interestCategory
+    ) {
+      priority += 30;
+    }
+
+    // 根據學習程度匹配度加分
+    if (item.learning_level === preferences.learningLevel) {
+      priority += 25;
+    }
+
+    // 根據使用情境加分
+    if (item.context === preferences.useContext) {
+      priority += 20;
+    }
+
+    // 根據頻率加分
+    if (item.frequency === "high") {
+      priority += 15;
+    } else if (item.frequency === "medium") {
+      priority += 10;
+    }
+
+    return priority;
+  } catch (error) {
+    console.warn("⚠️ 計算優先級時發生錯誤:", error);
+    return priority;
+  }
+}
+
+function calculateMaterialPriority(material, preferences) {
+  let priority = 60; // 教材基礎分數稍高
+
+  try {
+    // 根據學習程度調整 (初級用戶優先推薦低冊數)
+    if (preferences.learningLevel === "beginner" && material.volume <= 2) {
+      priority += 20;
+    } else if (
+      preferences.learningLevel === "intermediate" &&
+      material.volume >= 2 &&
+      material.volume <= 4
+    ) {
+      priority += 20;
+    } else if (
+      preferences.learningLevel === "advanced" &&
+      material.volume >= 3
+    ) {
+      priority += 20;
+    }
+
+    // 根據學習時間偏好調整
+    if (preferences.studyTime) {
+      if (preferences.studyTime.includes("20") && material.lesson > 5) {
+        priority += 10; // 願意學習較長時間的用戶推薦較複雜內容
+      }
+    }
+
+    return priority;
+  } catch (error) {
+    console.warn("⚠️ 計算教材優先級時發生錯誤:", error);
+    return priority;
+  }
+}
 
 // 新增：獲取學習統計
 app.get("/api/stats", async (req, res) => {
@@ -535,7 +776,7 @@ app.get("/api/cloudinary-images", async (req, res) => {
 // === 教材模型 ===
 const MaterialSchema = new mongoose.Schema(
   {
-    unitname: { type: String, required: true },  // 改成 unitname
+    unitname: { type: String, required: true }, // 改成 unitname
     volume: { type: Number, required: true },
     lesson: { type: Number, required: true },
     image: { type: String, default: "" },
@@ -565,7 +806,10 @@ app.get("/api/materials", async (req, res) => {
       query = { volume: volNum };
     }
     // ✅ 回傳 unitname + lesson
-    const list = await Material.find(query, "_id unitname volume lesson").lean();
+    const list = await Material.find(
+      query,
+      "_id unitname volume lesson"
+    ).lean();
     res.json(list);
   } catch (err) {
     console.error("讀取資料錯誤：", err);
@@ -656,6 +900,9 @@ const startServer = () => {
     console.log("  📝 POST /api/preferences - 儲存/更新問卷回答");
     console.log("  🔍 GET  /api/preferences/:userId - 查詢使用者問卷");
     console.log("  🎯 GET  /api/recommendations - 獲取推薦詞彙");
+    console.log(
+      "  🎯 GET  /api/recommendations/personalized/:userId - 獲取個人化推薦"
+    );
     console.log("  📈 GET  /api/stats - 獲取統計資料");
     console.log("  🔄 POST /api/book_words/batch_update - 批量更新");
     console.log("  📖 GET  /api/materials - 獲取教材資料");
