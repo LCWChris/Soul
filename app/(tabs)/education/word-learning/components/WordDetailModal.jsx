@@ -256,7 +256,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
                         source={{ uri: word.video_url }}
                         style={styles.detailVideo}
                         resizeMode="contain"
-                        isLooping={false}
+                        isLooping={true}
                         shouldPlay={false}
                         onPlaybackStatusUpdate={handleVideoStatusUpdate}
                       />

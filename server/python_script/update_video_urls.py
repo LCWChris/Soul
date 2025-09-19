@@ -34,10 +34,32 @@ def connect_to_mongodb():
 def read_csv_file(file_path):
     """讀取 CSV 檔案"""
     try:
-        df = pd.read_csv(file_path)
-        print(f"✅ 成功讀取 CSV 檔案，共 {len(df)} 筆記錄")
+        # 嘗試不同的編碼方式
+        encodings = ['utf-8', 'big5', 'gbk', 'cp950', 'latin-1']
+        df = None
+        
+        for encoding in encodings:
+            try:
+                df = pd.read_csv(file_path, encoding=encoding, sep='\t')  # 使用 tab 分隔符
+                print(f"✅ 成功讀取 CSV 檔案 (編碼: {encoding})，共 {len(df)} 筆記錄")
+                break
+            except UnicodeDecodeError:
+                continue
+        
+        if df is None:
+            raise Exception("無法使用任何編碼方式讀取檔案")
+            
         print("CSV 欄位:", list(df.columns))
-        return df
+        
+        # 檢查是否有影片連結欄位且不為空
+        if 'video_url' in df.columns:
+            video_records = df[df['video_url'].notna() & (df['video_url'] != '')]
+            print(f"📹 有影片連結的記錄: {len(video_records)} 筆")
+            return video_records
+        else:
+            print("❌ 找不到 video_url 欄位")
+            return None
+            
     except Exception as e:
         print(f"❌ 讀取 CSV 檔案失敗: {e}")
         return None

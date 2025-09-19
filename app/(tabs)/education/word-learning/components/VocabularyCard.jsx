@@ -144,7 +144,7 @@ const VocabularyCard = React.memo(({
                 style={styles.videoPlayer}
                 useNativeControls={false}
                 shouldPlay={false}
-                isLooping={false}
+                isLooping={true}
                 onPlaybackStatusUpdate={handleVideoPlaybackStatusUpdate}
                 resizeMode="contain"
               />
