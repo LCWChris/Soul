@@ -37,7 +37,15 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "允許 $(PRODUCT_NAME) 使用您的相機來錄製手語影片。",
+          "microphonePermission": "允許 $(PRODUCT_NAME) 使用您的麥克風來錄製聲音。",
+          "recordAudioAndroid": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
