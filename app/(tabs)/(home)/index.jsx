@@ -43,28 +43,71 @@ export default function HomeScreen() {
 
   const loadPersonalizedRecommendations = async () => {
     if (!user?.id) {
+      console.log('📍 用戶未登入，使用預設推薦');
+      setPersonalizedRecs(recommendedList);
       setLoadingRecs(false);
       return;
     }
 
     try {
       setLoadingRecs(true);
+      
+      // 檢查 API 配置是否存在
+      if (!API_CONFIG.BASE_URL) {
+        console.warn('⚠️ API_CONFIG.BASE_URL 未設定，使用預設推薦');
+        setPersonalizedRecs(recommendedList);
+        return;
+      }
+
+      console.log(`🌐 正在請求個人化推薦: ${API_CONFIG.BASE_URL}/api/recommendations/personalized/${user.id}`);
+      
       const response = await fetch(
         `${API_CONFIG.BASE_URL}/api/recommendations/personalized/${user.id}?limit=4`,
         {
-          headers: { "ngrok-skip-browser-warning": "true" },
+          headers: { 
+            "ngrok-skip-browser-warning": "true",
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+          },
+          timeout: 5000, // 5秒超時
         }
       );
 
+      // 檢查響應是否成功
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      // 檢查 Content-Type 是否為 JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.warn('⚠️ API 返回非 JSON 內容，可能是伺服器錯誤頁面');
+        setPersonalizedRecs(recommendedList);
+        return;
+      }
+
       const data = await response.json();
+      console.log('✅ 成功載入個人化推薦:', data);
+      
       if (data.recommendations && data.recommendations.length > 0) {
         setPersonalizedRecs(data.recommendations);
+        console.log(`🎯 載入了 ${data.recommendations.length} 個個人化推薦`);
       } else {
-        // 如果沒有個人化推薦，使用預設推薦
+        console.log('📋 沒有個人化推薦，使用預設推薦');
         setPersonalizedRecs(recommendedList);
       }
     } catch (error) {
-      console.error("載入個人化推薦失敗:", error);
+      console.error("❌ 載入個人化推薦失敗:", error.message);
+      
+      // 根據錯誤類型提供不同的處理
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.warn('🔌 網路連線問題，使用預設推薦');
+      } else if (error.name === 'SyntaxError') {
+        console.warn('📄 伺服器返回非 JSON 格式，可能是錯誤頁面');
+      } else {
+        console.warn('🔄 未知錯誤，使用預設推薦');
+      }
+      
       // 使用現有的靜態推薦作為後備
       setPersonalizedRecs(recommendedList);
     } finally {

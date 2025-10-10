@@ -1,10 +1,9 @@
 import ArrowBack from "@/components/ArrowBack";
-import CameraDiagnostic from "@/components/CameraDiagnostic";
-import { MaterialYouTheme } from "../education/word-learning/MaterialYouTheme";
 import { Video } from "expo-av";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { Audio } from "expo-av";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRef, useState, useEffect } from "react";
 import {
   Image,
@@ -28,15 +27,14 @@ import Animated, {
   withRepeat,
   withTiming
 } from "react-native-reanimated";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-export default function TranslateScreen() {
+function TranslateScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [audioPermission, setAudioPermission] = useState(null);
   const [facing, setFacing] = useState("back");
-  const [photoUri, setPhotoUri] = useState(null);
   const [videoUri, setVideoUri] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -44,7 +42,6 @@ export default function TranslateScreen() {
   const [showResults, setShowResults] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [cameraInitializing, setCameraInitializing] = useState(true);
-  const [showDiagnostic, setShowDiagnostic] = useState(false);
   const [forceReady, setForceReady] = useState(false); // 強制準備模式
   const [cameraReadyAttempts, setCameraReadyAttempts] = useState(0); // 準備嘗試次數
   const cameraRef = useRef(null);
@@ -92,7 +89,6 @@ export default function TranslateScreen() {
   }, [isCameraReady]);
 
   const resetState = () => {
-    setPhotoUri(null);
     setVideoUri(null);
     setTranslationResult(null);
     setIsUploading(false);
@@ -137,52 +133,6 @@ export default function TranslateScreen() {
     }
   };
 
-  // 相機診斷函式 - 增強版
-  const diagnoseCameraIssues = async () => {
-    console.log('🔍 開始完整相機診斷...');
-    console.log('permission:', permission);
-    console.log('audioPermission:', audioPermission);
-    console.log('cameraRef.current:', !!cameraRef.current);
-    console.log('isCameraReady:', isCameraReady);
-    console.log('cameraInitializing:', cameraInitializing);
-    console.log('isRecording:', isRecording);
-    
-    if (permission) {
-      console.log('permission.granted:', permission.granted);
-      console.log('permission.canAskAgain:', permission.canAskAgain);
-    }
-    
-    const diagnosis = {
-      hasCameraPermission: permission?.granted,
-      hasAudioPermission: audioPermission,
-      hasCameraRef: !!cameraRef.current,
-      isCameraReady,
-      cameraInitializing,
-      isRecording
-    };
-    
-    console.log('📊 完整診斷結果:', diagnosis);
-    
-    let issues = [];
-    if (!diagnosis.hasCameraPermission) issues.push('相機權限未授權');
-    if (!diagnosis.hasAudioPermission) issues.push('麥克風權限未授權');
-    if (!diagnosis.hasCameraRef) issues.push('相機引用無效');
-    if (!diagnosis.isCameraReady) issues.push('相機未準備');
-    
-    Alert.alert(
-      '完整診斷結果', 
-      `相機權限: ${diagnosis.hasCameraPermission ? '✅' : '❌'}\n` +
-      `麥克風權限: ${diagnosis.hasAudioPermission ? '✅' : '❌'}\n` +
-      `相機引用: ${diagnosis.hasCameraRef ? '✅' : '❌'}\n` +
-      `相機準備: ${diagnosis.isCameraReady ? '✅' : '❌'}\n` +
-      `初始化中: ${diagnosis.cameraInitializing ? '是' : '否'}\n` +
-      `正在錄影: ${diagnosis.isRecording ? '是' : '否'}\n\n` +
-      (issues.length > 0 ? `⚠️ 發現問題: ${issues.join(', ')}` : '🎉 一切正常！')
-    );
-    
-    return diagnosis;
-  };
-  
   // 增強的權限請求
   const requestCameraPermission = async () => {
     try {
@@ -217,7 +167,7 @@ export default function TranslateScreen() {
     return (
       <SafeAreaView style={styles.permissionContainer}>
         <View style={styles.permissionContent}>
-          <Ionicons name="camera-outline" size={64} color={MaterialYouTheme.primary.primary60} />
+          <Ionicons name="camera-outline" size={64} color="#2563EB" />
           <Text style={styles.permissionTitle}>請求權限中...</Text>
           <Text style={styles.permissionSubtitle}>正在檢查相機和麥克風權限狀態</Text>
           <View style={styles.loadingIndicator}>
@@ -238,7 +188,7 @@ export default function TranslateScreen() {
       <SafeAreaView style={styles.permissionContainer}>
         <Animated.View entering={FadeInUp} style={styles.permissionContent}>
           <View style={styles.permissionIcon}>
-            <Ionicons name="camera-outline" size={48} color={MaterialYouTheme.primary.primary60} />
+            <Ionicons name="camera-outline" size={48} color="#2563EB" />
           </View>
           <Text style={styles.permissionTitle}>需要相機和麥克風權限</Text>
           <Text style={styles.permissionSubtitle}>
@@ -256,7 +206,7 @@ export default function TranslateScreen() {
               style={styles.permissionButton}
               activeOpacity={0.8}
             >
-              <Ionicons name="checkmark" size={20} color={MaterialYouTheme.neutral.neutral100} />
+              <Ionicons name="checkmark" size={20} color="#FFFFFF" />
               <Text style={styles.permissionButtonText}>授權相機和麥克風權限</Text>
             </TouchableOpacity>
           ) : (
@@ -264,23 +214,6 @@ export default function TranslateScreen() {
               <Text style={styles.permissionDeniedText}>
                 權限已被永久拒絕，請在設定中手動開啟相機權限
               </Text>
-              <TouchableOpacity 
-                onPress={diagnoseCameraIssues}
-                style={[styles.permissionButton, styles.diagnosticButton]}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="settings-outline" size={20} color={MaterialYouTheme.primary.primary60} />
-                <Text style={[styles.permissionButtonText, styles.diagnosticButtonText]}>診斷問題</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                onPress={() => setShowDiagnostic(true)}
-                style={[styles.permissionButton, styles.diagnosticButton]}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="analytics-outline" size={20} color={MaterialYouTheme.primary.primary60} />
-                <Text style={[styles.permissionButtonText, styles.diagnosticButtonText]}>詳細診斷</Text>
-              </TouchableOpacity>
             </View>
           )}
         </Animated.View>
@@ -313,45 +246,6 @@ export default function TranslateScreen() {
     if (!res.ok) throw new Error(await res.text());
     const result = await res.json();
     return result.secure_url;
-  };
-
-  const takePicture = async () => {
-    console.log('📷 嘗試拍照', {
-      cameraRef: !!cameraRef.current,
-      isCameraReady,
-      cameraInitializing
-    });
-    
-    if (!cameraRef.current) {
-      Alert.alert('錯誤', '相機尚未初始化，請稍候');
-      return;
-    }
-    
-    if (!isCameraReady || cameraInitializing) {
-      Alert.alert('提示', '相機尚未準備好，請稍候片刻');
-      return;
-    }
-    
-    try {
-      resetState();
-      console.log('🟢 開始拍照...');
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 0.8,
-        base64: false,
-      });
-      console.log('✅ 拍照完成', photo.uri);
-      setPhotoUri(photo.uri);
-    } catch (error) {
-      console.error('拍照錯誤：', error);
-      let errorMessage = '拍照失敗，請重試';
-      
-      if (error.message.includes('Camera is not ready')) {
-        errorMessage = '相機尚未準備好，請稍候再試';
-        resetCameraState();
-      }
-      
-      Alert.alert('錯誤', errorMessage);
-    }
   };
 
   // 緊急錄影 - 使用無條件錄影
@@ -563,8 +457,8 @@ export default function TranslateScreen() {
     }
   };
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={MaterialYouTheme.primary.primary40} />
+    <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F1F5FF" />
       
       {/* 頂部導航欄 */}
       <Animated.View entering={FadeInDown.delay(100)} style={styles.header}>
@@ -578,174 +472,120 @@ export default function TranslateScreen() {
           <Ionicons 
             name="camera-reverse-outline" 
             size={24} 
-            color={MaterialYouTheme.neutral.neutral100} 
+            color="#FFFFFF" 
           />
         </TouchableOpacity>
       </Animated.View>
 
-      {/* 相機視圖 */}
-      <View style={styles.cameraContainer}>
-        <CameraView 
-          ref={cameraRef} 
-          style={styles.camera} 
-          facing={facing}
-          mode="video"
-          onCameraReady={onCameraReady}
-          enableTorch={false}
-        />
-        
-        {/* 錄製指示器覆蓋層 */}
-        {isRecording && (
-          <Animated.View entering={ZoomIn} style={styles.recordingIndicatorOverlay}>
-            <View style={styles.recordingDot} />
-            <Text style={styles.recordingText}>錄製中...</Text>
-          </Animated.View>
-        )}
-        
-        {/* 相機未準備好的指示器 */}
-        {(!isCameraReady || cameraInitializing) && (
-          <View style={styles.cameraLoadingOverlay}>
-            <Ionicons name="camera-outline" size={48} color={MaterialYouTheme.primary.primary60} />
-            <Text style={styles.cameraLoadingText}>
-              {cameraInitializing ? '相機初始化中...' : '相機準備中...'}
-            </Text>
-            <View style={styles.loadingIndicator}>
-              <View style={styles.loadingDot} />
-              <View style={[styles.loadingDot, { animationDelay: '0.1s' }]} />
-              <View style={[styles.loadingDot, { animationDelay: '0.2s' }]} />
-            </View>
+      {/* 主要內容區域 */}
+      <View style={styles.mainContent}>
+        {/* 相機視圖 */}
+        <Animated.View entering={FadeInUp.delay(200)} style={styles.cameraWrapper}>
+          <View style={styles.cameraContainer}>
+            <CameraView 
+              ref={cameraRef} 
+              style={styles.camera} 
+              facing={facing}
+              mode="video"
+              onCameraReady={onCameraReady}
+              enableTorch={false}
+            />
+            
+            {/* 錄製指示器覆蓋層 */}
+            {isRecording && (
+              <Animated.View entering={ZoomIn} style={styles.recordingIndicatorOverlay}>
+                <Animated.View style={[styles.recordingDot, recordingAnimatedStyle]} />
+                <Text style={styles.recordingText}>錄製中</Text>
+              </Animated.View>
+            )}
+            
+            {/* 相機狀態指示器 */}
+            {(!isCameraReady || cameraInitializing) && (
+              <View style={styles.cameraStatusOverlay}>
+                <View style={styles.statusCard}>
+                  <Ionicons name="camera-outline" size={32} color="#2563EB" />
+                  <Text style={styles.statusText}>
+                    {cameraInitializing ? '初始化相機...' : '準備中...'}
+                  </Text>
+                  <View style={styles.loadingDots}>
+                    <View style={[styles.dot, styles.dot1]} />
+                    <View style={[styles.dot, styles.dot2]} />
+                    <View style={[styles.dot, styles.dot3]} />
+                  </View>
+                </View>
+              </View>
+            )}
           </View>
-        )}
-        
-        {/* 攝影預覽區域 */}
-        {photoUri && (
-          <Animated.View entering={FadeInUp} style={styles.mediaPreview}>
-            <Image source={{ uri: photoUri }} style={styles.previewImage} />
+          
+          {/* 相機控制條 */}
+          <View style={styles.cameraControls}>
             <TouchableOpacity 
-              style={styles.closePreviewButton}
-              onPress={() => setPhotoUri(null)}
-            >
-              <Ionicons name="close" size={20} color={MaterialYouTheme.neutral.neutral100} />
-            </TouchableOpacity>
-          </Animated.View>
-        )}
-      </View>
-
-      {/* 控制按鈕區域 */}
-      <View style={styles.controlsContainer}>
-        <View style={styles.buttonRow}>
-          {/* 選擇影片 */}
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.secondaryButton]} 
-            onPress={pickVideoFromGallery}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="film-outline" size={24} color={MaterialYouTheme.primary.primary60} />
-            <Text style={styles.secondaryButtonText}>選擇影片</Text>
-          </TouchableOpacity>
-
-          {/* 錄製按鈕 */}
-          <Animated.View style={recordingAnimatedStyle}>
-            <TouchableOpacity
-              style={[
-                styles.recordButton,
-                isRecording && styles.recordButtonActive,
-                (!isCameraReady || cameraInitializing) && styles.recordButtonDisabled
-              ]}
-              onPress={isRecording ? stopRecording : startRecording}
-              disabled={!isCameraReady || cameraInitializing}
+              style={styles.smallControlButton}
+              onPress={pickVideoFromGallery}
               activeOpacity={0.8}
             >
-              <Ionicons 
-                name={isRecording ? "stop" : "radio-button-on"} 
-                size={32} 
-                color={(!isCameraReady || cameraInitializing) ? MaterialYouTheme.neutral.neutral60 : MaterialYouTheme.neutral.neutral100} 
-              />
+              <Ionicons name="folder-outline" size={20} color="#2563EB" />
             </TouchableOpacity>
-          </Animated.View>
-
-          {/* 緊急錄影按鈕 */}
-          {(!isCameraReady || cameraInitializing) && !isRecording && (
-            <View style={styles.emergencyContainer}>
+            
+            <Animated.View style={recordingAnimatedStyle}>
               <TouchableOpacity
-                style={styles.emergencyButton}
-                onPress={emergencyRecord}
+                style={[
+                  styles.recordButton,
+                  isRecording && styles.recordButtonActive,
+                  (!isCameraReady || cameraInitializing) && styles.recordButtonDisabled
+                ]}
+                onPress={isRecording ? stopRecording : startRecording}
+                disabled={!isCameraReady || cameraInitializing}
                 activeOpacity={0.8}
               >
-                <Ionicons name="warning" size={20} color={MaterialYouTheme.error.error40} />
-                <Text style={styles.emergencyButtonText}>緊急錄影</Text>
+                <View style={[styles.recordButtonInner, isRecording && styles.recordButtonInnerActive]}>
+                  <Ionicons 
+                    name={isRecording ? "stop" : "radio-button-on"} 
+                    size={28} 
+                    color="#FFFFFF" 
+                  />
+                </View>
               </TouchableOpacity>
-              
+            </Animated.View>
+            
+            <TouchableOpacity 
+              style={styles.smallControlButton}
+              onPress={() => {
+                resetCameraState();
+                Alert.alert('提示', '已重設相機狀態');
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="refresh-outline" size={20} color="#2563EB" />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
+        {/* 緊急錄影選項 - 只在相機未準備好時顯示 */}
+        {(!isCameraReady || cameraInitializing) && !isRecording && (
+          <Animated.View entering={FadeInUp.delay(400)} style={styles.emergencySection}>
+            <Text style={styles.emergencySectionTitle}>相機未就緒？</Text>
+            <View style={styles.emergencyButtons}>
               <TouchableOpacity
-                style={styles.unconditionalButton}
+                style={[styles.emergencyButton, styles.emergencyButtonPrimary]}
                 onPress={unconditionalRecord}
                 activeOpacity={0.8}
               >
-                <Ionicons name="videocam" size={20} color={MaterialYouTheme.neutral.neutral100} />
-                <Text style={styles.unconditionalButtonText}>直接錄影</Text>
+                <Ionicons name="videocam" size={18} color="#FFFFFF" />
+                <Text style={styles.emergencyButtonText}>強制錄影</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.emergencyButton, styles.emergencyButtonSecondary]}
+                onPress={emergencyRecord}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="warning-outline" size={18} color="#EF4444" />
+                <Text style={styles.emergencyButtonTextSecondary}>緊急模式</Text>
               </TouchableOpacity>
             </View>
-          )}
-
-          {/* 拍照 */}
-          <TouchableOpacity 
-            style={[
-              styles.actionButton, 
-              styles.secondaryButton,
-              (!isCameraReady || isRecording || cameraInitializing) && styles.secondaryButtonDisabled
-            ]} 
-            onPress={takePicture}
-            disabled={isRecording || !isCameraReady || cameraInitializing}
-            activeOpacity={0.8}
-          >
-            <Ionicons 
-              name="camera-outline" 
-              size={24} 
-              color={(!isCameraReady || isRecording || cameraInitializing) ? MaterialYouTheme.neutral.neutral60 : MaterialYouTheme.primary.primary60} 
-            />
-            <Text 
-              style={[
-                styles.secondaryButtonText,
-                (!isCameraReady || isRecording || cameraInitializing) && styles.secondaryButtonTextDisabled
-              ]}
-            >
-              拍照
-            </Text>
-          </TouchableOpacity>
-        </View>
-        
-        {/* 診斷按鈕行 */}
-        <View style={styles.diagnosticRow}>
-          <TouchableOpacity 
-            style={styles.diagnosticActionButton}
-            onPress={diagnoseCameraIssues}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="bug-outline" size={20} color={MaterialYouTheme.primary.primary60} />
-            <Text style={styles.diagnosticActionText}>診斷相機</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.diagnosticActionButton}
-            onPress={() => setShowDiagnostic(true)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="analytics-outline" size={16} color={MaterialYouTheme.primary.primary60} />
-            <Text style={styles.diagnosticActionText}>詳細診斷</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.diagnosticActionButton}
-            onPress={() => {
-              resetCameraState();
-              Alert.alert('提示', '已重設相機狀態，請稍候');
-            }}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="refresh-outline" size={20} color={MaterialYouTheme.primary.primary60} />
-            <Text style={styles.diagnosticActionText}>重設相機</Text>
-          </TouchableOpacity>
-        </View>
+          </Animated.View>
+        )}
       </View>
 
       {/* 影片預覽區域 */}
@@ -762,7 +602,7 @@ export default function TranslateScreen() {
               style={styles.closeVideoButton}
               onPress={() => setVideoUri(null)}
             >
-              <Ionicons name="close" size={20} color={MaterialYouTheme.neutral.neutral100} />
+              <Ionicons name="close" size={20} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
           
@@ -785,7 +625,7 @@ export default function TranslateScreen() {
               </View>
             ) : (
               <>
-                <Ionicons name="language-outline" size={20} color={MaterialYouTheme.neutral.neutral100} />
+                <Ionicons name="language-outline" size={20} color="#FFFFFF" />
                 <Text style={styles.translateButtonText}>開始翻譯</Text>
               </>
             )}
@@ -798,7 +638,7 @@ export default function TranslateScreen() {
         <Animated.View entering={FadeInUp.delay(300)} style={styles.resultsContainer}>
           <View style={styles.resultCard}>
             <View style={styles.resultHeader}>
-              <Ionicons name="checkmark-circle" size={24} color={MaterialYouTheme.primary.primary60} />
+              <Ionicons name="checkmark-circle" size={24} color="#2563EB" />
               <Text style={styles.resultTitle}>翻譯結果</Text>
             </View>
             <ScrollView style={styles.resultContent}>
@@ -808,19 +648,13 @@ export default function TranslateScreen() {
               style={styles.closeResultButton}
               onPress={() => setShowResults(false)}
             >
-              <Ionicons name="close" size={20} color={MaterialYouTheme.neutral.neutral60} />
+              <Ionicons name="close" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
         </Animated.View>
       )}
 
-      {/* 診斷組件 */}
-      {showDiagnostic && (
-        <View style={styles.diagnosticModal}>
-          <CameraDiagnostic onClose={() => setShowDiagnostic(false)} />
-        </View>
-      )}
-    </SafeAreaView>
+    </LinearGradient>
   );
 }
 
@@ -828,53 +662,70 @@ const styles = StyleSheet.create({
   // 權限頁面樣式
   permissionContainer: {
     flex: 1,
-    backgroundColor: MaterialYouTheme.surface.surface,
-  },
-  permissionContent: {
-    flex: 1,
+    backgroundColor: '#F1F5FF',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+  },
+  permissionContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 32,
+    alignItems: 'center',
+    gap: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
   },
   permissionIcon: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: MaterialYouTheme.primary.primary95,
+    backgroundColor: '#E8EEFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
   },
   permissionTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: MaterialYouTheme.neutral.neutral10,
+    color: '#1E293B',
     textAlign: 'center',
-    marginBottom: 12,
   },
   permissionSubtitle: {
     fontSize: 16,
-    color: MaterialYouTheme.neutral.neutral40,
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: 32,
+    marginBottom: 8,
+  },
+  permissionDescription: {
+    fontSize: 16,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 24,
   },
   permissionButton: {
     flexDirection: 'row',
-    backgroundColor: MaterialYouTheme.primary.primary40,
+    backgroundColor: '#2563EB',
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 24,
     alignItems: 'center',
     gap: 8,
-    shadowColor: MaterialYouTheme.neutral.neutral0,
+    shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   permissionButtonText: {
-    color: MaterialYouTheme.neutral.neutral100,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -885,36 +736,29 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   permissionDeniedText: {
-    color: MaterialYouTheme.neutral.neutral40,
+    color: '#64748B',
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
   },
-  diagnosticButton: {
-    backgroundColor: MaterialYouTheme.primary.primary95,
-  },
-  diagnosticButtonText: {
-    color: MaterialYouTheme.primary.primary40,
-  },
   
-  // 載入動畫
+  // 載入指示器
   loadingIndicator: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   loadingDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: MaterialYouTheme.primary.primary60,
-    opacity: 0.4,
+    backgroundColor: '#2563EB',
   },
 
   // 主要容器
   container: {
     flex: 1,
-    backgroundColor: MaterialYouTheme.neutral.neutral0,
   },
 
   // 頂部導航欄
@@ -922,43 +766,137 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: MaterialYouTheme.primary.primary40,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    shadowColor: MaterialYouTheme.neutral.neutral0,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(37, 99, 235, 0.9)', // 半透明藍色
+    backdropFilter: 'blur(10px)',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     elevation: 4,
   },
   headerTitle: {
-    color: MaterialYouTheme.neutral.neutral100,
-    fontSize: 18,
+    color: '#FFFFFF',
+    fontSize: 20,
     fontWeight: '600',
     flex: 1,
     textAlign: 'center',
+    letterSpacing: 0.5,
   },
   cameraFlipButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+
+  // 主要內容區域
+  mainContent: {
+    flex: 1,
+    padding: 16,
+    paddingBottom: 100, // 增加底部邊距為 Tab Bar 留出空間
+    gap: 16,
+  },
+
+  // 相機包裝器
+  cameraWrapper: {
+    flex: 1,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    padding: 8,
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
   },
 
   // 相機容器
   cameraContainer: {
     flex: 1,
-    marginTop: 64, // 為頂部導航留出空間
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#F8FAFC',
+    position: 'relative',
   },
   camera: {
     flex: 1,
+  },
+
+  // 相機控制條
+  cameraControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  
+  smallControlButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#EBF2FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.2)',
+  },
+
+  // 錄製按鈕
+  recordButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#2563EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#FFFFFF',
+  },
+  recordButtonInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#1D4ED8',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  recordButtonActive: {
+    backgroundColor: '#DC2626',
+    shadowColor: '#DC2626',
+  },
+  recordButtonInnerActive: {
+    backgroundColor: '#B91C1C',
+    borderRadius: 8,
+  },
+  recordButtonDisabled: {
+    backgroundColor: '#94A3B8',
+    shadowOpacity: 0.1,
+    borderColor: '#E2E8F0',
   },
 
   // 錄製指示器覆蓋層
@@ -968,229 +906,161 @@ const styles = StyleSheet.create({
     left: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: MaterialYouTheme.primary.primary40,
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     gap: 8,
-    zIndex: 10,
   },
   recordingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#ff4444',
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#EF4444',
   },
   recordingText: {
-    color: MaterialYouTheme.neutral.neutral100,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '500',
   },
 
-  // 相機載入覆蓋層
-  cameraLoadingOverlay: {
+  // 相機狀態覆蓋層
+  cameraStatusOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
-    zIndex: 5,
-  },
-  cameraLoadingText: {
-    color: MaterialYouTheme.neutral.neutral100,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-
-  // 媒體預覽
-  mediaPreview: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: MaterialYouTheme.neutral.neutral100,
-  },
-  previewImage: {
-    width: '100%',
-    height: '100%',
-  },
-  closePreviewButton: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-
-  // 控制按鈕區域
-  controlsContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: MaterialYouTheme.surface.surfaceContainer,
-    paddingTop: 20,
-    paddingBottom: 100, // 增加底部邊距避免被底部導航欄遮擋
-    paddingHorizontal: 20,
-    marginBottom: 0,
-    shadowColor: MaterialYouTheme.neutral.neutral0,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  
-  // 診斷按鈕行
-  diagnosticRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 20,
-    marginTop: 16,
-  },
-  diagnosticActionButton: {
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: MaterialYouTheme.primary.primary95,
-  },
-  diagnosticActionText: {
-    color: MaterialYouTheme.primary.primary40,
-    fontSize: 10,
-    fontWeight: '500',
-  },
-  actionButton: {
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+  statusCard: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 32,
+    paddingVertical: 24,
     borderRadius: 16,
-    minWidth: 80,
-  },
-  secondaryButton: {
-    backgroundColor: MaterialYouTheme.primary.primary95,
-  },
-  secondaryButtonText: {
-    color: MaterialYouTheme.primary.primary40,
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  recordButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: MaterialYouTheme.primary.primary40,
-    justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: MaterialYouTheme.neutral.neutral0,
+    gap: 12,
+    shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
-    shadowRadius: 12,
+    shadowRadius: 16,
     elevation: 8,
-  },
-  recordButtonActive: {
-    backgroundColor: '#ff4444',
-  },
-  recordButtonDisabled: {
-    backgroundColor: MaterialYouTheme.neutral.neutral80,
-    shadowOpacity: 0.1,
-    elevation: 2,
-  },
-  
-  // 緊急錄影按鈕
-  emergencyContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-    justifyContent: 'center',
-  },
-  emergencyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: MaterialYouTheme.error.error90,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
     borderWidth: 1,
-    borderColor: MaterialYouTheme.error.error60,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
   },
-  emergencyButtonText: {
-    color: MaterialYouTheme.error.error10,
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 6,
+  statusText: {
+    color: '#1E293B',
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
   },
-  unconditionalButton: {
+  loadingDots: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: MaterialYouTheme.neutral.neutral20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: MaterialYouTheme.neutral.neutral40,
+    gap: 6,
   },
-  unconditionalButtonText: {
-    color: MaterialYouTheme.neutral.neutral90,
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 6,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#2563EB',
   },
-  
-  // 次要按鈕禁用狀態
-  secondaryButtonDisabled: {
-    backgroundColor: MaterialYouTheme.neutral.neutral90,
+  dot1: {
+    opacity: 0.3,
+  },
+  dot2: {
     opacity: 0.6,
   },
-  secondaryButtonTextDisabled: {
-    color: MaterialYouTheme.neutral.neutral60,
+  dot3: {
+    opacity: 1,
   },
 
-  // 影片預覽容器
+  // 緊急錄影區域
+  emergencySection: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
+  },
+  emergencySectionTitle: {
+    color: '#64748B',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  emergencyButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  emergencyButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    gap: 8,
+  },
+  emergencyButtonPrimary: {
+    backgroundColor: '#2563EB',
+  },
+  emergencyButtonSecondary: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#EF4444',
+  },
+  emergencyButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  emergencyButtonTextSecondary: {
+    color: '#EF4444',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  // 影片預覽區域
   videoPreviewContainer: {
     position: 'absolute',
-    bottom: 80, // 調整底部位置避免被底部導航欄遮擋
+    bottom: 80, // 調整底部位置避免被 Tab Bar 遮擋
     left: 0,
     right: 0,
-    backgroundColor: MaterialYouTheme.surface.surface,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
     paddingBottom: 32,
     paddingHorizontal: 20,
-    shadowColor: MaterialYouTheme.neutral.neutral0,
+    shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: -4 },
-    zIndex: 10,
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
     elevation: 8,
+    zIndex: 10,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
   },
   videoPreview: {
     position: 'relative',
     height: 200,
     borderRadius: 16,
     overflow: 'hidden',
-    backgroundColor: MaterialYouTheme.neutral.neutral0,
+    backgroundColor: '#F8FAFC',
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
   },
   videoPlayer: {
     width: '100%',
@@ -1211,24 +1081,25 @@ const styles = StyleSheet.create({
   // 翻譯按鈕
   translateButton: {
     flexDirection: 'row',
-    backgroundColor: MaterialYouTheme.primary.primary40,
+    backgroundColor: '#2563EB',
     paddingVertical: 16,
     paddingHorizontal: 24,
-    borderRadius: 24,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: MaterialYouTheme.neutral.neutral0,
+    shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   translateButtonDisabled: {
-    backgroundColor: MaterialYouTheme.neutral.neutral80,
+    backgroundColor: '#94A3B8',
+    shadowOpacity: 0.1,
   },
   translateButtonText: {
-    color: MaterialYouTheme.neutral.neutral100,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -1245,14 +1116,14 @@ const styles = StyleSheet.create({
   },
   uploadProgress: {
     height: '100%',
-    backgroundColor: MaterialYouTheme.neutral.neutral100,
+    backgroundColor: '#FFFFFF',
     borderRadius: 2,
   },
 
   // 翻譯結果區域
   resultsContainer: {
     position: 'absolute',
-    bottom: 80, // 調整底部位置避免被底部導航欄遮擋
+    bottom: 80, // 調整底部位置避免被 Tab Bar 遮擋
     left: 0,
     right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -1260,13 +1131,22 @@ const styles = StyleSheet.create({
     zIndex: 20,
   },
   resultCard: {
-    backgroundColor: MaterialYouTheme.surface.surface,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: 20,
     paddingBottom: 32,
     paddingHorizontal: 20,
     maxHeight: screenHeight * 0.6,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.1)',
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
   },
   resultHeader: {
     flexDirection: 'row',
@@ -1277,7 +1157,7 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: MaterialYouTheme.neutral.neutral10,
+    color: '#1E293B',
     flex: 1,
   },
   closeResultButton: {
@@ -1287,27 +1167,21 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: MaterialYouTheme.neutral.neutral90,
+    backgroundColor: '#E8EEFF',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.2)',
   },
   resultContent: {
     maxHeight: 200,
   },
   resultText: {
     fontSize: 16,
-    color: MaterialYouTheme.neutral.neutral20,
+    color: '#475569',
     lineHeight: 24,
   },
 
-  // 診斷模態
-  diagnosticModal: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 100,
-  },
 });
+
+export default TranslateScreen;
