@@ -47,9 +47,22 @@ const FavoritesScreen = () => {
       try {
         const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}?limit=1000`, {
           headers: {
-            'ngrok-skip-browser-warning': 'true'
+            'ngrok-skip-browser-warning': 'true',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
           }
         });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        // 檢查 Content-Type
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('伺服器返回非 JSON 格式');
+        }
+
         const data = await response.json();
         // API 直接返回陣列，確保數據格式正確
         let allWords = data;
@@ -65,7 +78,7 @@ const FavoritesScreen = () => {
         console.log('❤️ 收藏頁面：從 API 獲取的收藏單詞:', favoriteWords);
         setFavorites(favoriteWords);
       } catch (apiError) {
-        console.log('❤️ API 獲取失敗，使用模擬數據');
+        console.log('❤️ API 獲取失敗，使用模擬數據:', apiError.message);
         
         // API 失敗時使用模擬數據，但用真實的收藏ID
         const mockFavoriteWords = favoriteIds.map((id, index) => ({
