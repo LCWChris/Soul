@@ -1,53 +1,53 @@
-// Material You 色彩系統
+// Material You 藍色主題色彩系統 - 與首頁和翻譯頁面保持一致
 export const MaterialYouTheme = {
-  // 主色彩系統
+  // 主色彩系統 - 藍色基調
   primary: {
     primary0: '#000000',
-    primary10: '#1a0034',
-    primary20: '#2e0054',
-    primary30: '#440076',
-    primary40: '#5b0099',
-    primary50: '#7318bd',
-    primary60: '#8b36d8',
-    primary70: '#a353f4',
-    primary80: '#bb71ff',
-    primary90: '#d392ff',
-    primary95: '#eab3ff',
-    primary99: '#fdf7ff',
+    primary10: '#001B3D',
+    primary20: '#002E5F',
+    primary30: '#004184',
+    primary40: '#1D4ED8',
+    primary50: '#2563EB',
+    primary60: '#3B82F6',
+    primary70: '#60A5FA',
+    primary80: '#93C5FD',
+    primary90: '#DBEAFE',
+    primary95: '#EFF6FF',
+    primary99: '#F8FAFC',
     primary100: '#ffffff'
   },
 
-  // 次要色彩
+  // 次要色彩 - 藍色系列
   secondary: {
     secondary0: '#000000',
-    secondary10: '#1d1929',
-    secondary20: '#322d3f',
-    secondary30: '#494356',
-    secondary40: '#615a6e',
-    secondary50: '#7a7187',
-    secondary60: '#948ba0',
-    secondary70: '#afa5bb',
-    secondary80: '#cac0d6',
-    secondary90: '#e6dcf2',
-    secondary95: '#f4eaff',
-    secondary99: '#fdf7ff',
+    secondary10: '#0F172A',
+    secondary20: '#1E293B',
+    secondary30: '#334155',
+    secondary40: '#475569',
+    secondary50: '#64748B',
+    secondary60: '#94A3B8',
+    secondary70: '#CBD5E1',
+    secondary80: '#E2E8F0',
+    secondary90: '#F1F5F9',
+    secondary95: '#F8FAFC',
+    secondary99: '#FFFFFF',
     secondary100: '#ffffff'
   },
 
-  // 第三色彩
+  // 第三色彩 - 藍灰色調
   tertiary: {
     tertiary0: '#000000',
-    tertiary10: '#1f1a2e',
-    tertiary20: '#342f45',
-    tertiary30: '#4a455d',
-    tertiary40: '#615c76',
-    tertiary50: '#79748f',
-    tertiary60: '#928da9',
-    tertiary70: '#aca7c4',
-    tertiary80: '#c7c2e0',
-    tertiary90: '#e3defc',
-    tertiary95: '#f1ecff',
-    tertiary99: '#fdf7ff',
+    tertiary10: '#0C4A6E',
+    tertiary20: '#075985',
+    tertiary30: '#0369A1',
+    tertiary40: '#0284C7',
+    tertiary50: '#0EA5E9',
+    tertiary60: '#38BDF8',
+    tertiary70: '#7DD3FC',
+    tertiary80: '#BAE6FD',
+    tertiary90: '#E0F2FE',
+    tertiary95: '#F0F9FF',
+    tertiary99: '#F8FAFC',
     tertiary100: '#ffffff'
   },
 

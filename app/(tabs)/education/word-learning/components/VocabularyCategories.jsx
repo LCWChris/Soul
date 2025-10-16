@@ -98,7 +98,7 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={MaterialYouTheme.primary.primary50} />
+        <ActivityIndicator size="large" color="#2563EB" />
         <Text style={styles.loadingText}>
           {retryCount > 0 ? `重試中 (${retryCount}/2)...` : '載入分類中...'}
         </Text>
@@ -143,11 +143,13 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
         <Text style={styles.sectionTitle}>主題分類</Text>
         <Text style={styles.sectionSubtitle}>選擇感興趣的學習主題</Text>
         <View style={styles.categoryGrid}>
-          {categories.map((category, index) => (
-            <TouchableOpacity
-              key={`category-${index}-${category}`}
-              style={[
-                styles.categoryCard,
+          {categories
+            .filter(category => category && category.trim() !== '' && category !== ' ')
+            .map((category, index) => (
+              <TouchableOpacity
+                key={`category-${index}-${category}`}
+                style={[
+                  styles.categoryCard,
                 selectedCategory === category && styles.selectedCategoryCard
               ]}
               onPress={() => onCategorySelect(category)}
@@ -221,7 +223,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...Typography.titleLarge,
-    color: MaterialYouTheme.primary.primary30,
+    color: "#1D4ED8", // 藍色標題
     marginBottom: Spacing.xs,
     fontWeight: '600',
   },
@@ -241,8 +243,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   selectedLevelChip: {
-    backgroundColor: MaterialYouTheme.primary.primary90,
-    borderColor: MaterialYouTheme.primary.primary50,
+    backgroundColor: "#EFF6FF", // 淡藍色背景
+    borderColor: "#2563EB", // 藍色邊框
   },
   levelChipContent: {
     paddingVertical: Spacing.md,
@@ -255,7 +257,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedLevelChipText: {
-    color: MaterialYouTheme.primary.primary30,
+    color: "#1D4ED8", // 藍色文字
     fontWeight: '600',
   },
   categoryGrid: {
@@ -278,8 +280,8 @@ const styles = StyleSheet.create({
     marginBottom: Platform.OS === 'web' ? 0 : Spacing.sm,
   },
   selectedCategoryCard: {
-    backgroundColor: MaterialYouTheme.primary.primary95,
-    borderColor: MaterialYouTheme.primary.primary60,
+    backgroundColor: "#EFF6FF", // 淡藍色背景
+    borderColor: "#2563EB", // 藍色邊框
     borderWidth: 2,
   },
   categoryIconContainer: {
@@ -302,7 +304,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   selectedCategoryTitle: {
-    color: MaterialYouTheme.primary.primary20,
+    color: "#1E40AF", // 深藍色標題
     fontWeight: '600',
   },
   categoryBadge: {
@@ -363,13 +365,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   retryButton: {
-    backgroundColor: MaterialYouTheme.primary.primary50,
+    backgroundColor: "#2563EB", // 藍色按鈕
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
   },
   retryButtonText: {
     ...Typography.labelLarge,
-    color: MaterialYouTheme.primary.primary99,
+    color: "#FFFFFF", // 白色文字
     fontWeight: '500',
   },
   emptyContainer: {

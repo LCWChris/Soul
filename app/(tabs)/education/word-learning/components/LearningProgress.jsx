@@ -49,7 +49,7 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={MaterialYouTheme.primary.primary40} />
+          <ActivityIndicator size="small" color="#2563EB" />
           <Text style={styles.loadingText}>載入統計數據...</Text>
         </View>
       </View>
@@ -120,7 +120,7 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
             <Text style={styles.statusLabel}>複習中</Text>
           </View>
           <View style={styles.statusItem}>
-            <View style={[styles.statusIndicator, { backgroundColor: MaterialYouTheme.primary.primary40 }]} />
+            <View style={[styles.statusIndicator, { backgroundColor: "#2563EB" }]} />
             <Text style={styles.statusCount}>{mastered}</Text>
             <Text style={styles.statusLabel}>已掌握</Text>
           </View>
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     color: MaterialYouTheme.neutral.neutral50,
   },
   mainCard: {
-    backgroundColor: MaterialYouTheme.primary.primary90,
+    backgroundColor: "#EFF6FF", // 淡藍色背景
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     ...Elevation.level2,
@@ -180,12 +180,12 @@ const styles = StyleSheet.create({
   },
   progressTitle: {
     ...Typography.titleLarge,
-    color: MaterialYouTheme.primary.primary30,
+    color: "#1E40AF", // 深藍色標題
     fontWeight: '600',
   },
   progressPercentage: {
     ...Typography.headlineSmall,
-    color: MaterialYouTheme.primary.primary40,
+    color: "#2563EB", // 藍色百分比
     fontWeight: 'bold',
   },
   progressBarContainer: {
@@ -193,13 +193,13 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 8,
-    backgroundColor: MaterialYouTheme.primary.primary95,
+    backgroundColor: "#DBEAFE", // 淡藍色背景
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: MaterialYouTheme.primary.primary40,
+    backgroundColor: "#2563EB", // 藍色進度條
     borderRadius: 4,
   },
   statsRow: {
@@ -212,13 +212,13 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     ...Typography.titleMedium,
-    color: MaterialYouTheme.primary.primary30,
+    color: "#1E40AF", // 深藍色數字
     fontWeight: 'bold',
     marginBottom: 2,
   },
   statLabel: {
     ...Typography.labelSmall,
-    color: MaterialYouTheme.primary.primary50,
+    color: "#2563EB", // 藍色標籤
   },
   detailCard: {
     backgroundColor: MaterialYouTheme.neutral.neutral99,

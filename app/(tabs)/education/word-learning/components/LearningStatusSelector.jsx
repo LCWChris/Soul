@@ -17,22 +17,22 @@ const LearningStatusSelector = ({ currentStatus, onStatusChange, style }) => {
       status: LEARNING_STATUS.LEARNING,
       label: '學習中',
       icon: 'play-circle',
-      color: MaterialYouTheme.primary.primary40,
-      bgColor: MaterialYouTheme.primary.primary95,
+      color: "#2563EB", // 藍色主題
+      bgColor: "#EFF6FF", // 淡藍色背景
     },
     {
       status: LEARNING_STATUS.REVIEWING,
       label: '複習中',
       icon: 'refresh-circle',
-      color: MaterialYouTheme.secondary.secondary40,
-      bgColor: MaterialYouTheme.secondary.secondary95,
+      color: "#1D4ED8", // 深藍色
+      bgColor: "#DBEAFE", // 藍色背景
     },
     {
       status: LEARNING_STATUS.MASTERED,
       label: '已掌握',
       icon: 'checkmark-circle',
-      color: MaterialYouTheme.tertiary.tertiary40,
-      bgColor: MaterialYouTheme.tertiary.tertiary95,
+      color: "#0EA5E9", // 天藍色
+      bgColor: "#E0F2FE", // 淡天藍色背景
     },
   ];
 
@@ -87,7 +87,7 @@ const LearningStatusSelector = ({ currentStatus, onStatusChange, style }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: MaterialYouTheme.neutral.neutral99,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)', // 半透明白色背景
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     ...Elevation.level1,

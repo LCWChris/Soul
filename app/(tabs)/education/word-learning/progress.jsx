@@ -14,6 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from './MaterialYouTheme';
 import MaterialTopAppBar from './components/MaterialTopAppBar';
 import AchievementModal from './components/AchievementModal';
@@ -144,9 +145,9 @@ const ProgressScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar backgroundColor={MaterialYouTheme.neutral.neutral99} barStyle="dark-content" />
+        <StatusBar backgroundColor="#F1F5FF" barStyle="dark-content" />
         
         <MaterialTopAppBar
           title="學習統計"
@@ -201,36 +202,36 @@ const ProgressScreen = () => {
             </TouchableOpacity>
           </ProgressCard>
 
-          {/* 分類進度 */}
-          <ProgressCard title="分類進度">
-            {progressData.categories.map((category, index) => (
-              <View key={index} style={styles.categoryItem}>
-                <View style={styles.categoryHeader}>
-                  <Text style={styles.categoryName}>{category.name}</Text>
-                  <Text style={styles.categoryStats}>
-                    {category.learned}/{category.total}
-                  </Text>
-                </View>
-                <ProgressBar percentage={category.percentage} />
-              </View>
-            ))}
-          </ProgressCard>
-
           {/* 級別進度 */}
           <ProgressCard title="級別進度">
-            {progressData.levels.map((level, index) => (
-              <View key={index} style={styles.levelItem}>
-                <View style={styles.levelHeader}>
-                  <Text style={styles.levelName}>{level.displayName}</Text>
-                  <Text style={styles.levelStats}>
-                    {level.learned}/{level.total}
-                  </Text>
+            {progressData.levels
+              .filter(level => 
+                level.name && 
+                typeof level.name === 'string' &&
+                level.name.trim() !== '' && 
+                level.name !== ' ' &&
+                level.name !== 'NaN' &&
+                level.name !== 'null' &&
+                level.name !== 'undefined' &&
+                !level.name.includes('[') && // 排除陣列字符串表示
+                !level.name.includes(']') && // 排除陣列字符串表示
+                !level.name.match(/^[\s\[\]'"]*$/) && // 排除只包含空白字符、括號、引號的字符串
+                level.name.length > 0 && // 確保不是空字符串
+                level.name.trim().length > 0 // 確保去掉空白後還有內容
+              )
+              .map((level, index) => (
+                <View key={index} style={styles.levelItem}>
+                  <View style={styles.levelHeader}>
+                    <Text style={styles.levelName}>{level.displayName}</Text>
+                    <Text style={styles.levelStats}>
+                      {level.learned}/{level.total}
+                    </Text>
+                  </View>
+                  <ProgressBar 
+                    percentage={level.percentage} 
+                    color={getLevelColor(level.name)}
+                  />
                 </View>
-                <ProgressBar 
-                  percentage={level.percentage} 
-                  color={getLevelColor(level.name)}
-                />
-              </View>
             ))}
           </ProgressCard>
 
@@ -258,7 +259,7 @@ const ProgressScreen = () => {
           onClose={() => setShowAchievements(false)}
         />
       </SafeAreaView>
-    </View>
+    </LinearGradient>
   );
 };
 
@@ -278,7 +279,6 @@ const getLevelColor = (level) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: MaterialYouTheme.neutral.neutral99,
   },
   safeArea: {
     flex: 1,
@@ -357,24 +357,6 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     ...Typography.labelSmall,
-    color: MaterialYouTheme.neutral.neutral50,
-  },
-  categoryItem: {
-    marginBottom: Spacing.md,
-  },
-  categoryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.xs,
-  },
-  categoryName: {
-    ...Typography.bodyLarge,
-    color: MaterialYouTheme.neutral.neutral30,
-    fontWeight: '500',
-  },
-  categoryStats: {
-    ...Typography.bodyMedium,
     color: MaterialYouTheme.neutral.neutral50,
   },
   progressBarContainer: {
