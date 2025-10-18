@@ -9,7 +9,8 @@ export const API_CONFIG = {
     MATERIALS: "/api/materials",
     MATERIAL: "/api/material",
     PREFERENCES: "/api/preferences", // 使用者偏好問卷
-    
+    DAILY_SIGN: "/api/daily-sign", // 每日一句手語
+
     // 學習統計相關
     LEARNING_STATS: "/api/learning-stats",
     USER_STATS: "/api/learning-stats/user",

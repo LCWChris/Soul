@@ -5,7 +5,7 @@ const cors = require("cors");
 const cloudinary = require("cloudinary").v2;
 const { Webhook } = require("svix"); // 新增
 require("dotenv").config({ path: "../.env" });
-const User = require("./user"); // 引入 User 模型
+const User = require("./models/User");
 // 匯入問卷路由
 const preferencesRouter = require("./routes/preferences");
 // 匯入學習統計路由
@@ -26,26 +26,33 @@ cloudinary.config({
 });
 // 輔助函數：洗牌（Fisher-Yates 算法）
 const shuffle = (array) => {
-    let currentIndex = array.length, randomIndex;
-    while (currentIndex !== 0) {
-        randomIndex = Math.floor(Math.random() * currentIndex);
-        currentIndex--;
-        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-    }
-    return array;
+  let currentIndex = array.length,
+    randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
+  }
+  return array;
 };
 
 // 輔助函數：從所有詞彙中隨機生成選項
 const generateRandomOptions = (correctTitle, allTitles, count = 4) => {
-    const distractors = allTitles.filter(title => title !== correctTitle);
-    const randomDistractors = shuffle(distractors).slice(0, Math.min(count - 1, distractors.length));
-    const options = [correctTitle, ...randomDistractors];
-    
-    const shuffledOptions = shuffle(options).map((title, index) => ({
-        id: String.fromCharCode(65 + index), 
-        label: title
-    }));
-    return shuffledOptions;
+  const distractors = allTitles.filter((title) => title !== correctTitle);
+  const randomDistractors = shuffle(distractors).slice(
+    0,
+    Math.min(count - 1, distractors.length)
+  );
+  const options = [correctTitle, ...randomDistractors];
+
+  const shuffledOptions = shuffle(options).map((title, index) => ({
+    id: String.fromCharCode(65 + index),
+    label: title,
+  }));
+  return shuffledOptions;
 };
 
 const app = express();
@@ -206,6 +213,49 @@ app.use("/api/learning-stats", learningStatsRouter);
 
 // === 詞彙相關 API ===
 
+// 根據 MongoDB ID 獲取單一單字詳細資料（必須放在 /api/book_words 之前）
+app.get("/api/book_words/id/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`📝 查詢單字 ID: ${id}`);
+
+    const word = await BookWord.findById(id);
+
+    if (!word) {
+      console.log(`❌ 找不到 ID 為 ${id} 的單字`);
+      return res.status(404).json({ error: "找不到該單字" });
+    }
+
+    console.log(`✅ 找到單字: ${word.title}`);
+    res.json(word);
+  } catch (err) {
+    console.error("❌ 查詢單字失敗:", err);
+    res.status(500).json({ error: "查詢失敗" });
+  }
+});
+
+// 根據單字名稱獲取單一單字詳細資料（必須放在 /api/book_words 之前）
+app.get("/api/book_words/word/:word", async (req, res) => {
+  try {
+    const { word } = req.params;
+    console.log(`📝 查詢單字名稱: ${word}`);
+
+    const wordData = await BookWord.findOne({ title: word });
+
+    if (!wordData) {
+      console.log(`❌ 找不到名稱為「${word}」的單字`);
+      return res.status(404).json({ error: "找不到該單字" });
+    }
+
+    console.log(`✅ 找到單字: ${wordData.title}`);
+    res.json(wordData);
+  } catch (err) {
+    console.error("❌ 查詢單字失敗:", err);
+    res.status(500).json({ error: "查詢失敗" });
+  }
+});
+
+// 獲取所有單字（帶篩選條件）
 app.get("/api/book_words", async (req, res) => {
   try {
     const {
@@ -510,8 +560,9 @@ async function generatePersonalizedRecommendations(preferences, limit) {
         recommendations.push({
           type: "vocabulary",
           title: `學習「${word.title}」`,
-          subtitle: `${word.category || word.theme || "詞彙學習"} • ${word.learning_level || "初級"
-            }`,
+          subtitle: `${word.category || word.theme || "詞彙學習"} • ${
+            word.learning_level || "初級"
+          }`,
           description:
             word.content || `學習手語詞彙「${word.title}」，提升你的表達能力`,
           image: word.image_url,
@@ -539,8 +590,9 @@ async function generatePersonalizedRecommendations(preferences, limit) {
           type: "material",
           title: material.unitname || `第${material.lesson}課`,
           subtitle: `第${material.volume}冊 第${material.lesson}課`,
-          description: `繼續學習「${material.unitname || "手語基礎"
-            }」，掌握更多實用技能`,
+          description: `繼續學習「${
+            material.unitname || "手語基礎"
+          }」，掌握更多實用技能`,
           image: material.image,
           action: {
             type: "navigate",
@@ -674,6 +726,55 @@ function calculateMaterialPriority(material, preferences) {
   }
 }
 
+// 新增：每日一句 API
+app.get("/api/daily-sign", async (req, res) => {
+  try {
+    console.log("🎯 請求每日一句");
+
+    // 從資料庫隨機選一個詞彙作為每日一句
+    const randomWord = await BookWord.aggregate([{ $sample: { size: 1 } }]);
+
+    if (!randomWord || randomWord.length === 0) {
+      console.log("📋 沒有找到詞彙，返回預設");
+      return res.json({
+        word: "謝謝",
+        chinese: "謝謝 (Thank you)",
+        image: null,
+        description: "表達感謝的基本手語",
+        category: "日常用語",
+      });
+    }
+
+    const word = randomWord[0];
+    console.log(`✅ 選中每日一句: ${word.title}`);
+
+    // 回傳每日一句數據
+    res.json({
+      word: word.title,
+      chinese: word.title,
+      image: word.image_url || word.gif_url,
+      description: word.description || `學習「${word.title}」這個手語`,
+      category:
+        word.categories && word.categories.length > 0
+          ? word.categories[0]
+          : "手語詞彙",
+      volume: word.volume,
+      lesson: word.lesson,
+    });
+  } catch (error) {
+    console.error("❌ 載入每日一句失敗:", error);
+
+    // 返回預設數據
+    res.json({
+      word: "謝謝",
+      chinese: "謝謝 (Thank you)",
+      image: null,
+      description: "表達感謝的基本手語",
+      category: "日常用語",
+    });
+  }
+});
+
 // 新增：獲取學習統計
 app.get("/api/stats", async (req, res) => {
   try {
@@ -802,82 +903,93 @@ const QUIZ_IMG_COLLECTION_NAME = "Quiz_img";
 const QuizWordSchema = VocabSchema.clone();
 
 // 嚴謹地定義 Model
-QuizWord = mongoose.models.QuizWord || mongoose.model(
-    "QuizWord", 
-    QuizWordSchema, 
-    QUIZ_IMG_COLLECTION_NAME
-);
-
+QuizWord =
+  mongoose.models.QuizWord ||
+  mongoose.model("QuizWord", QuizWordSchema, QUIZ_IMG_COLLECTION_NAME);
 
 // === 測驗 API：動態生成題目 (使用 QuizWord Model) ===
-app.get('/api/quiz/:volume/:lesson', async (req, res) => {
-    const { volume, lesson } = req.params;
+app.get("/api/quiz/:volume/:lesson", async (req, res) => {
+  const { volume, lesson } = req.params;
 
-    try {
-        const volNum = Number(volume);
-        const lessonNum = Number(lesson);
+  try {
+    const volNum = Number(volume);
+    const lessonNum = Number(lesson);
 
-        if (Number.isNaN(volNum) || Number.isNaN(lessonNum)) {
-            return res.status(400).json({ error: "冊數 (volume) 和課數 (lesson) 必須是數字" });
-        }
-
-        // 1. 查詢該單元的所有測驗詞彙 (Quiz Items)
-        const quizItems = await QuizWord.find({
-            volume: volNum,
-            lesson: lessonNum
-        }).lean();
-
-        if (quizItems.length === 0) {
-            return res.status(404).json({ error: `找不到第 ${volNum} 冊 第 ${lessonNum} 課的測驗詞彙。` });
-        }
-            
-        // 2. 獲取所有 QuizWord 詞彙的中文意思 (使用 distinct 查詢，效率高且安全)
-        const allTitles = await QuizWord.distinct('title', { 
-            title: { $exists: true, $ne: null, $ne: '', $ne: 'nan' }
-        });
-        
-        // 3. 從當前單元詞彙中隨機選取最多 10 題，並過濾掉沒有 title 的項目
-        const validQuizItems = quizItems.filter(item => item.title && item.title.trim() !== '');
-        const selectedItems = shuffle(validQuizItems).slice(0, 10); 
-
-        if (!selectedItems || selectedItems.length === 0) {
-            return res.status(404).json({ error: "選取題目失敗，該單元詞彙可能無有效中文標題。" });
-        }
-        
-        if (allTitles.length < 4) {
-             console.warn(`⚠️ 資料庫中的有效詞彙總數不足 (${allTitles.length} 個)，無法生成足夠的干擾項。`);
-        }
-        
-        // 4. 針對每個詞彙生成一道「看圖選中文意思」的單選題
-        const generatedQuestions = selectedItems.map((data, index) => {
-            const options = generateRandomOptions(data.title, allTitles, 4);
-            const correctOption = options.find(opt => opt.label === data.title);
-
-            if (!correctOption) return null; 
-
-            return {
-                id: `q${index + 1}_${data._id}`,
-                type: "single_choice",
-                prompt: "請問這張圖的手語是什麼意思？",
-                media: { image: data.image_url || "https://placehold.co/800x400?text=No+Image" },
-                options: options,
-                answer: [correctOption.id],
-            };
-        }).filter(q => q !== null); 
-
-        const quizResponse = {
-            title: `第 ${volNum} 冊 第 ${lessonNum} 單元測驗`,
-            questions: generatedQuestions
-        };
-
-        res.json(quizResponse);
-
-    } catch (err) {
-        // 捕捉任何運行時錯誤並返回 500
-        console.error("❌ 生成測驗時發生未預期錯誤:", err);
-        console.error("錯誤詳情:", err.stack); // 打印堆棧幫助您調試
-        res.status(500).json({ error: "伺服器內部錯誤", detail: err.message });
+    if (Number.isNaN(volNum) || Number.isNaN(lessonNum)) {
+      return res
+        .status(400)
+        .json({ error: "冊數 (volume) 和課數 (lesson) 必須是數字" });
     }
+
+    // 1. 查詢該單元的所有測驗詞彙 (Quiz Items)
+    const quizItems = await QuizWord.find({
+      volume: volNum,
+      lesson: lessonNum,
+    }).lean();
+
+    if (quizItems.length === 0) {
+      return res.status(404).json({
+        error: `找不到第 ${volNum} 冊 第 ${lessonNum} 課的測驗詞彙。`,
+      });
+    }
+
+    // 2. 獲取所有 QuizWord 詞彙的中文意思 (使用 distinct 查詢，效率高且安全)
+    const allTitles = await QuizWord.distinct("title", {
+      title: { $exists: true, $ne: null, $ne: "", $ne: "nan" },
+    });
+
+    // 3. 從當前單元詞彙中隨機選取最多 10 題，並過濾掉沒有 title 的項目
+    const validQuizItems = quizItems.filter(
+      (item) => item.title && item.title.trim() !== ""
+    );
+    const selectedItems = shuffle(validQuizItems).slice(0, 10);
+
+    if (!selectedItems || selectedItems.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "選取題目失敗，該單元詞彙可能無有效中文標題。" });
+    }
+
+    if (allTitles.length < 4) {
+      console.warn(
+        `⚠️ 資料庫中的有效詞彙總數不足 (${allTitles.length} 個)，無法生成足夠的干擾項。`
+      );
+    }
+
+    // 4. 針對每個詞彙生成一道「看圖選中文意思」的單選題
+    const generatedQuestions = selectedItems
+      .map((data, index) => {
+        const options = generateRandomOptions(data.title, allTitles, 4);
+        const correctOption = options.find((opt) => opt.label === data.title);
+
+        if (!correctOption) return null;
+
+        return {
+          id: `q${index + 1}_${data._id}`,
+          type: "single_choice",
+          prompt: "請問這張圖的手語是什麼意思？",
+          media: {
+            image:
+              data.image_url || "https://placehold.co/800x400?text=No+Image",
+          },
+          options: options,
+          answer: [correctOption.id],
+        };
+      })
+      .filter((q) => q !== null);
+
+    const quizResponse = {
+      title: `第 ${volNum} 冊 第 ${lessonNum} 單元測驗`,
+      questions: generatedQuestions,
+    };
+
+    res.json(quizResponse);
+  } catch (err) {
+    // 捕捉任何運行時錯誤並返回 500
+    console.error("❌ 生成測驗時發生未預期錯誤:", err);
+    console.error("錯誤詳情:", err.stack); // 打印堆棧幫助您調試
+    res.status(500).json({ error: "伺服器內部錯誤", detail: err.message });
+  }
 });
 // === 教材模型 ===
 const MaterialSchema = new mongoose.Schema(
@@ -1022,11 +1134,13 @@ const startServer = () => {
         `  DATABASE: ${mongoose.connection.readyState === 1 ? "✅" : "❌"}`
       );
       console.log(
-        `  WEBHOOK_SECRET: ${process.env.CLERK_WEBHOOK_SECRET_KEY ? "✅" : "❌ Missing"
+        `  WEBHOOK_SECRET: ${
+          process.env.CLERK_WEBHOOK_SECRET_KEY ? "✅" : "❌ Missing"
         }`
       );
       console.log(
-        `  CLOUDINARY: ${process.env.CLOUDINARY_CLOUD_NAME ? "✅" : "❌ Missing"
+        `  CLOUDINARY: ${
+          process.env.CLOUDINARY_CLOUD_NAME ? "✅" : "❌ Missing"
         }`
       );
     }, 1000); // 延遲 1 秒檢查
