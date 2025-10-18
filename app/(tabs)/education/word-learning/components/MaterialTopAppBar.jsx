@@ -61,7 +61,7 @@ const MaterialTopAppBar = ({
   return (
     <>
       <StatusBar 
-        backgroundColor={MaterialYouTheme.neutral.neutral99} 
+        backgroundColor="#F1F5FF" 
         barStyle="dark-content" 
       />
       <View style={[
@@ -124,7 +124,7 @@ const MaterialTopAppBar = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: MaterialYouTheme.neutral.neutral99,
+    backgroundColor: 'transparent',
     paddingHorizontal: Spacing.sm,
     paddingTop: Spacing.sm, // 這裡會被動態覆蓋
     justifyContent: 'flex-end',

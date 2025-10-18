@@ -51,12 +51,12 @@ const MaterialSearchBar = ({
 
   const animatedBorderColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [MaterialYouTheme.neutral.neutral80, MaterialYouTheme.primary.primary50],
+    outputRange: [MaterialYouTheme.neutral.neutral80, "#2563EB"], // 藍色邊框
   });
 
   const animatedBackgroundColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [MaterialYouTheme.neutralVariant.neutralVariant95, MaterialYouTheme.neutralVariant.neutralVariant90],
+    outputRange: ["rgba(255, 255, 255, 0.8)", "rgba(239, 246, 255, 0.9)"], // 藍色系背景
   });
 
   return (
@@ -80,7 +80,7 @@ const MaterialSearchBar = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
         autoFocus={autoFocus}
-        selectionColor={MaterialYouTheme.primary.primary50}
+        selectionColor="#2563EB" // 藍色選取
       />
       
       {searchValue.length > 0 && (

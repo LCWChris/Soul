@@ -34,8 +34,8 @@ const LearningProgressSelector = ({ onSelectProgress, selectedProgress, style })
       status: LEARNING_STATUS.MASTERED,
       label: '已掌握',
       icon: 'checkmark-circle-outline',
-      color: MaterialYouTheme.primary.primary40,
-      bgColor: MaterialYouTheme.primary.primary90,
+      color: "#2563EB", // 藍色主題
+      bgColor: "#EFF6FF", // 淡藍色背景
       description: '完全掌握的單詞'
     }
   ];
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   selectedCard: {
-    borderColor: MaterialYouTheme.primary.primary40,
+    borderColor: "#2563EB", // 藍色邊框
     transform: [{ scale: 1.02 }],
   },
   optionHeader: {

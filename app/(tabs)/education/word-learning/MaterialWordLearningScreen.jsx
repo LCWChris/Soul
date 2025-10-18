@@ -1,4 +1,5 @@
 import { useUser } from "@clerk/clerk-expo";
+import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -578,12 +579,9 @@ const MaterialWordLearningScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar
-          backgroundColor={MaterialYouTheme.neutral.neutral99}
-          barStyle="dark-content"
-        />
+        <StatusBar backgroundColor="#F1F5FF" barStyle="dark-content" />
 
         <MaterialTopAppBar
           title="單詞學習"
@@ -674,14 +672,13 @@ const MaterialWordLearningScreen = () => {
           onProgressChange={handleDetailProgressChange}
         />
       </SafeAreaView>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: MaterialYouTheme.neutral.neutral99,
   },
   safeArea: {
     flex: 1,

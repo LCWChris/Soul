@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from './MaterialYouTheme';
 import MaterialTopAppBar from './components/MaterialTopAppBar';
 import VocabularyCard from './components/VocabularyCard';
@@ -158,9 +159,9 @@ const FavoritesScreen = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar backgroundColor={MaterialYouTheme.neutral.neutral99} barStyle="dark-content" />
+        <StatusBar backgroundColor="#F1F5FF" barStyle="dark-content" />
         
         <MaterialTopAppBar
           title="我的收藏"
@@ -186,14 +187,13 @@ const FavoritesScreen = () => {
           onClose={() => setShowWordDetail(false)}
         />
       </SafeAreaView>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: MaterialYouTheme.neutral.neutral99,
   },
   safeArea: {
     flex: 1,
