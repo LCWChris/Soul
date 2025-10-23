@@ -140,6 +140,7 @@ export default function QuizScreen() {
         const shouldJumpAutomatically = 
             currentQ.type === "single_choice" || 
             currentQ.type === "true_false" ||
+            currentQ.type === "image_select" || // 【修正點 A: 新增 image_select 納入自動跳轉】
             isMultiSelectFull; 
 
         if (shouldJumpAutomatically) {
@@ -368,6 +369,57 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
                     })}
                 </View>
             );
+        case "image_select":
+            return (
+                <View style={s.imageSelectContainer}> // 新增一個容器樣式
+                    {q.options?.map((opt) => {
+                        // 圖片選項的處理邏輯
+                        const selected = Array.isArray(value) && value.includes(opt.id);
+                        
+                        let cardStyle = [s.imageOptionCard]; // 圖片選項卡樣式
+                        let icon = null;
+
+                        if (isJumping) {
+                            // 正在跳轉中，顯示正確/錯誤回饋
+                            const isCorrectAns = isCorrectOption(opt.id);
+
+                            if (selected) {
+                                cardStyle.push(isCorrectAns ? s.cardCorrect : s.cardWrong);
+                                icon = isCorrectAns ? '✅' : '❌'; 
+                            } else if (isCorrectAns) {
+                                cardStyle.push(s.cardCorrect);
+                                icon = '✅'; 
+                            }
+                        } else if (selected) {
+                            cardStyle.push(s.cardSelected);
+                        }
+                        
+                        const onPressHandler = () => {
+                            // 圖片選擇題型為單選題
+                            onChange([opt.id]); 
+                        };
+                        
+                        return (
+                            <Pressable
+                                key={opt.id}
+                                style={cardStyle}
+                                onPress={onPressHandler} 
+                                disabled={isJumping} // 跳轉期間禁用點擊
+                            >
+                                {/* 圖片選項的主體渲染 */}
+                                {!!opt?.media?.image && (
+                                    <Image 
+                                        source={{ uri: opt.media.image }} 
+                                        style={s.imageOptionImage} // 圖片樣式
+                                        resizeMode="cover" // 這裡使用 cover 確保圖片充滿選項卡
+                                    />
+                                )}
+                                {icon && <Text style={s.feedbackIcon}>{icon}</Text>}
+                            </Pressable>
+                        );
+                    })}
+                </View>
+            );
 
         case "order": 
             const list = value?.length ? value : q.items.map((i) => i.id);
@@ -473,6 +525,27 @@ const s = StyleSheet.create({
     btnSuccess: { backgroundColor: "#10B981" }, 
     btnTextLight: { color: "#fff", fontWeight: "700" }, 
     btnTextDark: { color: "#111827", fontWeight: "700" }, 
+    imageSelectContainer: {
+        // 使用 flex wrap 讓選項圖片兩兩排列
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between', // 讓圖片選項間有空隙
+        marginBottom: 10,
+    },
+    imageOptionCard: { 
+        width: '48%', // 兩欄佈局
+        aspectRatio: 1, // 正方形圖片
+        borderRadius: 12, 
+        borderWidth: 2, 
+        borderColor: "#E5E7EB", 
+        backgroundColor: "#fff", 
+        marginBottom: 16, 
+        overflow: 'hidden', // 確保圖片在邊框內
+    },
+    imageOptionImage: {
+        width: '100%',
+        height: '100%',
+    },
 
     center: { flex: 1, alignItems: "center", justifyContent: "center" }, 
     muted: { color: "#6B7280", marginTop: 6 }, 

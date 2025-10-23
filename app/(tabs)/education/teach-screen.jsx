@@ -2,7 +2,8 @@ import { API_CONFIG } from '@/constants/api';
 import axios from 'axios';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity,View } from 'react-native';
+import ArrowBack from "@/components/ArrowBack";
 
 export default function TeachScreen() {
   const [volumes, setVolumes] = useState([]);
@@ -71,40 +72,58 @@ export default function TeachScreen() {
   }, []);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {error && (
-        <Text style={styles.errorText}>⚠️ {error}</Text>
-      )}
+// 使用一個最外層的 View 來包裹內容
+    <View style={styles.fullScreenContainer}>
+      {/* ArrowBack 放在 ScrollView 外面，獨立於可捲動內容 */}
+      <View style={styles.header}>
+        <ArrowBack onPress={()=> router.back()}/>
+      </View>
+      
+      {/* ScrollView 只包含可捲動的內容 (Volumes) */}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {error && (
+          <Text style={styles.errorText}>⚠️ {error}</Text>
+        )}
 
-      {loading && (
-        <Text style={styles.loadingText}>� 載入教材中...</Text>
-      )}
+        {loading && (
+          <Text style={styles.loadingText}> 載入教材中...</Text>
+        )}
 
-      {!loading && volumes.length === 0 && !error && (
-        <Text style={styles.emptyText}>
-          📭 尚未載入任何教材，請確認資料庫是否有資料
-        </Text>
-      )}
+        {!loading && volumes.length === 0 && !error && (
+          <Text style={styles.emptyText}>
+            📭 尚未載入任何教材，請確認資料庫是否有資料
+          </Text>
+        )}
 
-      {volumes.map((vol) => {
-        console.log('🔍 渲染中的 vol：', vol);
-        return (
-          <TouchableOpacity
-            key={vol}
-            style={styles.card}
-            onPress={() => router.push(`/education/teach/${vol}`)}
-          >
-            <Text style={styles.text}>第 {vol} 冊</Text>
-          </TouchableOpacity>
-        );
-      })}
-    </ScrollView>
+        {volumes.map((vol) => {
+          console.log('🔍 渲染中的 vol：', vol);
+          return (
+            <TouchableOpacity
+              key={vol}
+              style={styles.card}
+              onPress={() => router.push(`/education/teach/${vol}`)}
+            >
+              <Text style={styles.text}>第 {vol} 冊</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  fullScreenContainer: {
+    flex: 1, // 讓 View 佔滿整個螢幕
+    backgroundColor: 'white', // 假設背景色
+  },
+  header: {
+    padding: 20, // 確保 ArrowBack 有足夠的點擊和視覺空間
+    paddingBottom: 0, // 減少底部的間隔
+  },
+  scrollContent: {
     padding: 20,
+    paddingTop: 16, // 確保 ScrollView 的內容不會太靠近 Header
     gap: 16,
   },
   card: {
