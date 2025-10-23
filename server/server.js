@@ -179,6 +179,7 @@ const VocabSchema = new mongoose.Schema({
   created_by: String,
   created_at: Date,
   // 新增的分類欄位
+  category: String, // 主分類
   categories: [String], // 主題分類陣列
   learning_level: String, // 學習難度 (beginner/intermediate/advanced)
   context: String, // 使用情境
@@ -230,6 +231,49 @@ app.use("/api/learning-stats", learningStatsRouter);
 
 // === 詞彙相關 API ===
 
+// 根據 MongoDB ID 獲取單一單字詳細資料（必須放在 /api/book_words 之前）
+app.get("/api/book_words/id/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`📝 查詢單字 ID: ${id}`);
+
+    const word = await BookWord.findById(id);
+
+    if (!word) {
+      console.log(`❌ 找不到 ID 為 ${id} 的單字`);
+      return res.status(404).json({ error: "找不到該單字" });
+    }
+
+    console.log(`✅ 找到單字: ${word.title}`);
+    res.json(word);
+  } catch (err) {
+    console.error("❌ 查詢單字失敗:", err);
+    res.status(500).json({ error: "查詢失敗" });
+  }
+});
+
+// 根據單字名稱獲取單一單字詳細資料（必須放在 /api/book_words 之前）
+app.get("/api/book_words/word/:word", async (req, res) => {
+  try {
+    const { word } = req.params;
+    console.log(`📝 查詢單字名稱: ${word}`);
+
+    const wordData = await BookWord.findOne({ title: word });
+
+    if (!wordData) {
+      console.log(`❌ 找不到名稱為「${word}」的單字`);
+      return res.status(404).json({ error: "找不到該單字" });
+    }
+
+    console.log(`✅ 找到單字: ${wordData.title}`);
+    res.json(wordData);
+  } catch (err) {
+    console.error("❌ 查詢單字失敗:", err);
+    res.status(500).json({ error: "查詢失敗" });
+  }
+});
+
+// 獲取所有單字（帶篩選條件）
 app.get("/api/book_words", async (req, res) => {
   try {
     const {
@@ -534,8 +578,9 @@ async function generatePersonalizedRecommendations(preferences, limit) {
         recommendations.push({
           type: "vocabulary",
           title: `學習「${word.title}」`,
-          subtitle: `${word.category || word.theme || "詞彙學習"} • ${word.learning_level || "初級"
-            }`,
+          subtitle: `${word.category || word.theme || "詞彙學習"} • ${
+            word.learning_level || "初級"
+          }`,
           description:
             word.content || `學習手語詞彙「${word.title}」，提升你的表達能力`,
           image: word.image_url,
@@ -563,8 +608,9 @@ async function generatePersonalizedRecommendations(preferences, limit) {
           type: "material",
           title: material.unitname || `第${material.lesson}課`,
           subtitle: `第${material.volume}冊 第${material.lesson}課`,
-          description: `繼續學習「${material.unitname || "手語基礎"
-            }」，掌握更多實用技能`,
+          description: `繼續學習「${
+            material.unitname || "手語基礎"
+          }」，掌握更多實用技能`,
           image: material.image,
           action: {
             type: "navigate",
@@ -697,6 +743,55 @@ function calculateMaterialPriority(material, preferences) {
     return priority;
   }
 }
+
+// 新增：每日一句 API
+app.get("/api/daily-sign", async (req, res) => {
+  try {
+    console.log("🎯 請求每日一句");
+
+    // 從資料庫隨機選一個詞彙作為每日一句
+    const randomWord = await BookWord.aggregate([{ $sample: { size: 1 } }]);
+
+    if (!randomWord || randomWord.length === 0) {
+      console.log("📋 沒有找到詞彙，返回預設");
+      return res.json({
+        word: "謝謝",
+        chinese: "謝謝 (Thank you)",
+        image: null,
+        description: "表達感謝的基本手語",
+        category: "日常用語",
+      });
+    }
+
+    const word = randomWord[0];
+    console.log(`✅ 選中每日一句: ${word.title}`);
+
+    // 回傳每日一句數據
+    res.json({
+      word: word.title,
+      chinese: word.title,
+      image: word.image_url || word.gif_url,
+      description: word.description || `學習「${word.title}」這個手語`,
+      category:
+        word.categories && word.categories.length > 0
+          ? word.categories[0]
+          : "手語詞彙",
+      volume: word.volume,
+      lesson: word.lesson,
+    });
+  } catch (error) {
+    console.error("❌ 載入每日一句失敗:", error);
+
+    // 返回預設數據
+    res.json({
+      word: "謝謝",
+      chinese: "謝謝 (Thank you)",
+      image: null,
+      description: "表達感謝的基本手語",
+      category: "日常用語",
+    });
+  }
+});
 
 // 新增：獲取學習統計
 app.get("/api/stats", async (req, res) => {
@@ -1077,11 +1172,13 @@ const startServer = () => {
         `  DATABASE: ${mongoose.connection.readyState === 1 ? "✅" : "❌"}`
       );
       console.log(
-        `  WEBHOOK_SECRET: ${process.env.CLERK_WEBHOOK_SECRET_KEY ? "✅" : "❌ Missing"
+        `  WEBHOOK_SECRET: ${
+          process.env.CLERK_WEBHOOK_SECRET_KEY ? "✅" : "❌ Missing"
         }`
       );
       console.log(
-        `  CLOUDINARY: ${process.env.CLOUDINARY_CLOUD_NAME ? "✅" : "❌ Missing"
+        `  CLOUDINARY: ${
+          process.env.CLOUDINARY_CLOUD_NAME ? "✅" : "❌ Missing"
         }`
       );
     }, 1000); // 延遲 1 秒檢查

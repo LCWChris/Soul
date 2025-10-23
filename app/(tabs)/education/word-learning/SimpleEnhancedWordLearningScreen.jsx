@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from './MaterialYouTheme';
 // import { useFavorites } from '../../../../utils/favorites.js'; // 暫時註解掉
@@ -27,9 +28,9 @@ const SimpleEnhancedWordLearningScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor={MaterialYouTheme.surface.surface} />
+        <StatusBar barStyle="dark-content" backgroundColor="#F1F5FF" />
         
         {/* 簡化版頭部 */}
         <View style={styles.header}>
@@ -81,14 +82,13 @@ const SimpleEnhancedWordLearningScreen = () => {
           <View style={styles.bottomSpacing} />
         </ScrollView>
       </SafeAreaView>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: MaterialYouTheme.surface.surface,
   },
   safeArea: {
     flex: 1,

@@ -19,6 +19,7 @@ try {
     video_url: String,
     created_by: String,
     created_at: Date,
+    category: String,
     categories: [String],
     learning_level: String,
     context: String,
@@ -59,15 +60,63 @@ router.get('/user/:userId', async (req, res) => {
     // 獲取總詞彙數量
     const totalWordsCount = await BookWord.countDocuments();
     
-    // 獲取分類總數
+    // 獲取分類總數 - 先清理陣列中的無效值，然後展開
     const allCategories = await BookWord.aggregate([
-      { $unwind: '$categories' },
-      { $group: { _id: '$categories', total: { $sum: 1 } } },
+      // 首先過濾出有 categories 陣列的文檔
+      { 
+        $match: { 
+          categories: { $exists: true, $type: "array", $ne: [] } 
+        } 
+      },
+      // 清理 categories 陣列，移除無效值
+      {
+        $addFields: {
+          cleanCategories: {
+            $filter: {
+              input: "$categories",
+              cond: {
+                $and: [
+                  { $ne: ["$$this", null] },
+                  { $ne: ["$$this", ""] },
+                  { $ne: ["$$this", " "] },
+                  { $ne: ["$$this", "NaN"] },
+                  { $ne: ["$$this", "null"] },
+                  { $ne: ["$$this", "undefined"] },
+                  { $type: ["$$this", "string"] },
+                  { $not: { $regexMatch: { input: "$$this", regex: /^[\s\[\]'"]*$/ } } }
+                ]
+              }
+            }
+          }
+        }
+      },
+      // 只處理有有效分類的文檔
+      { $match: { cleanCategories: { $ne: [] } } },
+      // 展開清理後的分類陣列
+      { $unwind: '$cleanCategories' },
+      // 按分類分組並計數
+      { $group: { _id: '$cleanCategories', total: { $sum: 1 } } },
       { $sort: { total: -1 } }
     ]);
     
-    // 獲取等級總數
+    // 獲取等級總數 - 過濾空值和無效等級
     const allLevels = await BookWord.aggregate([
+      { 
+        $match: { 
+          learning_level: { 
+            $exists: true, 
+            $ne: null, 
+            $ne: "", 
+            $ne: " ",
+            $ne: "NaN",
+            $ne: "null",
+            $ne: "undefined",
+            $not: { $regex: /^[\s\[\]'"]*$/ }, // 排除只包含空白字符、括號、引號的字符串
+            $type: "string", // 確保是字符串類型
+            $regex: /^[^\s].+[^\s]$/ // 確保開頭和結尾不是空白字符，且有實際內容
+          } 
+        } 
+      },
       { $group: { _id: '$learning_level', total: { $sum: 1 } } }
     ]);
     
@@ -82,6 +131,8 @@ router.get('/user/:userId', async (req, res) => {
         percentage: cat.total > 0 ? Math.round((userCatStats.learned / cat.total) * 100) : 0
       };
     });
+    
+    console.log('📊 清理後的分類數據:', categoryProgress.map(cat => cat.name));
     
     // 構建等級統計
     const levelProgress = allLevels.map(level => {

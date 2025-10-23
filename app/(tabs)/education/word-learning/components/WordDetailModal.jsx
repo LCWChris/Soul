@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import { useUser } from '@clerk/clerk-expo';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
 import { toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
 import LearningStatusSelector from './LearningStatusSelector';
@@ -216,7 +217,8 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container}>
+      <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
+        <SafeAreaView style={styles.safeArea}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -224,7 +226,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
           </TouchableOpacity>
           <Text style={styles.headerTitle}>單詞詳情</Text>
           <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoriteToggle}>
-            <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={24} color={isFavorite ? MaterialYouTheme.primary.primary40 : MaterialYouTheme.neutral.neutral30} />
+            <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={24} color={isFavorite ? "#2563EB" : MaterialYouTheme.neutral.neutral30} />
           </TouchableOpacity>
         </View>
 
@@ -243,7 +245,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
               <View style={styles.imageContainer}>
                 {/* 左滑區域：切換到上一個詞彙 */}
                 <TouchableOpacity style={styles.imageSwipeArea} onPress={onSwipeRight}>
-                  <Ionicons name="chevron-back" size={32} color={MaterialYouTheme.primary.primary40} />
+                  <Ionicons name="chevron-back" size={32} color="#2563EB" />
                 </TouchableOpacity>
                 
                 {/* 媒體顯示區域 */}
@@ -311,7 +313,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
                 
                 {/* 右滑區域：切換到下一個詞彙 */}
                 <TouchableOpacity style={styles.imageSwipeArea} onPress={onSwipeLeft}>
-                  <Ionicons name="chevron-forward" size={32} color={MaterialYouTheme.primary.primary40} />
+                  <Ionicons name="chevron-forward" size={32} color="#2563EB" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -356,7 +358,8 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
             style={styles.statusSelector}
           />
         </ScrollView>
-      </SafeAreaView>
+        </SafeAreaView>
+      </LinearGradient>
     </Modal>
   );
 };
@@ -390,7 +393,9 @@ const getLevelText = (level) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: MaterialYouTheme.neutral.neutral99,
+  },
+  safeArea: {
+    flex: 1,
     paddingTop: getTopSafeAreaPadding(), // 動態計算 iPhone 型號的安全間距
   },
   header: {
@@ -400,7 +405,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: MaterialYouTheme.neutral.neutral90,
+    borderBottomColor: 'rgba(37, 99, 235, 0.1)', // 藍色透明邊框
+    backgroundColor: 'rgba(255, 255, 255, 0.8)', // 半透明白色背景
   },
   closeButton: {
     padding: Spacing.xs,
@@ -522,7 +528,7 @@ const styles = StyleSheet.create({
     backgroundColor: MaterialYouTheme.neutral.neutral80,
   },
   indicatorActive: {
-    backgroundColor: MaterialYouTheme.primary.primary50,
+    backgroundColor: "#2563EB",
   },
   definitionSection: {
     paddingHorizontal: Spacing.lg,

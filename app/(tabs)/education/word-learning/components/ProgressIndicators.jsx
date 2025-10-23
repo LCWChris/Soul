@@ -75,13 +75,13 @@ export const CircularProgressIndicator = ({
               height: size,
               borderRadius: size / 2,
               borderWidth: strokeWidth,
-              borderColor: MaterialYouTheme.primary.primary40,
+              borderColor: "#2563EB", // 藍色主題
               transform: [{ rotate: '-90deg' }],
             }
           ]}
         >
           <LinearGradient
-            colors={ColorUtils.getGradientColors('primary')}
+            colors={["#3B82F6", "#2563EB"]} // 藍色漸層
             style={[
               styles.gradientCircle,
               {
@@ -149,7 +149,7 @@ export const LearningProgressBar = ({
       <View style={[styles.progressBarTrack, { height }]}>
         <Animated.View style={[styles.progressBarFill, { height, width: progressWidth }]}>
           <LinearGradient
-            colors={ColorUtils.getGradientColors('primary')}
+            colors={["#3B82F6", "#2563EB"]} // 藍色漸層
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.progressGradient}
