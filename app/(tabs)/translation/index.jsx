@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 12, // 減少左右邊距，讓標題區域更寬
     paddingVertical: 16,
     backgroundColor: 'rgba(37, 99, 235, 0.9)', // 半透明藍色
     backdropFilter: 'blur(10px)',
@@ -800,7 +800,8 @@ const styles = StyleSheet.create({
   // 主要內容區域
   mainContent: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 8, // 減少左右邊距，讓畫面更寬
+    paddingVertical: 8,
     paddingBottom: 100, // 增加底部邊距為 Tab Bar 留出空間
     gap: 16,
   },
@@ -808,9 +809,9 @@ const styles = StyleSheet.create({
   // 相機包裝器
   cameraWrapper: {
     flex: 1,
-    borderRadius: 24,
+    borderRadius: 16, // 減少圓角
     backgroundColor: '#FFFFFF',
-    padding: 8,
+    padding: 4, // 減少內邊距
     shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -818,12 +819,13 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 1,
     borderColor: 'rgba(37, 99, 235, 0.1)',
+    position: 'relative', // 添加相對定位
   },
 
   // 相機容器
   cameraContainer: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: 12, // 減少圓角
     overflow: 'hidden',
     backgroundColor: '#F8FAFC',
     position: 'relative',
@@ -832,55 +834,68 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // 相機控制條
+  // 相機控制條 - 改為浮動覆蓋層
   cameraControls: {
+    position: 'absolute', // 改為絕對定位，浮動在畫面上
+    bottom: 20, // 距離底部
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 24,
-    backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // 極透明的背景
+    borderRadius: 24, // 圓角背景
+    marginHorizontal: 20, // 左右邊距
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1, // 減少陰影透明度
+    shadowRadius: 12,
+    elevation: 4, // 減少高度
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.15)', // 更透明的邊框
+    backdropFilter: 'blur(10px)', // 毛玻璃效果
+    zIndex: 10, // 確保在最上層
   },
   
   smallControlButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#EBF2FF',
+    width: 52, // 稍微增大
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(235, 242, 255, 0.6)', // 更透明的背景
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.1, // 減少陰影透明度
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 3, // 減少高度
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.2)',
+    borderColor: 'rgba(37, 99, 235, 0.2)', // 更透明的邊框
+    backdropFilter: 'blur(5px)', // 毛玻璃效果
   },
 
   // 錄製按鈕
   recordButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 88, // 增大錄製按鈕
+    height: 88,
+    borderRadius: 44,
     backgroundColor: '#2563EB',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowRadius: 16,
+    elevation: 10,
     borderWidth: 4,
     borderColor: '#FFFFFF',
   },
   recordButtonInner: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 72, // 對應調整內部按鈕
+    height: 72,
+    borderRadius: 36,
     backgroundColor: '#1D4ED8',
     justifyContent: 'center',
     alignItems: 'center',
@@ -978,17 +993,19 @@ const styles = StyleSheet.create({
 
   // 緊急錄影區域
   emergencySection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)', // 更透明的背景
     borderRadius: 16,
     padding: 16,
+    marginHorizontal: 8, // 左右邊距
     gap: 12,
     shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.05, // 減少陰影透明度
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.1)',
+    borderColor: 'rgba(37, 99, 235, 0.15)', // 更透明的邊框
+    backdropFilter: 'blur(5px)', // 毛玻璃效果
   },
   emergencySectionTitle: {
     color: '#64748B',
@@ -1033,28 +1050,29 @@ const styles = StyleSheet.create({
   videoPreviewContainer: {
     position: 'absolute',
     bottom: 80, // 調整底部位置避免被 Tab Bar 遮擋
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
+    left: 8, // 減少左邊距
+    right: 8, // 減少右邊距
+    backgroundColor: 'rgba(255, 255, 255, 0.4)', // 更透明的背景
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderBottomLeftRadius: 16, // 添加底部圓角
+    borderBottomRightRadius: 16,
     paddingTop: 20,
     paddingBottom: 32,
     paddingHorizontal: 20,
     shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.08, // 減少陰影透明度
     shadowRadius: 16,
-    elevation: 8,
+    elevation: 6, // 減少高度
     zIndex: 10,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.15)', // 更透明的邊框
+    backdropFilter: 'blur(10px)', // 毛玻璃效果
   },
   videoPreview: {
     position: 'relative',
-    height: 200,
+    height: 220, // 增加高度讓影片預覽更大
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#F8FAFC',
@@ -1124,29 +1142,31 @@ const styles = StyleSheet.create({
   resultsContainer: {
     position: 'absolute',
     bottom: 80, // 調整底部位置避免被 Tab Bar 遮擋
-    left: 0,
-    right: 0,
+    left: 8, // 減少左邊距
+    right: 8, // 減少右邊距
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     paddingTop: 50,
     zIndex: 20,
+    borderRadius: 16, // 添加圓角
   },
   resultCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)', // 更透明的背景
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderBottomLeftRadius: 16, // 添加底部圓角
+    borderBottomRightRadius: 16,
     paddingTop: 20,
     paddingBottom: 32,
     paddingHorizontal: 20,
     maxHeight: screenHeight * 0.6,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.15)', // 更透明的邊框
     shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.08, // 減少陰影透明度
     shadowRadius: 16,
-    elevation: 8,
+    elevation: 6, // 減少高度
+    backdropFilter: 'blur(10px)', // 毛玻璃效果
   },
   resultHeader: {
     flexDirection: 'row',
