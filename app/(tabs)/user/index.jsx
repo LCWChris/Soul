@@ -1,21 +1,21 @@
+// C:\soul\Soul\app\(tabs)\user\index.jsx
+// (此版本將「註銷帳號」改用 React Native Alert)
+
 import { API_CONFIG } from "@/constants/api";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StyleSheet } from "react-native";
+// 👇 1. 匯入 Alert
+import { Alert, ScrollView, StyleSheet } from "react-native";
 import {
   Button,
   Card,
-  Dialog,
   Divider,
-  HelperText,
   Paragraph,
-  Portal,
   Snackbar,
   Text,
-  TextInput,
-  Title,
+  Title
 } from "react-native-paper";
 
 export default function UserScreen() {
@@ -26,13 +26,6 @@ export default function UserScreen() {
   const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // === 修改使用者名稱 Dialog ===
-  const [showDialog, setShowDialog] = useState(false);
-  const [tempUsername, setTempUsername] = useState(user?.username || "");
-  const [inputError, setInputError] = useState("");
-
-  // === 註銷帳號 Dialog ===
-  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
 
   // === Snackbar 狀態 ===
   const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -45,10 +38,8 @@ export default function UserScreen() {
       ...options,
       headers: { ...defaultHeaders, ...(options.headers || {}) },
     });
-
     const contentType = res.headers.get("content-type") || "";
     let data = null;
-
     if (contentType.includes("application/json")) {
       try {
         data = await res.json();
@@ -59,10 +50,8 @@ export default function UserScreen() {
       const text = await res.text();
       console.warn("⚠️ 回應不是 JSON，取回原始文字:", text.slice(0, 300));
     }
-
     return { res, data };
   }
-
 
   // 問卷題目 key -> 中文標題
   const labels = {
@@ -88,36 +77,6 @@ export default function UserScreen() {
       workplace: "職場",
       home_school: "學校", // 修正異常值
     },
-
-  };
-
-  // ✅ 即時檢查使用者名稱
-  const validateInput = (value) => {
-    setTempUsername(value);
-    if (!value.trim()) {
-      setInputError("請輸入有效的使用者名稱");
-    } else {
-      const regex = /^[a-zA-Z0-9-_]+$/;
-      if (!regex.test(value)) {
-        setInputError("只能使用英數字、減號(-)、底線(_)，不能包含空格或中文");
-      } else {
-        setInputError("");
-      }
-    }
-  };
-
-  // ✅ 儲存使用者名稱
-  const handleSaveUsername = async () => {
-    if (inputError || !tempUsername.trim()) return;
-    try {
-      await user.update({ username: tempUsername });
-      setShowDialog(false);
-      setSnackbarMessage("✅ 使用者名稱已更新");
-      setSnackbarVisible(true);
-    } catch (error) {
-      console.error("更新失敗:", error);
-      setInputError("更新失敗，請稍後再試");
-    }
   };
 
   // ✅ 登出
@@ -142,13 +101,8 @@ export default function UserScreen() {
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`,
         { method: "DELETE" }
       );
-
-
-
       // 2) 刪除 Clerk 帳號
       await user.delete();
-
-      setDeleteDialogVisible(false);
       setSnackbarMessage("✅ 帳號與偏好資料已刪除");
       setSnackbarVisible(true);
       router.replace("/(auth)/sign-up");
@@ -159,24 +113,45 @@ export default function UserScreen() {
     }
   };
 
+  // ==========================================================
+  // ===== 👇 2. 新增 Alert 確認函數 👇 =====
+  // ==========================================================
+  const showDeleteConfirmation = () => {
+    Alert.alert(
+      "⚠️ 確認註銷帳號", // 標題
+      "此動作無法恢復，帳號及相關資料將永久刪除。確定要繼續嗎？", // 訊息
+      [ // 按鈕陣列
+        {
+          text: "取消",
+          onPress: () => console.log("取消註銷"),
+          style: "cancel"
+        },
+        {
+          text: "確定刪除",
+          onPress: handleConfirmDelete, // 按下後執行刪除邏輯
+          style: "destructive"
+        }
+      ],
+      { cancelable: true }
+    );
+  };
+  // ==========================================================
+  // ===== 👆 新增 Alert 確認函數結束 👆 =====
+  // ==========================================================
+
   // ✅ 取得問卷
   const fetchPreferences = async () => {
     if (!user?.id) return;
     setLoading(true);
-
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`;
-
     try {
       const { res, data } = await apiFetch(url, { method: "GET" });
-
-
       if (!res.ok) {
         setPreferences(null);
         setSnackbarMessage(`❌ 取得問卷失敗（${res.status}）`);
         setSnackbarVisible(true);
         return;
       }
-
       if (data?.success && data.data) {
         setPreferences(data.data.answers);
         setSnackbarMessage("✅ 已載入問卷答案");
@@ -203,7 +178,6 @@ export default function UserScreen() {
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`,
         { method: "DELETE" }
       );
-
       if (data.success) {
         setPreferences(null);
         await AsyncStorage.removeItem(`questionnaireFilled_${user.id}`);
@@ -227,7 +201,6 @@ export default function UserScreen() {
         style={{ flex: 1, padding: 16 }}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
       >
-
         <Text variant="headlineMedium" style={{ marginBottom: 16 }}>
           使用者設定
         </Text>
@@ -239,7 +212,10 @@ export default function UserScreen() {
             <Paragraph>帳號：{user?.primaryEmailAddress?.emailAddress}</Paragraph>
             <Paragraph>使用者名稱：{user?.username || "未設定"}</Paragraph>
             <Divider style={{ marginVertical: 8 }} />
-            <Button mode="contained-tonal" onPress={() => setShowDialog(true)}>
+            <Button
+              mode="contained-tonal"
+              onPress={() => router.push('/user/update-username')} // <--- 修改這裡
+            >
               修改使用者名稱
             </Button>
           </Card.Content>
@@ -288,8 +264,6 @@ export default function UserScreen() {
                       </Paragraph>
                     );
                   })}
-
-
                 </Card.Content>
               </Card>
             )}
@@ -300,66 +274,32 @@ export default function UserScreen() {
         <Card style={styles.card}>
           <Card.Content>
             <Title>🔐 安全性</Title>
-            <Button mode="contained" style={{ marginTop: 8 }} onPress={handleSignOut}>
+            <Button
+              mode="contained"
+              style={{ marginTop: 8 }}
+              onPress={handleSignOut}
+            >
               登出
             </Button>
+            {/* ========================================================== */}
+            {/* ===== 👇 3. 修改按鈕 onPress 👇 ===== */}
+            {/* ========================================================== */}
             <Button
               mode="contained"
               buttonColor="#b91c1c"
               style={{ marginTop: 8 }}
-              onPress={() => setDeleteDialogVisible(true)}
+              onPress={showDeleteConfirmation} // <--- 修改這裡
             >
               註銷帳號
             </Button>
+            {/* ========================================================== */}
+            {/* ===== 👆 修改按鈕 onPress 結束 👆 ===== */}
+            {/* ========================================================== */}
           </Card.Content>
         </Card>
       </ScrollView>
 
-      {/* 修改使用者名稱 Dialog */}
-      <Portal>
-        <Dialog visible={showDialog} onDismiss={() => setShowDialog(false)}>
-          <Dialog.Title>輸入新的使用者名稱</Dialog.Title>
-          <Dialog.Content>
-            <TextInput
-              label="新使用者名稱"
-              mode="outlined"
-              value={tempUsername}
-              onChangeText={validateInput}
-              error={!!inputError}
-            />
-            <HelperText type="error" visible={!!inputError}>
-              {inputError}
-            </HelperText>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setShowDialog(false)}>取消</Button>
-            <Button onPress={handleSaveUsername}>儲存</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-
-      {/* 註銷帳號 Dialog */}
-      <Portal>
-        <Dialog
-          visible={deleteDialogVisible}
-          onDismiss={() => setDeleteDialogVisible(false)}
-        >
-          <Dialog.Title>⚠️ 確認註銷帳號</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>
-              此動作無法恢復，帳號及相關資料將永久刪除。確定要繼續嗎？
-            </Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setDeleteDialogVisible(false)}>取消</Button>
-            <Button onPress={handleConfirmDelete} textColor="white" buttonColor="#b91c1c">
-              確定刪除
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-
-      {/* Snackbar 提示 */}
+      {/* Snackbar 提示 (保持不變) */}
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
