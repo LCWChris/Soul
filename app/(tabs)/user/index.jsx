@@ -296,16 +296,6 @@ export default function UserScreen() {
           </Card.Content>
         </Card>
 
-        {/* 區塊：學習進度 */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Title>📊 學習進度</Title>
-            <Paragraph>這裡將會顯示使用者的學習進度。</Paragraph>
-            {/* TODO: 協作者未來可在這裡放進度條、統計數字、圖表等 */}
-          </Card.Content>
-        </Card>
-
-
         {/* 區塊：安全性 */}
         <Card style={styles.card}>
           <Card.Content>
