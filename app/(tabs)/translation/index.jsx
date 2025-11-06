@@ -390,6 +390,8 @@ function TranslateScreen() {
     }
   };
 
+// ... (檔案開頭的 import 和 state 定義保持不變) ...
+
   const uploadAndTranslateVideo = async () => {
     if (!videoUri) {
       Alert.alert("提示", "請先錄製或選擇影片");
@@ -398,6 +400,7 @@ function TranslateScreen() {
 
     setIsUploading(true);
     setTranslationResult(null);
+    setShowResults(false); // 重設結果顯示
     uploadProgress.value = 0;
 
     try {
@@ -437,25 +440,51 @@ function TranslateScreen() {
         body: JSON.stringify({ video_url: cloudUrl }),
       });
 
-      const data = await res.json();
-      uploadProgress.value = withTiming(1, { duration: 500 });
-      
-      if (res.ok && data.translation) {
-        setTranslationResult(data.translation);
-        setShowResults(true);
+      // 💥 核心修正：先檢查狀態碼
+      if (res.ok) {
+        // 狀態碼 200 OK，安全解析 JSON
+        const data = await res.json();
+        
+        uploadProgress.value = withTiming(1, { duration: 500 });
+
+        if (data.translation) {
+          setTranslationResult(data.translation);
+          setShowResults(true);
+        } else {
+          console.warn("⚠️ JSON 缺少 'translation' 字段或格式錯誤:", data);
+          // 即使 200 OK，但返回的 JSON 格式不對
+          throw new Error("翻譯結果格式錯誤");
+        }
       } else {
-        console.warn("⚠️ 無法解析 JSON：", JSON.stringify(data));
-        throw new Error("無法解析翻譯結果");
+        // 💥 處理 4xx 或 5xx 錯誤碼
+        console.error("❌ 後端 API 響應錯誤，狀態碼:", res.status);
+        
+        // 嘗試讀取非 JSON 的錯誤文本，以診斷問題（例如讀取到 HTML 的 'T'raceback）
+        const errorText = await res.text();
+        console.error("錯誤詳細信息 (非JSON):", errorText.substring(0, 200)); 
+        
+        setTranslationResult(`後端錯誤 (${res.status})，請檢查伺服器日誌`);
+        setShowResults(true);
+        // 拋出錯誤以進入 catch 塊
+        throw new Error(`後端返回 ${res.status} 錯誤: ${errorText.substring(0, 50)}...`);
       }
     } catch (error) {
+      // 捕捉網路連線、Cloudinary 或其他所有錯誤
       console.error("上傳或翻譯失敗：", error);
-      setTranslationResult("翻譯失敗，請檢查網路連線後重試");
-      setShowResults(true);
-      Alert.alert('翻譯失敗', '請檢查網路連線後重試');
+      
+      // 如果 translationResult 尚未被設定 (例如在 Cloudinary 或 MongoDB 階段失敗)，則設定通用錯誤訊息
+      if (!translationResult) {
+          setTranslationResult("翻譯失敗，請檢查網路或伺服器連線。");
+          setShowResults(true);
+      }
+      
+      Alert.alert('翻譯失敗', `請檢查網路連線後重試。\n詳細錯誤: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
   };
+  
+// ... (檔案其餘部分保持不變) ...
   return (
     <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F1F5FF" />

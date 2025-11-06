@@ -1,55 +1,78 @@
 import os
 import sys
-import torch
 import json
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
 
-# 加入目前路徑讓 Python 能找到 feature_loader
+# 確保能找到 feature_loader.py
 sys.path.append(os.path.dirname(__file__))
 
-from feature_loader import extract_frames  # ✅ 特徵擷取
-from model_def import get_model           # ✅ 模型結構定義
+# 💥 關鍵修正：將 'extract_features_for_inference' 改為 'extract_feature_sequence'
+from feature_loader import extract_feature_sequence, MAX_SEQ_LENGTH 
 
-# 載入 label_map 並建立 index 對 label 的映射
-with open("label_map.json", "r") as f:
-    label_map_raw = json.load(f)
+# ----------------------------------------------------
+# 1. 標籤映射
+# ----------------------------------------------------
+FINAL_CLASS_NAMES = [
+    '一起', '他', '你', '你們', '你好', 
+    '同學', '大家好', '老師', '讀書', '起床'
+]
+NUM_CLASSES = len(FINAL_CLASS_NAMES)
 
-# 建立 index -> label 的映射字典
-index_to_label = {
-    v["index"]: k for k, v in label_map_raw.items()
-}
 
-# 載入模型
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = get_model(num_classes=len(index_to_label))
-model.load_state_dict(torch.load("wlasl_resnet_lstm_best.pth", map_location=device))
-model = model.to(device)
-model.eval()
+# ----------------------------------------------------
+# 2. 載入模型 (Keras)
+# ----------------------------------------------------
+MODEL_PATH = "final_best_model.h5" 
 
-# 主推論函數
-def predict(video_path: str) -> str:
+try:
+    # 載入 Keras 模型
+    model = keras.models.load_model(MODEL_PATH)
+    print(f"✅ Keras 模型 {MODEL_PATH} 載入成功。")
+except Exception as e:
+    print(f"❌ 錯誤：無法載入 Keras 模型 {MODEL_PATH}。請確保檔案存在。")
+    print(f"錯誤訊息: {e}")
+    class DummyModel:
+        def predict(self, x, verbose=0): return np.zeros((1, NUM_CLASSES))
+    model = DummyModel()
+
+
+# ----------------------------------------------------
+# 3. 主推論函數
+# ----------------------------------------------------
+
+def predict(video_path: str) -> list:
+    """
+    對影片路徑進行預測，返回 Top-3 結果列表。
+    """
     try:
-        frames_tensor = extract_frames(video_path)
-        if frames_tensor.shape[0] == 0:
-            return "影格不足，無法預測"
+        # 1. 提取特徵序列 (呼叫正確的函數)
+        features = extract_feature_sequence(video_path)
         
-        frames_tensor = frames_tensor.unsqueeze(0).to(device)  # shape: (1, T, C, H, W)
+        if features is None or features.shape[0] == 0:
+            return [{"label": "影格不足或手部未偵測", "confidence": 0.0}]
+        
+        # 2. 準備輸入 (shape: (1, 40, 594))
+        input_tensor = np.expand_dims(features, axis=0) 
 
-        with torch.no_grad():
-            outputs = model(frames_tensor)  # shape: (1, num_classes)
-            probabilities = torch.softmax(outputs, dim=1)[0]
+        # 3. 預測
+        outputs = model.predict(input_tensor, verbose=0)[0]
+        
+        # 4. Top-3
+        probabilities = outputs
+        top3_indices = np.argsort(probabilities)[::-1][:3]
+        
+        top3_results = [
+            {
+                "label": FINAL_CLASS_NAMES[idx],
+                "confidence": round(probabilities[idx].item(), 4)
+            }
+            for idx in top3_indices
+        ]
 
-            # 取前三名索引與機率
-            top3_probs, top3_indices = torch.topk(probabilities, k=3)
-            top3_results = [
-                {
-                    "label": index_to_label.get(idx.item(), "未知手語"),
-                    "confidence": round(prob.item(), 4)
-                }
-                for idx, prob in zip(top3_indices, top3_probs)
-            ]
-
-            return top3_results
+        return top3_results
 
     except Exception as e:
-        return f"❌ 推論失敗：{e}"
-
+        print(f"❌ 嚴重推論錯誤: {e}")
+        return [{"label": f"❌ 伺服器推論失敗: {str(e)}", "confidence": 0.0, "error": str(e)}]

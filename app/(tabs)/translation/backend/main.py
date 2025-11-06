@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import uuid
+# 💥 確保能正確導入新的 model_infer.py
 from model_infer import predict
 from dotenv import load_dotenv
 import motor.motor_asyncio
@@ -43,15 +44,20 @@ async def translate(file: UploadFile = File(...)):
         top3 = predict(file_path)
         os.remove(file_path)
 
-        if top3:
+        if top3 and "label" in top3[0] and "error" not in top3[0]:
             best = top3[0]
+            # 🚨 注意: predict 函數現在返回的 confidence 已經是 float (0.xxxx)
             result_text = f"{best['label']}（信心值：{best['confidence']*100:.1f}%）"
+        elif top3 and "error" in top3[0]:
+            # 處理 model_infer.py 返回的錯誤
+            result_text = top3[0]['error']
         else:
             result_text = "未知手語"
 
         print("🔍 Top-3 預測：", top3)
         return JSONResponse(content={"translation": result_text})
     except Exception as e:
+        # 捕捉檔案上傳或寫入錯誤
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.post("/translate-by-url")
@@ -69,26 +75,30 @@ async def translate_by_url(request: Request):
         file_path = os.path.join(save_dir, filename)
 
         # 下載影片
-        r = requests.get(video_url)
+        r = requests.get(video_url, timeout=30) # 設置下載超時
         with open(file_path, "wb") as f:
             f.write(r.content)
 
         top3 = predict(file_path)
         os.remove(file_path)
 
-        if top3:
+        if top3 and "label" in top3[0] and "error" not in top3[0]:
             best = top3[0]
             result_text = f"{best['label']}（信心值：{best['confidence']*100:.1f}%）"
+        elif top3 and "error" in top3[0]:
+            result_text = top3[0]['error']
         else:
             result_text = "未知手語"
 
         print("🌐 Cloudinary URL 翻譯 Top-3：", top3)
         return JSONResponse(content={"translation": result_text})
     except Exception as e:
+        # 捕捉下載或伺服器錯誤
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 @app.post("/save-cloudinary-url")
 async def save_cloudinary_url(request: Request):
+    # 此函數與模型推論無關，保持不變
     try:
         data = await request.json()
         title = data.get("title")
