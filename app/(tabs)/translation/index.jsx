@@ -44,6 +44,10 @@ function TranslateScreen() {
   const [cameraInitializing, setCameraInitializing] = useState(true);
   const [forceReady, setForceReady] = useState(false); // 強制準備模式
   const [cameraReadyAttempts, setCameraReadyAttempts] = useState(0); // 準備嘗試次數
+  
+  // 新增：倒數計時狀態 (null, 3, 2, 1)
+  const [countdown, setCountdown] = useState(null); 
+  
   const cameraRef = useRef(null);
   const readyTimeoutRef = useRef(null);
   const backupReadyTimeoutRef = useRef(null); // 備用計時器
@@ -94,6 +98,7 @@ function TranslateScreen() {
     setIsUploading(false);
     setShowResults(false);
     uploadProgress.value = 0;
+    setCountdown(null); // 重設倒數計時
   };
 
   // 相機準備回調 - 診斷增強版
@@ -123,6 +128,7 @@ function TranslateScreen() {
     setCameraInitializing(true);
     setForceReady(false);
     setCameraReadyAttempts(0);
+    setCountdown(null); // 重設倒數計時
     
     // 清除所有計時器
     if (readyTimeoutRef.current) {
@@ -248,12 +254,6 @@ function TranslateScreen() {
     return result.secure_url;
   };
 
-  // 緊急錄影 - 使用無條件錄影
-  const emergencyRecord = () => {
-    console.log('🚨 緊急錄影 -> 調用無條件錄影');
-    unconditionalRecord();
-  };
-
   // 無條件錄影 - 完全繞過所有檢查
   const unconditionalRecord = async () => {
     console.log('🚨 無條件錄影模式 - 繞過所有檢查和等待');
@@ -286,54 +286,14 @@ function TranslateScreen() {
       recordingScale.value = withSpring(1);
     }
   };
-
-  const startRecording = async () => {
-    console.log('🎥 開始錄影檢查', {
-      cameraRef: !!cameraRef.current,
-      isRecording,
-      isCameraReady,
-      cameraInitializing,
-      forceReady,
-      cameraReadyAttempts
-    });
+  
+  // 獨立的錄影執行邏輯，供倒數結束後呼叫
+  const recordVideoLogic = async () => {
+    console.log('🟢 嘗試正常錄影...');
+    setIsRecording(true);
+    recordingScale.value = withRepeat(withSpring(1.2), -1, true);
     
-    // 基本檢查
-    if (!cameraRef.current) {
-      Alert.alert('錯誤', '相機尚未初始化，請稍候');
-      return;
-    }
-    
-    if (isRecording) {
-      Alert.alert('提示', '正在錄影中，請勿重複操作');
-      return;
-    }
-    
-    // 如果相機未準備好，提供選項
-    if (!isCameraReady && !forceReady) {
-      Alert.alert(
-        '相機狀態檢查', 
-        'onCameraReady 回調似乎沒有觸發。選擇錄影方式：',
-        [
-          { text: '取消', style: 'cancel' },
-          { text: '等待準備', onPress: () => {
-            console.log('用戶選擇等待準備');
-            setForceReady(true);
-            setIsCameraReady(true);
-            setTimeout(() => startRecording(), 500);
-          }},
-          { text: '直接錄影', onPress: () => unconditionalRecord() }
-        ]
-      );
-      return;
-    }
-    
-    // 嘗試正常錄影
     try {
-      resetState();
-      setIsRecording(true);
-      recordingScale.value = withRepeat(withSpring(1.2), -1, true);
-      
-      console.log('🟢 嘗試正常錄影...');
       const video = await cameraRef.current.recordAsync({
         quality: '720p',
         maxDuration: 30,
@@ -365,8 +325,87 @@ function TranslateScreen() {
     }
   };
 
+  // 帶倒數計時的錄影啟動函數
+  const startCountdownAndRecord = async () => {
+    console.log('🎥 開始錄影檢查 (帶倒數)', {
+      cameraRef: !!cameraRef.current,
+      isRecording,
+      isCameraReady,
+      cameraInitializing,
+      forceReady,
+      cameraReadyAttempts
+    });
+    
+    if (!cameraRef.current) {
+      Alert.alert('錯誤', '相機尚未初始化，請稍候');
+      return;
+    }
+    
+    if (isRecording) {
+      Alert.alert('提示', '正在錄影中，請勿重複操作');
+      return;
+    }
+    
+    // 相機準備檢查
+    if (!isCameraReady && !forceReady) {
+      Alert.alert(
+        '相機狀態檢查', 
+        'onCameraReady 回調似乎沒有觸發。選擇錄影方式：',
+        [
+          { text: '取消', style: 'cancel' },
+          { text: '等待準備', onPress: () => {
+            console.log('用戶選擇等待準備');
+            setForceReady(true);
+            setIsCameraReady(true);
+            setTimeout(() => startCountdownAndRecord(), 500); // 重新嘗試倒數
+          }},
+          { text: '直接錄影', onPress: () => unconditionalRecord() }
+        ]
+      );
+      return;
+    }
+
+    // 啟動倒數計時
+    const COUNTDOWN_SECONDS = 3; 
+    resetState();
+    setCountdown(COUNTDOWN_SECONDS);
+    
+    let currentSecond = COUNTDOWN_SECONDS;
+    const intervalId = setInterval(() => {
+      currentSecond -= 1;
+      if (currentSecond > 0) {
+        setCountdown(currentSecond);
+      } else if (currentSecond === 0) {
+        setCountdown(null); 
+        clearInterval(intervalId);
+        recordVideoLogic(); // 倒數結束，開始錄影
+      } else {
+        clearInterval(intervalId);
+      }
+    }, 1000);
+    
+    // 用 readyTimeoutRef 儲存 Interval ID，以便在重設狀態時清理
+    if (readyTimeoutRef.current) {
+        clearInterval(readyTimeoutRef.current);
+    }
+    readyTimeoutRef.current = intervalId;
+  };
+
+  // 覆寫原來的 startRecording，使其呼叫新的帶倒數的函數
+  const startRecording = async () => {
+      startCountdownAndRecord();
+  };
+  
+  // 移除 emergencyRecord，因為 unconditionalRecord 已經足夠
+  const emergencyRecord = unconditionalRecord;
+
   const stopRecording = async () => {
     if (cameraRef.current && isRecording) {
+      // 停止計時器，以防萬一
+      if (readyTimeoutRef.current) {
+        clearInterval(readyTimeoutRef.current);
+        setCountdown(null);
+      }
       await cameraRef.current.stopRecording();
       setIsRecording(false);
       recordingScale.value = withSpring(1);
@@ -389,8 +428,6 @@ function TranslateScreen() {
       Alert.alert('錯誤', '選擇影片失敗，請重試');
     }
   };
-
-// ... (檔案開頭的 import 和 state 定義保持不變) ...
 
   const uploadAndTranslateVideo = async () => {
     if (!videoUri) {
@@ -440,39 +477,53 @@ function TranslateScreen() {
         body: JSON.stringify({ video_url: cloudUrl }),
       });
 
-      // 💥 核心修正：先檢查狀態碼
+      // 💥 信心度檢查和翻譯邏輯
       if (res.ok) {
-        // 狀態碼 200 OK，安全解析 JSON
         const data = await res.json();
         
         uploadProgress.value = withTiming(1, { duration: 500 });
 
-        if (data.translation) {
-          setTranslationResult(data.translation);
-          setShowResults(true);
+        if (data.translation && data.confidence_score !== undefined) {
+          const confidence = parseFloat(data.confidence_score); 
+          const CONFIDENCE_THRESHOLD = 10; // 10%
+          
+          console.log(`💡 翻譯結果信心度: ${confidence}%`);
+
+          if (confidence >= CONFIDENCE_THRESHOLD) {
+            // 信心度高於 10%，顯示結果
+            setTranslationResult(`${data.translation} (信心度: ${confidence.toFixed(1)}%)`);
+            setShowResults(true);
+          } else {
+            // 信心度低於 10%，顯示無法翻譯
+            console.log(`❌ 信心度 (${confidence.toFixed(1)}%) 過低，顯示無法翻譯`);
+            setTranslationResult("抱歉，翻譯結果信心度過低 (低於10%)，請嘗試更清晰的手勢或換一個詞彙。");
+            setShowResults(true);
+          }
+        } else if (data.translation) {
+             // 兼容沒有信心度字段的舊 API
+             console.warn("⚠️ API 返回 JSON 缺少 'confidence_score' 字段，將直接顯示翻譯結果。");
+             setTranslationResult(data.translation);
+             setShowResults(true);
         } else {
           console.warn("⚠️ JSON 缺少 'translation' 字段或格式錯誤:", data);
-          // 即使 200 OK，但返回的 JSON 格式不對
-          throw new Error("翻譯結果格式錯誤");
+          throw new Error("翻譯結果格式錯誤或為空");
         }
       } else {
         // 💥 處理 4xx 或 5xx 錯誤碼
         console.error("❌ 後端 API 響應錯誤，狀態碼:", res.status);
         
-        // 嘗試讀取非 JSON 的錯誤文本，以診斷問題（例如讀取到 HTML 的 'T'raceback）
         const errorText = await res.text();
         console.error("錯誤詳細信息 (非JSON):", errorText.substring(0, 200)); 
         
         setTranslationResult(`後端錯誤 (${res.status})，請檢查伺服器日誌`);
         setShowResults(true);
-        // 拋出錯誤以進入 catch 塊
         throw new Error(`後端返回 ${res.status} 錯誤: ${errorText.substring(0, 50)}...`);
       }
     } catch (error) {
       // 捕捉網路連線、Cloudinary 或其他所有錯誤
       console.error("上傳或翻譯失敗：", error);
       
-      // 如果 translationResult 尚未被設定 (例如在 Cloudinary 或 MongoDB 階段失敗)，則設定通用錯誤訊息
+      // 如果 translationResult 尚未被設定，則設定通用錯誤訊息
       if (!translationResult) {
           setTranslationResult("翻譯失敗，請檢查網路或伺服器連線。");
           setShowResults(true);
@@ -484,7 +535,6 @@ function TranslateScreen() {
     }
   };
   
-// ... (檔案其餘部分保持不變) ...
   return (
     <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F1F5FF" />
@@ -556,26 +606,41 @@ function TranslateScreen() {
               <Ionicons name="folder-outline" size={20} color="#2563EB" />
             </TouchableOpacity>
             
-            <Animated.View style={recordingAnimatedStyle}>
-              <TouchableOpacity
+            {/* 核心修改：中央控制區域 (包含倒數和錄製按鈕) */}
+            <View style={styles.centerControlArea}>
+              {countdown !== null && (
+                <Animated.View entering={ZoomIn} style={styles.countdownDisplay}>
+                  <Text style={styles.countdownText}>{countdown}</Text>
+                </Animated.View>
+              )}
+              
+              <Animated.View 
                 style={[
-                  styles.recordButton,
-                  isRecording && styles.recordButtonActive,
-                  (!isCameraReady || cameraInitializing) && styles.recordButtonDisabled
+                  recordingAnimatedStyle, 
+                  // 倒數時隱藏錄製按鈕
+                  countdown !== null && {opacity: 0} 
                 ]}
-                onPress={isRecording ? stopRecording : startRecording}
-                disabled={!isCameraReady || cameraInitializing}
-                activeOpacity={0.8}
               >
-                <View style={[styles.recordButtonInner, isRecording && styles.recordButtonInnerActive]}>
-                  <Ionicons 
-                    name={isRecording ? "stop" : "radio-button-on"} 
-                    size={28} 
-                    color="#FFFFFF" 
-                  />
-                </View>
-              </TouchableOpacity>
-            </Animated.View>
+                <TouchableOpacity
+                  style={[
+                    styles.recordButton,
+                    isRecording && styles.recordButtonActive,
+                    (!isCameraReady || cameraInitializing) && styles.recordButtonDisabled
+                  ]}
+                  onPress={isRecording ? stopRecording : startRecording}
+                  disabled={!isCameraReady || cameraInitializing || countdown !== null} // 倒數時禁用
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.recordButtonInner, isRecording && styles.recordButtonInnerActive]}>
+                    <Ionicons 
+                      name={isRecording ? "stop" : "radio-button-on"} 
+                      size={28} 
+                      color="#FFFFFF" 
+                    />
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+            </View>
             
             <TouchableOpacity 
               style={styles.smallControlButton}
@@ -886,6 +951,29 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(37, 99, 235, 0.15)', // 更透明的邊框
     backdropFilter: 'blur(10px)', // 毛玻璃效果
     zIndex: 10, // 確保在最上層
+  },
+  
+  // 新增：中央控制區域 (倒數/錄製按鈕)
+  centerControlArea: {
+    width: 88, // 與 recordButton 寬度相同
+    height: 88, // 與 recordButton 高度相同
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  countdownDisplay: {
+    position: 'absolute',
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: 'rgba(37, 99, 235, 0.9)', // 藍色背景
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 11,
+  },
+  countdownText: {
+    color: '#FFFFFF',
+    fontSize: 48,
+    fontWeight: 'bold',
   },
   
   smallControlButton: {

@@ -1,0 +1,105 @@
+我們將整個流程分為四個核心階段：特徵工程 (v9)、資料擴增 (Offline + Online)、模型架構 (TCN) 以及 評估與驗證。
+
+1. 專案總覽：從 v1 到 v9 的演進
+專案目標是建立一個能夠辨識 10 類台灣手語單詞的高準確率模型。
+
+最初的 v1-v5 特徵提取（基於左手腕標準化）在測試時遭遇了瓶頸，尤其在區分「你」和「他」等高度相似手勢時表現不佳。
+
+為解決此問題，我們設計並實施了 v9 特徵工程管線 (Pipeline)。此管線的核心是身體中心化 (Body-Centered Normalization) 和 3D 時間特徵 (3D Temporal Features)，旨在最大化手部資訊並最小化背景噪聲。
+
+2. 特徵工程 (v9)：636 維混合特徵
+我們的 v9 特徵管線 旨在從影片中提取最關鍵的運動資訊，完全拋棄影像資料，只專注於骨架點。所有特徵均通過 MediaPipe Holistic 提取。
+
+A. 空間特徵 (Spatial Features - 426 維)
+空間特徵描述了單一影格中身體的「姿態」。
+
+關鍵點選取：
+
+手部 (2 x 63 維)：雙手 21 個 3D 關鍵點 (x, y, z)。
+
+臉部 (279 維)：選取 NMMs (非手控標記) 相關的 93 個 3D 關鍵點（嘴巴、眼睛、眉毛）。
+
+姿態 (21 維)：選取 7 個關鍵 3D 身體錨點（鼻子、雙肩、雙肘、雙腕）。
+
+身體中心化標準 (Body-Centered Normalization)： 這是解決「你」/「他」混淆的第一個關鍵。我們不再以不穩定的左手腕為中心，而是：
+
+中心點 (Center)：使用雙肩中點 ((Shoulder_L + Shoulder_R) / 2) 作為 3D 座標的原點 (0,0,0)。
+
+縮放 (Scale)：使用雙肩距離 (||Shoulder_L - Shoulder_R||) 作為標準尺度，將所有關鍵點等比例縮放到一個統一的空間中。
+
+B. 時間特徵 (Temporal Features - 210 維)
+時間特徵描述了影格之間的「運動」。
+
+稀疏光流 (LK Flow - 84 維)：
+
+目的：捕捉 2D 平面上的高速運動軌跡。
+
+方法：使用 cv2.calcOpticalFlowPyrLK 追蹤雙手 21 個關鍵點在 (x, y) 平面上的 (dx, dy) 位移。
+
+3D MediaPipe 位移 (MP Displacement - 126 維)：
+
+目的：捕捉 3D 空間中的深度運動（例如手指朝向或遠離鏡頭）。
+
+方法：計算雙手 21 個 3D 關鍵點的幀間差值 (dx, dy, dz)。
+
+重要性：這是解決「讀書」vs「起床」混淆的第二個關鍵。
+
+最終特徵向量：426 (空間) + 210 (時間) = 636 維。
+
+3. 資料擴增 (Data Augmentation)
+為了解決訓練資料（197 支影片）過少的問題，我們採用了「離線 + 線上」的雙重擴增策略。
+
+離線擴增 (Offline Augmentation)：
+
+目的：大幅增加訓練樣本總數。
+
+方法：對 197 支訓練影片中的每一支，我們生成 11 份不同的特徵：
+
+1 份：原始特徵。
+
+5 份：平移增強 (在 dy 位移上加入隨機噪聲)。
+
+5 份：旋轉增強 (在 (x, y) 空間上進行隨機 2D 旋轉)。
+
+結果：訓練集從 197 筆擴增到 2167 筆 pose.npy 檔案。
+
+線上擴增 (Online Augmentation)：
+
+目的：解決「起始/結束位置不同」的時間抖動問題，提升泛化能力。
+
+方法：在模型的第一層加入 SpatialDropout1D(0.2)。
+
+機制：在每次訓練迭代中，隨機丟棄 20% 的完整影格（例如，(40, 636) 序列中的 8 幀被完全設為 0）。這強迫模型必須從上下文，而不是從單一影格來學習模式。
+
+4. 模型架構：TCN (時序卷積網路)
+雖然 LSTM 在 K-Fold 上表現出色 (95.65%)，但它容易過度擬合。為了追求更強的泛化能力，我們最終採用了 TCN (Temporal Convolutional Network) 架構。
+
+TCN 使用 Conv1D 層，更擅長捕捉序列中局部的時空模式（例如手形隨時間的變化）。
+
+最終 TCN 架構：
+
+Input (None, 40, 636)
+
+Masking (遮罩 0.0)
+
+SpatialDropout1D(0.2) (線上時序擴增)
+
+Conv1D (128 filters, kernel=5, padding='causal', activation='relu')
+
+BatchNormalization
+
+Dropout(0.3)
+
+Conv1D (256 filters, kernel=5, padding='causal', activation='relu')
+
+BatchNormalization
+
+Dropout(0.3)
+
+GlobalAveragePooling1D (將 40 幀的序列壓縮為單一向量)
+
+Dense (128, activation='relu')
+
+Dropout(0.4)
+
+Dense (10, activation='softmax') (輸出 10 個類別)

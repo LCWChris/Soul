@@ -1,3 +1,4 @@
+#Soul\app\(tabs)\translation\backend\model_infer.py
 import os
 import sys
 import json
@@ -8,7 +9,7 @@ from tensorflow import keras
 # 確保能找到 feature_loader.py
 sys.path.append(os.path.dirname(__file__))
 
-# 💥 關鍵修正：將 'extract_features_for_inference' 改為 'extract_feature_sequence'
+# 💥 (v9) 導入 v9 的提取器和常數
 from feature_loader import extract_feature_sequence, MAX_SEQ_LENGTH 
 
 # ----------------------------------------------------
@@ -22,14 +23,15 @@ NUM_CLASSES = len(FINAL_CLASS_NAMES)
 
 
 # ----------------------------------------------------
-# 2. 載入模型 (Keras)
+# 2. 載入模型 (💥 TCN v9 模型)
 # ----------------------------------------------------
-MODEL_PATH = "final_best_model.h5" 
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "final_best_TCN_v9_model.h5")
 
 try:
-    # 載入 Keras 模型
+    # 載入 Keras TCN 模型
+    # 💥 TCN 模型不需要 custom_objects (除非您使用了 TCN 庫)
     model = keras.models.load_model(MODEL_PATH)
-    print(f"✅ Keras 模型 {MODEL_PATH} 載入成功。")
+    print(f"✅ Keras TCN (v9) 模型 {MODEL_PATH} 載入成功。")
 except Exception as e:
     print(f"❌ 錯誤：無法載入 Keras 模型 {MODEL_PATH}。請確保檔案存在。")
     print(f"錯誤訊息: {e}")
@@ -47,13 +49,13 @@ def predict(video_path: str) -> list:
     對影片路徑進行預測，返回 Top-3 結果列表。
     """
     try:
-        # 1. 提取特徵序列 (呼叫正確的函數)
+        # 1. 提取特徵序列 (返回 shape: (40, 636))
         features = extract_feature_sequence(video_path)
         
         if features is None or features.shape[0] == 0:
             return [{"label": "影格不足或手部未偵測", "confidence": 0.0}]
         
-        # 2. 準備輸入 (shape: (1, 40, 594))
+        # 2. 準備輸入 (shape: (1, 40, 636))
         input_tensor = np.expand_dims(features, axis=0) 
 
         # 3. 預測

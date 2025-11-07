@@ -11,7 +11,7 @@ export default function RootLayout() {
     <ClerkProvider tokenCache={tokenCache}>
       <SafeAreaProvider>
         <SafeAreaView style={{ flex: 1 }}>
-          <PaperProvider>  {/* ⬅️ 新增：全域 PaperProvider */}
+          <PaperProvider>  
             <StatusBar style="dark" />
             <InitialLayout />
           </PaperProvider>
