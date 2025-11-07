@@ -75,8 +75,7 @@ venv.bak/
 *.pth
 *.pt
 *.ckpt
-*.h5
-*.hdf5
+
 
 # Jupyter Notebook
 .ipynb_checkpoints
