@@ -38,10 +38,22 @@ router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
     
+    console.log('📊 請求學習統計,userId:', userId);
+    
+    // 先檢查數據庫中是否有這個用戶的記錄
+    const rawProgress = await LearningProgress.findOne({ userId });
+    console.log('📊 數據庫原始記錄:', rawProgress ? {
+      userId: rawProgress.userId,
+      recordsCount: rawProgress.learningRecords?.length || 0,
+      learnedWordsCount: rawProgress.learnedWords?.length || 0,
+      stats: rawProgress.stats
+    } : null);
+    
     // 獲取用戶學習進度
     const userStats = await LearningProgress.getUserStats(userId);
     
     if (!userStats) {
+      console.log('⚠️ 用戶無學習記錄,返回空統計');
       return res.json({
         overall: {
           totalWords: 0,
@@ -57,68 +69,63 @@ router.get('/user/:userId', async (req, res) => {
       });
     }
     
+    console.log('📊 getUserStats 返回:', {
+      totalWordsLearned: userStats.totalWordsLearned,
+      totalWordsMastered: userStats.totalWordsMastered,
+      totalStudyTime: userStats.totalStudyTime,
+      streak: userStats.streak,
+      recentActivityCount: userStats.recentActivity?.length || 0
+    });
+    
     // 獲取總詞彙數量
     const totalWordsCount = await BookWord.countDocuments();
     
-    // 獲取分類總數 - 先清理陣列中的無效值，然後展開
-    const allCategories = await BookWord.aggregate([
-      // 首先過濾出有 categories 陣列的文檔
-      { 
-        $match: { 
-          categories: { $exists: true, $type: "array", $ne: [] } 
-        } 
-      },
-      // 清理 categories 陣列，移除無效值
-      {
-        $addFields: {
-          cleanCategories: {
-            $filter: {
-              input: "$categories",
-              cond: {
-                $and: [
-                  { $ne: ["$$this", null] },
-                  { $ne: ["$$this", ""] },
-                  { $ne: ["$$this", " "] },
-                  { $ne: ["$$this", "NaN"] },
-                  { $ne: ["$$this", "null"] },
-                  { $ne: ["$$this", "undefined"] },
-                  { $type: ["$$this", "string"] },
-                  { $not: { $regexMatch: { input: "$$this", regex: /^[\s\[\]'"]*$/ } } }
-                ]
-              }
-            }
-          }
-        }
-      },
-      // 只處理有有效分類的文檔
-      { $match: { cleanCategories: { $ne: [] } } },
-      // 展開清理後的分類陣列
-      { $unwind: '$cleanCategories' },
-      // 按分類分組並計數
-      { $group: { _id: '$cleanCategories', total: { $sum: 1 } } },
-      { $sort: { total: -1 } }
-    ]);
+    // 簡化的分類統計 - 先獲取所有單詞，然後在 JavaScript 中處理
+    console.log('📊 開始處理分類統計...');
+    const allWords = await BookWord.find({ categories: { $exists: true } }).lean();
     
-    // 獲取等級總數 - 過濾空值和無效等級
-    const allLevels = await BookWord.aggregate([
-      { 
-        $match: { 
-          learning_level: { 
-            $exists: true, 
-            $ne: null, 
-            $ne: "", 
-            $ne: " ",
-            $ne: "NaN",
-            $ne: "null",
-            $ne: "undefined",
-            $not: { $regex: /^[\s\[\]'"]*$/ }, // 排除只包含空白字符、括號、引號的字符串
-            $type: "string", // 確保是字符串類型
-            $regex: /^[^\s].+[^\s]$/ // 確保開頭和結尾不是空白字符，且有實際內容
-          } 
-        } 
-      },
-      { $group: { _id: '$learning_level', total: { $sum: 1 } } }
-    ]);
+    const categoryMap = {};
+    allWords.forEach(word => {
+      if (Array.isArray(word.categories)) {
+        word.categories.forEach(cat => {
+          // 過濾無效值
+          if (cat && 
+              typeof cat === 'string' && 
+              cat.trim() !== '' &&
+              cat !== 'NaN' &&
+              cat !== 'null' &&
+              cat !== 'undefined' &&
+              !cat.match(/^[\s\[\]'"]*$/)) {
+            categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+          }
+        });
+      }
+    });
+    
+    const allCategories = Object.entries(categoryMap)
+      .map(([name, total]) => ({ _id: name, total }))
+      .sort((a, b) => b.total - a.total);
+    
+    console.log('📊 處理完成，找到分類:', allCategories.length);
+    
+    // 簡化的等級統計
+    const levelMap = {};
+    const levelWords = await BookWord.find({ learning_level: { $exists: true, $ne: null, $ne: '' } }).lean();
+    
+    levelWords.forEach(word => {
+      const level = word.learning_level;
+      if (level && 
+          typeof level === 'string' && 
+          level.trim() !== '' &&
+          level !== 'NaN' &&
+          level !== 'null' &&
+          level !== 'undefined') {
+        levelMap[level] = (levelMap[level] || 0) + 1;
+      }
+    });
+    
+    const allLevels = Object.entries(levelMap)
+      .map(([name, total]) => ({ _id: name, total }));
     
     // 構建分類統計
     const categoryProgress = allCategories.map(cat => {
@@ -152,45 +159,111 @@ router.get('/user/:userId', async (req, res) => {
       };
     });
     
-    // 構建最近活動
-    const recentActivity = userStats.recentActivity.slice(0, 5).map((activity, index) => {
-      const daysAgo = index;
-      let dateLabel;
-      
-      if (daysAgo === 0) dateLabel = '今天';
-      else if (daysAgo === 1) dateLabel = '昨天';
-      else dateLabel = `${daysAgo}天前`;
-      
-      return {
-        date: dateLabel,
-        wordsLearned: activity.action === 'learn' ? 1 : 0,
-        timeSpent: Math.round(activity.timeSpent / 60) // 轉換為分鐘
+    // 構建最近活動 - 按日期聚合學習記錄
+    console.log('📊 開始處理最近活動數據...');
+    const activityByDate = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // 初始化最近7天的數據
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateKey = date.toISOString().split('T')[0];
+      activityByDate[dateKey] = {
+        wordsLearned: 0,
+        timeSpent: 0,
+        wordIds: new Set() // 用於去重單詞
       };
-    });
+    }
+    
+    // 聚合學習記錄
+    if (userStats.recentActivity && Array.isArray(userStats.recentActivity)) {
+      userStats.recentActivity.forEach(record => {
+        if (!record.date) return;
+        
+        const recordDate = new Date(record.date);
+        recordDate.setHours(0, 0, 0, 0);
+        const dateKey = recordDate.toISOString().split('T')[0];
+        
+        if (activityByDate[dateKey]) {
+          // 只統計 'learn' 動作的單詞
+          if (record.action === 'learn' && record.wordId) {
+            activityByDate[dateKey].wordIds.add(record.wordId.toString());
+          }
+          // 累加學習時間(秒) - 自動修正舊數據(毫秒→秒)
+          if (record.timeSpent) {
+            let timeInSeconds = record.timeSpent;
+            // 如果時間大於 1000 秒(約 16 分鐘),很可能是毫秒格式的舊數據
+            if (timeInSeconds > 1000) {
+              timeInSeconds = Math.round(timeInSeconds / 1000);
+              console.log(`⚠️ 自動修正舊時間數據: ${record.timeSpent}ms → ${timeInSeconds}秒`);
+            }
+            activityByDate[dateKey].timeSpent += timeInSeconds;
+          }
+        }
+      });
+    }
+    
+    // 轉換為數組並格式化
+    const recentActivity = Object.keys(activityByDate)
+      .sort((a, b) => new Date(b) - new Date(a)) // 降序排列
+      .slice(0, 7) // 只取最近7天
+      .map((dateKey, index) => {
+        const activity = activityByDate[dateKey];
+        let dateLabel;
+        
+        if (index === 0) dateLabel = '今天';
+        else if (index === 1) dateLabel = '昨天';
+        else dateLabel = `${index}天前`;
+        
+        return {
+          date: dateLabel,
+          wordsLearned: activity.wordIds.size, // 去重後的單詞數
+          timeSpent: Math.round(activity.timeSpent / 60) || 0 // 轉換為分鐘
+        };
+      })
+      .filter(activity => activity.wordsLearned > 0 || activity.timeSpent > 0); // 過濾掉沒有活動的日期
+    
+    console.log('📊 最近活動數據處理完成，共', recentActivity.length, '天有學習記錄');
     
     // 計算進度百分比
     const progressPercentage = totalWordsCount > 0 ? 
       Math.round((userStats.totalWordsLearned / totalWordsCount) * 100) : 0;
     
+    // 修正總學習時間 - 如果數值異常大,可能是舊數據(毫秒當成秒存儲了)
+    let correctedTotalStudyTime = userStats.totalStudyTime || 0;
+    if (correctedTotalStudyTime > 10000) {
+      // 超過 10000 分鐘(約 166 小時)不合理,可能是毫秒數據
+      console.log(`⚠️ 檢測到異常的總學習時間: ${correctedTotalStudyTime}分鐘,暫時顯示為 0`);
+      correctedTotalStudyTime = 0; // 暫時顯示為 0,等待用戶重新學習累積正確數據
+    }
+    
     const response = {
       overall: {
         totalWords: totalWordsCount,
-        learnedWords: userStats.totalWordsLearned,
-        masteredWords: userStats.totalWordsMastered,
+        learnedWords: userStats.totalWordsLearned || 0,
+        masteredWords: userStats.totalWordsMastered || 0,
         progressPercentage,
-        streak: userStats.streak,
-        totalStudyTime: userStats.totalStudyTime
+        streak: userStats.streak || 0,
+        totalStudyTime: Math.round(correctedTotalStudyTime) || 0 // 四捨五入到整數分鐘
       },
       categories: categoryProgress,
       levels: levelProgress,
       recentActivity
     };
     
+    console.log('✅ 成功獲取學習統計');
     res.json(response);
     
   } catch (error) {
-    console.error('獲取用戶學習統計失敗:', error);
-    res.status(500).json({ error: '獲取統計數據失敗' });
+    console.error('❌ 獲取用戶學習統計失敗:', error);
+    console.error('錯誤堆疊:', error.stack);
+    res.status(500).json({ 
+      error: '獲取統計數據失敗',
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
@@ -199,7 +272,17 @@ router.post('/activity', async (req, res) => {
   try {
     const { userId, wordId, action, difficulty, timeSpent, isCorrect } = req.body;
     
+    console.log('📝 收到學習活動記錄請求:', {
+      userId,
+      wordId,
+      action,
+      difficulty,
+      timeSpent,
+      isCorrect
+    });
+    
     if (!userId || !wordId || !action) {
+      console.log('❌ 缺少必要參數');
       return res.status(400).json({ error: '缺少必要參數' });
     }
     
@@ -209,6 +292,12 @@ router.post('/activity', async (req, res) => {
       action, 
       { difficulty, timeSpent, isCorrect }
     );
+    
+    console.log('✅ 學習活動記錄成功:', {
+      userId,
+      totalRecords: progress.learningRecords.length,
+      totalWordsLearned: progress.stats.totalWordsLearned
+    });
     
     res.json({ 
       success: true, 
@@ -221,8 +310,9 @@ router.post('/activity', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('記錄學習活動失敗:', error);
-    res.status(500).json({ error: '記錄學習活動失敗' });
+    console.error('❌ 記錄學習活動失敗:', error);
+    console.error('錯誤堆疊:', error.stack);
+    res.status(500).json({ error: '記錄學習活動失敗', message: error.message });
   }
 });
 

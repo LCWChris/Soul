@@ -119,21 +119,30 @@ export class VocabularyService {
       console.log('🔗 請求統計數據 URL:', url);
       console.log('🔧 API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
       
-      const response = await axios.get(url, { 
-        headers: {
-          'ngrok-skip-browser-warning': 'true',
-        },
-        timeout: API_CONFIG.TIMEOUT 
-      });
-      
-      console.log('📊 API 響應狀態:', response.status);
-      console.log('📊 API 響應數據:', response.data);
-      
-      if (!response.data || typeof response.data !== 'object') {
-        throw new Error('無效的統計數據格式');
+      try {
+        const response = await axios.get(url, { 
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+          },
+          timeout: API_CONFIG.TIMEOUT 
+        });
+        
+        console.log('📊 API 響應狀態:', response.status);
+        console.log('📊 API 響應數據:', response.data);
+        
+        if (!response.data || typeof response.data !== 'object') {
+          throw new Error('無效的統計數據格式');
+        }
+        
+        return response.data;
+      } catch (error) {
+        console.error('❌ 統計數據請求失敗:', error.message);
+        if (error.response) {
+          console.error('❌ 響應狀態:', error.response.status);
+          console.error('❌ 響應數據:', error.response.data);
+        }
+        throw error;
       }
-      
-      return response.data;
     });
   }
 

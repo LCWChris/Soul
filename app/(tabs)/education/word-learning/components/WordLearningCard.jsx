@@ -34,7 +34,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
     // 清理：當組件卸載時記錄總查看時間
     return () => {
       if (viewStartTime && word?._id) {
-        const timeSpent = Date.now() - viewStartTime;
+        const timeSpent = Math.round((Date.now() - viewStartTime) / 1000); // 轉換為秒
         recordWordView(word._id, timeSpent);
       }
     };
@@ -43,20 +43,25 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
   const handleMarkAsLearned = async () => {
     if (!word?._id || isLearned) return;
 
-    const timeSpent = viewStartTime ? Date.now() - viewStartTime : 0;
+    const timeSpent = viewStartTime ? Math.round((Date.now() - viewStartTime) / 1000) : 0; // 轉換為秒
+    console.log('📚 標記為已學習:', { wordId: word._id, timeSpent });
+    
     const success = await recordWordLearned(word._id, timeSpent, 'medium');
 
     if (success) {
+      console.log('✅ 學習記錄成功');
       setIsLearned(true);
       onWordLearned?.(word);
       Alert.alert('太棒了！', '已記錄你學會了這個單詞');
+    } else {
+      console.log('❌ 學習記錄失敗');
     }
   };
 
   const handleMarkAsMastered = async () => {
     if (!word?._id || isMastered) return;
 
-    const timeSpent = viewStartTime ? Date.now() - viewStartTime : 0;
+    const timeSpent = viewStartTime ? Math.round((Date.now() - viewStartTime) / 1000) : 0; // 轉換為秒
     const success = await recordWordMastered(word._id, timeSpent);
 
     if (success) {
@@ -69,7 +74,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
   const handlePractice = async (isCorrect) => {
     if (!word?._id) return;
 
-    const timeSpent = 5000; // 假設練習時間為5秒
+    const timeSpent = 5; // 練習時間 5秒
     await recordWordPractice(word._id, timeSpent, isCorrect, 'medium');
   };
 

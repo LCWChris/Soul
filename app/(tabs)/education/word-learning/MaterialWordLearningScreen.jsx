@@ -37,12 +37,16 @@ import {
   updateWordProgress,
 } from "@/utils/learning-progress";
 import axios from "axios";
-import VocabularyService from "./services/VocabularyService";
+import { VocabularyService } from "./services/VocabularyService";
+import { useLearningTracking } from "./hooks/useLearningTracking";
 
 const MaterialWordLearningScreen = () => {
   const router = useRouter();
   const { user } = useUser();
   const params = useLocalSearchParams(); // 獲取路由參數
+  
+  // 學習追蹤 hook
+  const { recordWordLearned, recordWordView, recording } = useLearningTracking();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
@@ -388,10 +392,13 @@ const MaterialWordLearningScreen = () => {
   // 處理單詞學習進度變更
   const handleWordProgressChange = async (wordId) => {
     try {
+      console.log('🔄 開始處理學習進度變更:', wordId);
+      
       // 獲取當前學習狀態
       const currentProgress = await getWordProgress(wordId);
+      console.log('📊 當前學習狀態:', currentProgress);
 
-      // 狀態循環：未開始 -> 學習中 -> 複習中 -> 已掌握 -> 未開始
+      // 狀態循環:未開始 -> 學習中 -> 複習中 -> 已掌握 -> 未開始
       let nextStatus;
       let action = "review"; // 默認動作
 
@@ -417,30 +424,42 @@ const MaterialWordLearningScreen = () => {
           action = "learn";
       }
 
+      console.log('➡️ 下一個狀態:', nextStatus, '動作:', action);
+
       // 更新學習進度
       await updateWordProgress(wordId, nextStatus);
 
-      // 記錄學習活動到後端
+      // 記錄學習活動到後端 API
       if (user?.id && action !== "reset") {
         try {
-          const startTime = Date.now();
-          await VocabularyService.recordLearningActivity(
+          console.log('📝 準備記錄學習活動到後端:', {
+            userId: user.id,
+            wordId,
+            action
+          });
+          
+          const result = await VocabularyService.recordLearningActivity(
             user.id,
             wordId,
             action,
             {
-              timeSpent: 5000, // 估計5秒學習時間
+              timeSpent: 5, // 學習時間 5秒
               isCorrect: true,
             }
           );
-          console.log("✅ 學習活動已記錄:", {
-            userId: user.id,
-            wordId,
-            action,
-          });
+          
+          console.log("✅ 學習活動記錄成功:", result);
         } catch (recordError) {
-          console.warn("記錄學習活動失敗:", recordError);
+          console.error("❌ 記錄學習活動失敗:", recordError);
+          console.error("錯誤詳情:", recordError.response?.data || recordError.message);
           // 即使記錄失敗也不影響本地進度更新
+        }
+      } else {
+        if (!user?.id) {
+          console.warn('⚠️ 用戶未登入，無法記錄學習活動');
+        }
+        if (action === "reset") {
+          console.log('🔄 重置操作，不記錄到後端');
         }
       }
 
