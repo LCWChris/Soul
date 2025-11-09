@@ -11,7 +11,8 @@ import {
   StyleSheet, 
   Alert, 
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+// 【修改 1/4：導入 useRouter】
+import { useLocalSearchParams, useRouter } from "expo-router"; 
 
 // 【修正點：從 '@/constants/api' 導入配置】
 import { API_CONFIG } from '@/constants/api'; 
@@ -29,6 +30,7 @@ const DEFAULT_LESSON = 1; // 預設課數
 
 // 【遊戲化：進度條組件】
 function ProgressBar({ current, total }) {
+  // ... (程式碼保持不變)
   const progress = Math.min(100, (current / total) * 100);
   return (
     <View style={s.progressBarContainer}>
@@ -39,17 +41,16 @@ function ProgressBar({ current, total }) {
 
 // 【檢查答案的輔助函數】
 function checkAnswer(question, userValue) {
+    // ... (程式碼保持不變)
     if (!question || !userValue || !question.answer) return false;
-    
-    // 將答案排序後比較，確保多選題順序不影響結果
     const user = Array.isArray(userValue) ? userValue.slice().sort() : [userValue].slice().sort();
     const correct = Array.isArray(question.answer) ? question.answer.slice().sort() : [question.answer].slice().sort();
-    
     return JSON.stringify(user) === JSON.stringify(correct);
 }
 
 // 【簡易評分】
 function gradeQuiz(quiz, answers) { 
+    // ... (程式碼保持不變)
     let correct = 0; 
     const gradable = quiz.questions.filter((q) => !["video_response", "hotspot"].includes(q.type)); 
     for (const q of gradable) { 
@@ -62,29 +63,71 @@ function gradeQuiz(quiz, answers) {
     return { correct, total, score }; 
 } 
 
+// 【新增 2/4：結算畫面組件】
+function QuizResults({ results, onRetry, onReturn }) {
+    return (
+        <View style={s.resultsContainer}>
+            <Text style={s.resultsTitle}>測驗完成！</Text>
+            
+            {/* 顯示分數 */}
+            <Text style={s.resultsScore}>{results.score} 分</Text>
+            
+            {/* 顯示答對題數 */}
+            <Text style={s.resultsDetails}>
+                (答對 {results.correct} / 總共 {results.total})
+            </Text>
+            
+            {/* 按鈕：重新測驗 */}
+            <Pressable 
+                style={[s.btn, s.btnPrimary, { width: '80%', marginTop: 20 }]} 
+                onPress={onRetry}
+            >
+                <Text style={[s.btnTextLight, { textAlign: 'center' }]}>重新測驗</Text>
+            </Pressable>
+
+            {/* 按鈕：返回 */}
+            <Pressable 
+                style={[s.btn, { width: '80%', marginTop: 12 }]} 
+                onPress={onReturn}
+            >
+                <Text style={[s.btnTextDark, { textAlign: 'center' }]}>返回</Text>
+            </Pressable>
+        </View>
+    );
+}
+
 
 // =========================================================
 // ===== 主要畫面 (QuizScreen) =====
 // =========================================================
 export default function QuizScreen() {
+    // 【修改 3/4：加入 router 和 results 狀態】
+    const router = useRouter(); // 用於導航
     const params = useLocalSearchParams();
+    
     // 獲取路由參數，若無則使用預設值
-    const quizVolume = params.volume ? Number(params.volume) : DEFAULT_VOLUME;
+    const quizVolume = params.volumeId ? Number(params.volumeId) : DEFAULT_VOLUME;
     const quizLesson = params.lessonId ? Number(params.lessonId) : DEFAULT_LESSON; 
     
     const [quiz, setQuiz] = useState(null);
     const [answers, setAnswers] = useState({});
     const [index, setIndex] = useState(0);
     const [loading, setLoading] = useState(true);
-
+    
     // 核心狀態：用於控制回饋顯示和跳轉
     const [isJumping, setIsJumping] = useState(false); 
     const [isCurrentCorrect, setIsCurrentCorrect] = useState(false); 
+
+    // 【新增】用於顯示結算畫面的狀態
+    const [results, setResults] = useState(null); 
 
     // —— 數據獲取 (Fetch API) ——
     useEffect(() => {
         const fetchQuizData = async () => {
             setLoading(true);
+            setResults(null); // 【新增】重置結算畫面
+            setIndex(0);      // 【新增】重置索引
+            setAnswers({});   // 【新增】重置答案
             
             // 構建 API URL: {BASE_URL}/api/quiz/{volume}/{lesson}
             const url = `${API_BASE_URL}/${quizVolume}/${quizLesson}`; 
@@ -92,25 +135,21 @@ export default function QuizScreen() {
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
-                    // 處理非 200 響應
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.json();
                 
-                // 檢查 API 是否回傳錯誤訊息 (例如 404)
                 if (data.error) {
                     throw new Error(data.error);
                 }
                 
                 setQuiz(data);
-                setAnswers({});
-                setIndex(0);
+                // (重置狀態已移到 try 之前)
             } catch (error) {
                 console.error("Failed to fetch quiz data:", error);
                 Alert.alert("載入失敗", `無法從伺服器獲取測驗數據: ${error.message}`);
                 setQuiz(null);
             } finally {
-                // 重設狀態
                 setIsJumping(false); 
                 setIsCurrentCorrect(false);
                 setLoading(false);
@@ -123,6 +162,7 @@ export default function QuizScreen() {
     const q = useMemo(() => quiz?.questions?.[index], [quiz, index]);
 
     // —— 核心：作答處理（立即評分並自動跳轉）——
+// —— 核心：作答處理（立即評分並自動跳轉）——
     const handleAnswerChange = (qid, val) => {
         if (isJumping) return; 
 
@@ -149,16 +189,21 @@ export default function QuizScreen() {
             
             // 延遲跳轉 (800 毫秒)
             setTimeout(() => {
+                // 【修改：檢查是否為最後一題】
                 setIndex((i) => {
                     const next = i + 1;
                     const totalQuestions = quiz?.questions?.length ?? 0;
+                    
                     if (next < totalQuestions) {
+                        // 情況 1：還沒到最後一題，正常跳轉
                         setIsJumping(false); 
                         setIsCurrentCorrect(false);
                         return next;
                     } else {
+                        // 情況 2：這就是最後一題，自動交卷！
+                        onSubmit(); // <-- 自動觸發提交
                         setIsJumping(false); 
-                        return i;
+                        return i; // 保持在當前索引 (結算畫面會覆蓋)
                     }
                 });
             }, 800); 
@@ -167,12 +212,14 @@ export default function QuizScreen() {
     
     // 換題時重設狀態
     useEffect(() => {
+        // ... (此函數保持不變)
         setIsJumping(false);
         setIsCurrentCorrect(false);
     }, [index]);
 
     // 判斷是否已作答 (用於啟用「下一題」按鈕)
     const hasAnswer = useMemo(() => {
+        // ... (此函數保持不變)
         if (!q) return false;
         if (isJumping) return true; 
 
@@ -182,15 +229,15 @@ export default function QuizScreen() {
 
     // 【手動處理非自動跳轉題型的點擊事件 (排序題/複選題確認)**】
     const handleManualNext = () => {
+        // ... (此函數保持不變)
         if (isJumping) return;
         if (!q || !hasAnswer) return;
 
         const correct = checkAnswer(q, answers[q.id]);
         
         setIsCurrentCorrect(correct);
-        setIsJumping(true); // 進入跳轉/回饋階段
+        setIsJumping(true); 
 
-        // 延遲跳轉 (800 毫秒)
         setTimeout(() => {
             setIndex((i) => {
                 const next = i + 1;
@@ -225,14 +272,38 @@ export default function QuizScreen() {
         ); 
     } 
 
+    // 【修改 3/4：修改 onSubmit 函數】
     const onSubmit = () => { 
         const { score, correct, total } = gradeQuiz(quiz, answers); 
-        Alert.alert("完成！", `分數：${score} 分（${correct}/${total}）`); 
+        // Alert.alert("完成！", `分數：${score} 分（${correct}/${total}）`); // <-- 移除 Alert
+        setResults({ score, correct, total }); // <-- 改為設定 results 狀態
     }; 
+
+    // 【修改 3/4：在 return 前加入結算畫面判斷】
+    if (results) {
+        return (
+            <QuizResults 
+                results={results}
+                onRetry={() => {
+                    // 重設狀態以重新開始
+                    setResults(null);
+                    setIndex(0);
+                    setAnswers({});
+                    setIsJumping(false);
+                    setIsCurrentCorrect(false);
+                }}
+                onReturn={() => {
+                    // 返回上一頁
+                    router.back(); 
+                }}
+            />
+        );
+    }
 
     // 判斷是否為需要手動點擊的題型 (排序題或複選題)
     const needsManualNext = (q.type === "order" || q.type === "multi_select");
 
+    // (原有的 return 邏輯保持不變)
     return (
         <View style={s.page}>
             <View style={s.header}>
@@ -242,11 +313,9 @@ export default function QuizScreen() {
                 </Text>
             </View>
             
-            {/* 遊戲化：進度條 */}
             <ProgressBar current={index + 1} total={quiz.questions.length} /> 
 
             <ScrollView style={s.body} contentContainerStyle={{ paddingBottom: 24 }}>
-                {/* 渲染圖片 (使用 contain 確保圖片完整顯示) */}
                 {!!q?.media?.image && (
                     <Image 
                         source={{ uri: q.media.image }} 
@@ -256,7 +325,6 @@ export default function QuizScreen() {
                 )}
                 <Text style={s.prompt}>{q?.prompt}</Text>
                 
-                {/* 遊戲化：顯示答對/答錯星星圖標 (只有在跳轉期間顯示) */}
                 {isJumping && (
                     <View style={{ paddingBottom: 10, alignItems: 'center' }}>
                         <Text style={s.feedbackText}>
@@ -273,7 +341,7 @@ export default function QuizScreen() {
                 />
             </ScrollView>
 
-            <View style={s.footer}>
+<View style={s.footer}>
                 <Pressable 
                     style={[s.btn, index === 0 && s.btnDisabled]} 
                     onPress={() => setIndex((i) => Math.max(0, i - 1))}
@@ -282,9 +350,11 @@ export default function QuizScreen() {
                     <Text style={s.btnTextDark}>上一題</Text>
                 </Pressable>
 
+                {/* 【修改：頁腳的顯示邏輯】 */}
                 {index < quiz.questions.length - 1 ? (
-                    // 只有需要手動跳轉的題型才會渲染「下一題」按鈕
+                    // 情況 1：還沒到最後一題
                     needsManualNext ? (
+                        // 1a: 手動題型，顯示「下一題」
                         <Pressable
                             style={[s.btn, s.btnPrimary, (!hasAnswer || isJumping) && s.btnDisabled]}
                             onPress={handleManualNext}
@@ -293,16 +363,24 @@ export default function QuizScreen() {
                             <Text style={s.btnTextLight}>下一題 </Text>
                         </Pressable>
                     ) : (
-                        <View /> // 自動跳轉題型不顯示按鈕
+                        // 1b: 自動題型，不顯示按鈕
+                        <View /> 
                     )
                 ) : (
-                    <Pressable 
-                        style={[s.btn, s.btnSuccess, (!hasAnswer || isJumping) && s.btnDisabled]} 
-                        onPress={onSubmit}
-                        disabled={!hasAnswer || isJumping}
-                    >
-                        <Text style={s.btnTextLight}>交卷</Text>
-                    </Pressable>
+                    // 情況 2：已經是最後一題
+                    needsManualNext ? (
+                        // 2a: 手動題型 (如排序題)，顯示「交卷」
+                        <Pressable 
+                            style={[s.btn, s.btnSuccess, (!hasAnswer || isJumping) && s.btnDisabled]} 
+                            onPress={onSubmit}
+                            disabled={!hasAnswer || isJumping}
+                        >
+                            <Text style={s.btnTextLight}>交卷</Text>
+                        </Pressable>
+                    ) : (
+                        // 2b: 自動題型 (它會自動提交)，不顯示按鈕
+                        <View />
+                    )
                 )}
             </View>
         </View>
@@ -313,6 +391,7 @@ export default function QuizScreen() {
 // ===== 題型渲染器 (QuestionRenderer) =====
 // =========================================================
 function QuestionRenderer({ q, value, onChange, isJumping }) {
+    // ... (此組件程式碼保持不變)
     if (!q) return null;
 
     const isCorrectOption = (optId) => q.answer && q.answer.includes(optId);
@@ -330,9 +409,7 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
                         let icon = null;
 
                         if (isJumping) {
-                            // 正在跳轉中，顯示正確/錯誤回饋
                             const isCorrectAns = isCorrectOption(opt.id);
-
                             if (selected) {
                                 cardStyle.push(isCorrectAns ? s.cardCorrect : s.cardWrong);
                                 icon = isCorrectAns ? '✅' : '❌'; 
@@ -360,7 +437,7 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
                                 key={opt.id}
                                 style={cardStyle}
                                 onPress={onPressHandler} 
-                                disabled={isJumping} // 跳轉期間禁用點擊
+                                disabled={isJumping}
                             >
                                 <Text style={s.cardText}>{opt.label}</Text>
                                 {icon && <Text style={s.feedbackIcon}>{icon}</Text>}
@@ -371,18 +448,14 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
             );
         case "image_select":
             return (
-                <View style={s.imageSelectContainer}> // 新增一個容器樣式
+                <View style={s.imageSelectContainer}>
                     {q.options?.map((opt) => {
-                        // 圖片選項的處理邏輯
                         const selected = Array.isArray(value) && value.includes(opt.id);
-                        
-                        let cardStyle = [s.imageOptionCard]; // 圖片選項卡樣式
+                        let cardStyle = [s.imageOptionCard];
                         let icon = null;
 
                         if (isJumping) {
-                            // 正在跳轉中，顯示正確/錯誤回饋
                             const isCorrectAns = isCorrectOption(opt.id);
-
                             if (selected) {
                                 cardStyle.push(isCorrectAns ? s.cardCorrect : s.cardWrong);
                                 icon = isCorrectAns ? '✅' : '❌'; 
@@ -395,7 +468,6 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
                         }
                         
                         const onPressHandler = () => {
-                            // 圖片選擇題型為單選題
                             onChange([opt.id]); 
                         };
                         
@@ -404,14 +476,13 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
                                 key={opt.id}
                                 style={cardStyle}
                                 onPress={onPressHandler} 
-                                disabled={isJumping} // 跳轉期間禁用點擊
+                                disabled={isJumping}
                             >
-                                {/* 圖片選項的主體渲染 */}
                                 {!!opt?.media?.image && (
                                     <Image 
                                         source={{ uri: opt.media.image }} 
-                                        style={s.imageOptionImage} // 圖片樣式
-                                        resizeMode="cover" // 這裡使用 cover 確保圖片充滿選項卡
+                                        style={s.imageOptionImage} 
+                                        resizeMode="cover" 
                                     />
                                 )}
                                 {icon && <Text style={s.feedbackIcon}>{icon}</Text>}
@@ -469,9 +540,10 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
 
 
 // =========================================================
-// ===== 樣式 (StyleSheet) (保持不變) =====
+// ===== 樣式 (StyleSheet) =====
 // =========================================================
 const s = StyleSheet.create({
+    // ... (所有舊樣式保持不變)
     page: { flex: 1, backgroundColor: "#fff" },
     header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
     headerTitle: { fontSize: 20, fontWeight: "700", color: "#1E3A8A" },
@@ -526,21 +598,20 @@ const s = StyleSheet.create({
     btnTextLight: { color: "#fff", fontWeight: "700" }, 
     btnTextDark: { color: "#111827", fontWeight: "700" }, 
     imageSelectContainer: {
-        // 使用 flex wrap 讓選項圖片兩兩排列
         flexDirection: 'row',
         flexWrap: 'wrap',
-        justifyContent: 'space-between', // 讓圖片選項間有空隙
+        justifyContent: 'space-between',
         marginBottom: 10,
     },
     imageOptionCard: { 
-        width: '48%', // 兩欄佈局
-        aspectRatio: 1, // 正方形圖片
+        width: '48%', 
+        aspectRatio: 1, 
         borderRadius: 12, 
         borderWidth: 2, 
         borderColor: "#E5E7EB", 
         backgroundColor: "#fff", 
         marginBottom: 16, 
-        overflow: 'hidden', // 確保圖片在邊框內
+        overflow: 'hidden', 
     },
     imageOptionImage: {
         width: '100%',
@@ -549,4 +620,35 @@ const s = StyleSheet.create({
 
     center: { flex: 1, alignItems: "center", justifyContent: "center" }, 
     muted: { color: "#6B7280", marginTop: 6 }, 
+
+    // 【新增 4/4：結算畫面的樣式】
+    resultsContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+        backgroundColor: '#fff',
+    },
+    resultsTitle: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#1E3A8A', // 深藍色
+        marginBottom: 12,
+    },
+    resultsScore: {
+        fontSize: 64,
+        fontWeight: '800',
+        color: '#3B82F6', // 主題藍色
+        marginBottom: 8,
+    },
+    resultsDetails: {
+        fontSize: 18,
+        color: '#6B7280', // 灰色
+        marginBottom: 30,
+    },
+    title: { // (您原本的 !quiz 畫面有用到，但未定義)
+        fontSize: 20, 
+        fontWeight: 'bold', 
+        color: '#111827'
+    }
 });
