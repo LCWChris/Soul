@@ -148,8 +148,10 @@ LearningProgressSchema.statics.recordLearningActivity = async function(userId, w
       }
     }
     
-    // 更新學習時間
-    progress.stats.totalStudyTime += Math.round(timeSpent / 60); // 轉為分鐘
+    // 更新學習時間(timeSpent 是秒數,stats.totalStudyTime 存儲分鐘數)
+    const timeSpentInMinutes = timeSpent / 60;
+    progress.stats.totalStudyTime += timeSpentInMinutes;
+    console.log(`⏱️ 更新學習時間: +${timeSpent}秒 (${timeSpentInMinutes.toFixed(2)}分鐘), 累計: ${progress.stats.totalStudyTime.toFixed(2)}分鐘`);
     
     // 更新連續學習天數
     const today = new Date();
@@ -188,7 +190,18 @@ LearningProgressSchema.statics.getUserStats = async function(userId) {
     
     for (const learnedWord of progress.learnedWords) {
       if (learnedWord.wordId && learnedWord.wordId.categories) {
-        for (const category of learnedWord.wordId.categories) {
+        // 過濾無效的分類值
+        const validCategories = (learnedWord.wordId.categories || []).filter(category => 
+          category && 
+          typeof category === 'string' && 
+          category.trim() !== '' &&
+          category !== 'NaN' &&
+          category !== 'null' &&
+          category !== 'undefined' &&
+          !category.match(/^[\s\[\]'"]*$/)
+        );
+        
+        for (const category of validCategories) {
           if (!categoryStats[category]) {
             categoryStats[category] = { learned: 0, mastered: 0 };
           }
@@ -201,12 +214,20 @@ LearningProgressSchema.statics.getUserStats = async function(userId) {
       
       if (learnedWord.wordId && learnedWord.wordId.learning_level) {
         const level = learnedWord.wordId.learning_level;
-        if (!levelStats[level]) {
-          levelStats[level] = { learned: 0, mastered: 0 };
-        }
-        levelStats[level].learned += 1;
-        if (learnedWord.masteredAt) {
-          levelStats[level].mastered += 1;
+        // 過濾無效的等級值
+        if (level && 
+            typeof level === 'string' && 
+            level.trim() !== '' &&
+            level !== 'NaN' &&
+            level !== 'null' &&
+            level !== 'undefined') {
+          if (!levelStats[level]) {
+            levelStats[level] = { learned: 0, mastered: 0 };
+          }
+          levelStats[level].learned += 1;
+          if (learnedWord.masteredAt) {
+            levelStats[level].mastered += 1;
+          }
         }
       }
     }

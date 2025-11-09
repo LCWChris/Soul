@@ -134,7 +134,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
             wordId, 
             action, 
             {
-              timeSpent: 8000, // 估計8秒詳情頁學習時間
+              timeSpent: 8, // 詳情頁學習時間 8秒
               isCorrect: true
             }
           );

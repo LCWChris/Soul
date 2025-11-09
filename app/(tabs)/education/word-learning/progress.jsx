@@ -17,7 +17,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from './MaterialYouTheme';
 import MaterialTopAppBar from './components/MaterialTopAppBar';
-import AchievementModal from './components/AchievementModal';
 import { VocabularyService } from './services/VocabularyService';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -28,7 +27,6 @@ const ProgressScreen = () => {
   const [progressData, setProgressData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAchievements, setShowAchievements] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -41,12 +39,12 @@ const ProgressScreen = () => {
       setLoading(true);
       setError(null);
       
-      // 暫時使用 test-user 來測試功能，因為我們的測試數據是用這個 userId
-      const testUserId = 'test-user';
-      console.log('🔍 載入統計數據，使用 userId:', testUserId);
+      // 使用真實的用戶 ID
+      const userId = user?.id || 'test-user';
+      console.log('🔍 載入統計數據，使用 userId:', userId);
       
       // 獲取用戶學習統計
-      const stats = await VocabularyService.getUserLearningStats(testUserId);
+      const stats = await VocabularyService.getUserLearningStats(userId);
       console.log('📊 獲取到的統計數據:', stats);
       setProgressData(stats);
       
@@ -76,13 +74,7 @@ const ProgressScreen = () => {
           { name: 'intermediate', displayName: '進階', total: 500, learned: 150, percentage: 30 },
           { name: 'advanced', displayName: '熟練', total: 300, learned: 50, percentage: 17 },
         ],
-        recentActivity: [
-          { date: '今天', wordsLearned: 12, timeSpent: 25 },
-          { date: '昨天', wordsLearned: 15, timeSpent: 30 },
-          { date: '2天前', wordsLearned: 8, timeSpent: 18 },
-          { date: '3天前', wordsLearned: 20, timeSpent: 35 },
-          { date: '4天前', wordsLearned: 10, timeSpent: 22 },
-        ]
+        recentActivity: [] // 使用空數組,顯示"還沒有學習記錄"
       };
       setProgressData(mockProgress);
     } finally {
@@ -190,16 +182,6 @@ const ProgressScreen = () => {
                 />
               </View>
             </View>
-            
-            {/* 成就按鈕 */}
-            <TouchableOpacity 
-              style={styles.achievementButton}
-              onPress={() => setShowAchievements(true)}
-            >
-              <Ionicons name="trophy" size={20} color={MaterialYouTheme.secondary.secondary40} />
-              <Text style={styles.achievementButtonText}>查看成就</Text>
-              <Ionicons name="chevron-forward" size={16} color={MaterialYouTheme.neutral.neutral50} />
-            </TouchableOpacity>
           </ProgressCard>
 
           {/* 級別進度 */}
@@ -237,27 +219,29 @@ const ProgressScreen = () => {
 
           {/* 最近活動 */}
           <ProgressCard title="最近活動">
-            {progressData.recentActivity.map((activity, index) => (
-              <View key={index} style={styles.activityItem}>
-                <Text style={styles.activityDate}>{activity.date}</Text>
-                <View style={styles.activityStats}>
-                  <Text style={styles.activityStat}>
-                    📚 {activity.wordsLearned} 個單詞
-                  </Text>
-                  <Text style={styles.activityStat}>
-                    ⏰ {activity.timeSpent} 分鐘
-                  </Text>
+            {progressData.recentActivity && progressData.recentActivity.length > 0 ? (
+              progressData.recentActivity.map((activity, index) => (
+                <View key={index} style={styles.activityItem}>
+                  <Text style={styles.activityDate}>{activity.date}</Text>
+                  <View style={styles.activityStats}>
+                    <Text style={styles.activityStat}>
+                      📚 {activity.wordsLearned} 個單詞
+                    </Text>
+                    <Text style={styles.activityStat}>
+                      ⏰ {activity.timeSpent} 分鐘
+                    </Text>
+                  </View>
                 </View>
+              ))
+            ) : (
+              <View style={styles.emptyActivityContainer}>
+                <Ionicons name="calendar-outline" size={48} color={MaterialYouTheme.neutral.neutral70} />
+                <Text style={styles.emptyActivityText}>還沒有學習記錄</Text>
+                <Text style={styles.emptyActivitySubtext}>開始學習單詞來建立你的學習歷程吧!</Text>
               </View>
-            ))}
+            )}
           </ProgressCard>
         </ScrollView>
-        
-        {/* 成就模態框 */}
-        <AchievementModal
-          visible={showAchievements}
-          onClose={() => setShowAchievements(false)}
-        />
       </SafeAreaView>
     </LinearGradient>
   );
@@ -429,23 +413,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: Spacing.sm,
   },
-  achievementButton: {
-    flexDirection: 'row',
+  emptyActivityContainer: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    marginTop: Spacing.md,
-    backgroundColor: MaterialYouTheme.secondary.secondary95,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: MaterialYouTheme.secondary.secondary90,
+    paddingVertical: Spacing.xl * 2,
   },
-  achievementButtonText: {
-    ...Typography.labelLarge,
-    color: MaterialYouTheme.secondary.secondary30,
-    flex: 1,
-    marginLeft: Spacing.sm,
+  emptyActivityText: {
+    ...Typography.titleMedium,
+    color: MaterialYouTheme.neutral.neutral40,
+    marginTop: Spacing.md,
+  },
+  emptyActivitySubtext: {
+    ...Typography.bodySmall,
+    color: MaterialYouTheme.neutral.neutral60,
+    marginTop: Spacing.xs,
+    textAlign: 'center',
   },
 });
 
