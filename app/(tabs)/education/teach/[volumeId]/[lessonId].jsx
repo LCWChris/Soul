@@ -203,13 +203,33 @@ const isLoading = !data && !error;
               )}
             </View>
 
-            {/* ===== 開始測驗 ===== */}
+{/* ===== 開始測驗 ===== */}
             <Pressable
               style={styles.quizBtn}
               onPress={() => {
-                if (!lessonId) return;
-                router.push({ pathname: '/education/quiz' });
+                // 1. 檢查教材資料 (data) 是否已載入
+                //    data.lesson 才是「真實的課數」 (例如 1, 2, 5...)
+                if (!data || data.lesson === undefined) {
+                  console.error("錯誤：教材資料尚未載入，無法取得真實課數");
+                  return;
+                }
+
+                // 2. 檢查 'volumeId' (來自 useLocalSearchParams) 是否存在
+                if (!volumeId) {
+                  console.error("錯誤：在 URL 中找不到 volumeId");
+                  return;
+                }
+
+                // 3. 取得「真實課數」
+                const realLessonNum = data.lesson; //
+
+                // 4. 導航到「動態」的測驗路由
+                console.log(`導航到 /education/quiz/${volumeId}/${realLessonNum}`);
+                router.push(`/education/quiz/${volumeId}/${realLessonNum}`);
               }}
+              
+              // 5. 【建議】在資料載入完成前，按鈕應為不可點擊狀態
+              disabled={!data || data.lesson === undefined}
             >
               <Text style={styles.quizBtnText}>開始測驗</Text>
             </Pressable>
