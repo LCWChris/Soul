@@ -17,7 +17,7 @@ import {
   Spacing,
   Typography,
 } from "../../themes/MaterialYouTheme";
-import { VocabularyService } from "../services/VocabularyService";
+import { VocabularyService } from "../../../api";
 
 const AchievementModal = ({ visible, onClose }) => {
   const { user } = useUser();

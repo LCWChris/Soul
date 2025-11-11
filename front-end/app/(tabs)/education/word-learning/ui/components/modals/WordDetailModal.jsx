@@ -27,7 +27,7 @@ import {
   Spacing,
   Typography,
 } from "../../themes/MaterialYouTheme";
-import VocabularyService from "../services/VocabularyService";
+import { VocabularyService } from "../../../api";
 import LearningStatusSelector from "./LearningStatusSelector";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
