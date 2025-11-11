@@ -17,7 +17,7 @@ import {
   Spacing,
   Typography,
 } from "../../themes/MaterialYouTheme";
-import LearningProgressIndicator from "./LearningProgressIndicator";
+import LearningProgressIndicator from "../progress/LearningProgressIndicator";
 
 const VocabularyCard = React.memo(
   ({
