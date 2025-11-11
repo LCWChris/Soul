@@ -8,9 +8,9 @@ from pathlib import Path
 import os
 import signal
 
-# 設定路徑
+# 設定路徑（已改為 monorepo 結構下的 translation-end/backend）
 BASE_DIR = Path(__file__).resolve().parent
-FASTAPI_DIR = BASE_DIR / "app" / "(tabs)" / "translation" / "backend"
+FASTAPI_DIR = BASE_DIR / "backend"
 
 # 服務設定
 FASTAPI_APP = "main:app"

@@ -19,7 +19,7 @@ export default function RootLayout() {
     <ClerkProvider tokenCache={tokenCache} publishableKey={publishableKey}>
       <SafeAreaProvider>
         <SafeAreaView style={{ flex: 1 }}>
-          <PaperProvider>
+          <PaperProvider>  
             <StatusBar style="dark" />
             <InitialLayout />
           </PaperProvider>

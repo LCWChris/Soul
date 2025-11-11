@@ -1,3 +1,73 @@
+# Soul Monorepo Split
+
+此專案已重構為三個子資料夾（monorepo）：
+
+```
+repo-root/
+   front-end/          Expo (React Native) 前端 – 只有上架到 App 的程式碼
+   back-end/           Node.js Express API 與 MongoDB
+   translation-end/    Python FastAPI 手語翻譯服務
+```
+
+前端打包（EAS）只需在 `front-end/` 下運行；後端兩個服務獨立部署（Render 或其他）。
+
+## Front-end (Expo)
+位置：`front-end/`
+- 設定：`front-end/app.json`, `front-end/eas.json`
+- 環境變數：`front-end/.env`（只放 `EXPO_PUBLIC_*`）
+
+本機啟動：
+```powershell
+cd front-end
+npm install
+npx expo start
+```
+
+EAS 打包（Android APK）：
+```powershell
+cd front-end
+eas build --platform android --profile production
+```
+
+## Back-end (Node.js)
+位置：`back-end/server/`
+- 範例環境檔：`back-end/.env.sample`（複製為 `.env`）
+```powershell
+cd back-end/server
+npm install
+node server.js
+```
+
+## Translation-end (FastAPI)
+位置：`translation-end/backend/`
+```powershell
+cd translation-end
+pip install -r requirements.txt
+python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+```
+或：
+```powershell
+python translation_server.py
+```
+
+## Dev 啟動器（ngrok）
+`back-end/dev_server.py` 會：
+1) 啟動 `translation-end/backend`（FastAPI）
+2) 啟動 `back-end/server`（Node）
+3) 建立 ngrok 隧道
+4) 自動更新 `front-end/.env` 的動態 URL
+
+```powershell
+cd back-end
+python dev_server.py
+```
+更新後請回到 `front-end/` 重啟 Expo 以載入最新 `.env`。
+
+## 環境變數原則
+- `front-end/.env` 只放 `EXPO_PUBLIC_*` 公開鍵值（例如 API Base、Clerk publishable key）。
+- 後端密鑰（DB URI、Cloudinary Secret、Clerk Webhook Secret）放在 `back-end/.env` 或部署平台的秘密管理。
+
+---
 # Welcome to your Expo app 👋
 
 這是從頭開始的資料優，按照下面的指示操作~

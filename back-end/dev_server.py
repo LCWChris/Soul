@@ -8,10 +8,13 @@ import os
 import signal
 import sys
 
-# 設定路徑
-BASE_DIR = Path(__file__).resolve().parent
-ENV_PATH = BASE_DIR / ".env"
-FASTAPI_DIR = BASE_DIR / "app" / "(tabs)" / "translation" / "backend"
+# 設定路徑（monorepo 結構）
+BASE_DIR = Path(__file__).resolve().parent  # back-end/
+# 將 Expo 的 .env 放在 front-end/.env，便於前端直接讀取
+ENV_PATH = BASE_DIR.parent / "front-end" / ".env"
+# 翻譯服務已移動到 translation-end/backend
+FASTAPI_DIR = BASE_DIR.parent / "translation-end" / "backend"
+# Node 服務位於 back-end/server
 SERVER_DIR = BASE_DIR / "server"
 
 # 服務設定
@@ -82,7 +85,7 @@ try:
     print(f"🗄️  Node.js (資料庫/Webhook): {node_url}")
     print(f"🔗 Webhook URL: {node_url}/api/webhook")
     print("=" * 60)
-    print("💡 請重新啟動 Expo (npx expo start -c) 以載入最新 .env")
+    print("💡 已更新 front-end/.env，請在 front-end 目錄重新啟動 Expo (npx expo start -c) 以載入最新 .env")
     print("按 Ctrl+C 停止所有服務")
 
 except Exception as e:
