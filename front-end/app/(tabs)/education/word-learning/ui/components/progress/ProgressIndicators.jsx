@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, ColorUtils } from '../themes/MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, ColorUtils } from '../../themes/MaterialYouTheme';
 
 const { width: screenWidth } = Dimensions.get('window');
 

@@ -11,7 +11,7 @@ import {
   Pressable 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../themes/MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 
 /**
  * Material You 3.0 風格按鈕組件

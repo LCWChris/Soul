@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import { useUser } from '@clerk/clerk-expo';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../themes/MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 import { toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
 import LearningStatusSelector from './LearningStatusSelector';
 import { updateWordProgress, getWordProgress, LEARNING_STATUS } from '@/utils/learning-progress';

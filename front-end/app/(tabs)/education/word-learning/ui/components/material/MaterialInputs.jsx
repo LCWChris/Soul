@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../themes/MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 
 /**
  * Material You 風格文字輸入框

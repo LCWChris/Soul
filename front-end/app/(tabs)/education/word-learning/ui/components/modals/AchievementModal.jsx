@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../themes/MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../../themes/MaterialYouTheme';
 import { VocabularyService } from '../services/VocabularyService';
 
 const AchievementModal = ({ visible, onClose }) => {

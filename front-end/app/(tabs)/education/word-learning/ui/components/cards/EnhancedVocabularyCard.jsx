@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../themes/MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../../themes/MaterialYouTheme';
 // import LearningProgressIndicator from './LearningProgressIndicator'; // 暫時註解掉
 
 const { width: screenWidth } = Dimensions.get('window');
