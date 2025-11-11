@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme } from '../MaterialYouTheme';
+import { MaterialYouTheme } from '../themes/MaterialYouTheme';
 import { LEARNING_STATUS } from '@/utils/learning-progress';
 
 const LearningProgressIndicator = ({ status, onPress, size = 'medium' }) => {

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { API_CONFIG } from '@/constants/api';
 import axios from 'axios';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../themes/MaterialYouTheme';
 
 const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selectedCategory, selectedLearningLevel }) => {
   const [categories, setCategories] = useState([]);

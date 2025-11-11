@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../themes/MaterialYouTheme';
 import { useLearningTracking } from '../hooks/useLearningTracking';
 
 const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {

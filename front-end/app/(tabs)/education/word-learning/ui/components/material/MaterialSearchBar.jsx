@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Animated
 } from 'react-native';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../themes/MaterialYouTheme';
 
 const MaterialSearchBar = ({ 
   placeholder = "搜尋單詞...", 

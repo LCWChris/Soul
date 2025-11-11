@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../themes/MaterialYouTheme';
 import { getWordStats } from '@/utils/word-stats';
 
 const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyLevel, selectedLearningStatus }) => {
