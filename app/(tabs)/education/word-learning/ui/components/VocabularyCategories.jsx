@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { API_CONFIG } from '@/constants/api';
 import axios from 'axios';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../themes/MaterialYouTheme';
 
 const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selectedCategory, selectedLearningLevel }) => {
   const [categories, setCategories] = useState([]);
@@ -30,19 +30,19 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
     try {
       setLoading(true);
       setError(null);
-      console.log('🏷️ 正在獲取分類數據...');
+      console.log('正在獲取分類資料...');
       const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`, {
         headers: {
           'ngrok-skip-browser-warning': 'true'
         }
       });
       const data = response.data;
-      console.log('🏷️ 分類數據獲取成功:', data);
+      console.log('獲取到的分類資料:', data);
       
       setCategories(data.categories || []);
       setLearningLevels(data.learning_levels || []);
       setVolumes(data.volumes || []);
-      console.log('🏷️ 已設定分類:', data.categories?.length || 0, '個');
+      console.log('分類已設定，共', data.categories?.length || 0, '個');
       setRetryCount(0); // 重置重試計數
     } catch (error) {
       console.error('獲取分類失敗:', error);
@@ -67,32 +67,32 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
 
   const getLearningLevelDisplayName = (level) => {
     const levelMap = {
-      'beginner': '🟢 初學者',
-      'intermediate': '🟡 進階者',
-      'advanced': '🔴 熟練者'
+      'beginner': '初級 - 入門者',
+      'intermediate': '中級 - 進階者',
+      'advanced': '高級 - 熟練者'
     };
     return levelMap[level] || level;
   };
 
   const getCategoryIcon = (categoryName) => {
     const iconMap = {
-      '生活用語': '🏠',
-      '情感表達': '💭',
+      '日常生活': '🏠',
+      '情緒表達': '😊',
       '動作描述': '🏃‍♂️',
-      '物品名稱': '📱',
-      '其他': '🔤',
-      // 兼容舊的分類名稱
-      '家庭生活': '🏠',
-      '日常動作': '🏃‍♂️',
-      '數字時間': '🕐',
-      '動物自然': '🦁',
-      '人物關係': '👥',
-      '食物飲品': '🍽️',
+      '物品名稱': '📦',
+      '其他': '📚',
+      // 容許更多類別名稱
+      '家庭生活': '👨‍👩‍👧',
+      '常用動詞': '🏃‍♂️',
+      '學校教育': '🎓',
+      '動物自然': '🌳',
+      '人物稱呼': '👥',
+      '食物飲料': '🍎',
       '身體健康': '💪',
-      '地點場所': '📍',
-      '物品工具': '📱'
+      '休閒娛樂': '🎮',
+      '工作工具': '🔧'
     };
-    return iconMap[categoryName] || '📝';
+    return iconMap[categoryName] || '📖';
   };
 
   if (loading) {
@@ -100,7 +100,7 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563EB" />
         <Text style={styles.loadingText}>
-          {retryCount > 0 ? `重試中 (${retryCount}/2)...` : '載入分類中...'}
+          {retryCount > 0 ? `重試中(${retryCount}/2)...` : '載入分類中...'}
         </Text>
       </View>
     );
@@ -110,7 +110,7 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
     return (
       <View style={styles.errorContainer}>
         <View style={styles.errorIconContainer}>
-          <Text style={styles.errorIcon}>😔</Text>
+          <Text style={styles.errorIcon}>⚠️</Text>
         </View>
         <Text style={styles.errorTitle}>載入失敗</Text>
         <Text style={styles.errorMessage}>{error}</Text>
@@ -121,13 +121,13 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
     );
   }
 
-  // 如果沒有分類數據，顯示提示
+  // 如果沒有任何分類，顯示空狀態
   if (!categories || categories.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIcon}>📚</Text>
+        <Text style={styles.emptyIcon}>📭</Text>
         <Text style={styles.emptyTitle}>暫無分類</Text>
-        <Text style={styles.emptyMessage}>正在載入分類數據...</Text>
+        <Text style={styles.emptyMessage}>無法載入分類資料...</Text>
       </View>
     );
   }
@@ -138,10 +138,10 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
       contentContainerStyle={Platform.OS === 'web' ? { flexGrow: 1 } : {}}
       showsVerticalScrollIndicator={false}
     >
-      {/* 主題分類選擇 */}
+      {/* 主要分類選擇 */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>主題分類</Text>
-        <Text style={styles.sectionSubtitle}>選擇感興趣的學習主題</Text>
+        <Text style={styles.sectionTitle}>主要分類</Text>
+        <Text style={styles.sectionSubtitle}>選擇您想學習的主題</Text>
         <View style={styles.categoryGrid}>
           {categories
             .filter(category => category && category.trim() !== '' && category !== ' ')
@@ -176,7 +176,7 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
         </View>
       </View>
 
-      {/* 清除篩選器 */}
+      {/* 清除篩選按鈕 */}
       {(selectedCategory || selectedLearningLevel) && (
         <View style={styles.section}>
           <TouchableOpacity

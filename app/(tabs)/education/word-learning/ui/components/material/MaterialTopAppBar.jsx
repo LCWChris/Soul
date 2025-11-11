@@ -1,20 +1,20 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Platform, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme, Typography, Spacing, Elevation } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, Elevation } from '../../themes/MaterialYouTheme';
 
-// 計算 iPhone 型號的安全頂部間距
+// 計�? iPhone ?��圖標��圖標��圖標��?�?
 const getTopSafeAreaPadding = (isMainScreen = false) => {
   if (Platform.OS === 'ios') {
     const { height, width } = Dimensions.get('window');
-    // 主屏幕（分類選擇）使用更小的間距
+    // 主�?幕�圖標��圖標��?）使?�更小�圖標��?
     if (isMainScreen) {
-      if (height >= 926 || width >= 926) return 5; // 動態島機型：從20減少到5
-      if (height >= 812 || width >= 812) return 3; // 劉海機型：從15減少到3
-      return 2; // 其他 iPhone：從10減少到2
+      if (height >= 926 || width >= 926) return 5; // ?��?島�圖標��?�?0減�圖標?
+      if (height >= 812 || width >= 812) return 3; // ?�海機�?：�?15減�圖標?
+      return 2; // ?��? iPhone：�?10減�圖標?
     }
-    // 其他頁面使用正常間距
+    // ?��圖標�面使用�?��?��?
     if (height >= 926 || width >= 926) return 35;
     if (height >= 812 || width >= 812) return 30;
     return 25;
@@ -30,7 +30,7 @@ const MaterialTopAppBar = ({
   actions = [], 
   variant = 'small',
   onBackPress,
-  isMainScreen = false // 新參數：是否為主屏幕（分類選擇階段）
+  isMainScreen = false // ?��圖標��圖標�否?�主屏�?（�?類選?��?段�?
 }) => {
   const router = useRouter();
 
@@ -54,7 +54,7 @@ const MaterialTopAppBar = ({
       }
     })();
     
-    // 加上安全間距（根據是否為主屏幕調整）
+    // ?��?安全?��?（根?�是?�為主�?幕調?��?
     return baseHeight + getTopSafeAreaPadding(isMainScreen);
   };
 
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
     paddingHorizontal: Spacing.sm,
-    paddingTop: Spacing.sm, // 這裡會被動態覆蓋
+    paddingTop: Spacing.sm, // ?�裡?�被?��?覆�?
     justifyContent: 'flex-end',
     elevation: 0,
     borderBottomWidth: 1,

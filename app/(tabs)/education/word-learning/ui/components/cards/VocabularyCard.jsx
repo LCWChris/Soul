@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
+﻿import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../MaterialYouTheme';
-import LearningProgressIndicator from './LearningProgressIndicator';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../../themes/MaterialYouTheme';
+import LearningProgressIndicator from '../progress/LearningProgressIndicator';
 
 const VocabularyCard = React.memo(({ 
   word, 
@@ -16,11 +16,11 @@ const VocabularyCard = React.memo(({
   onPress,
   style,
   image_url,
-  imageUrl, // 支援多種命名格式
+  imageUrl, // 支援多種屬性名稱
   video_url,
-  videoUrl, // 支援多種命名格式
-  learningStatus, // 新增學習狀態
-  onProgressChange // 新增學習狀態變更回調
+  videoUrl, // 支援多種屬性名稱
+  learningStatus, // 當前學習狀態
+  onProgressChange // 當前學習進度改變回調
 }) => {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
@@ -49,7 +49,7 @@ const VocabularyCard = React.memo(({
   const getLevelText = (level) => {
     switch (level) {
       case 'beginner':
-        return '初學';
+        return '入門';
       case 'intermediate':
         return '進階';
       case 'advanced':
@@ -59,7 +59,7 @@ const VocabularyCard = React.memo(({
     }
   };
 
-  // 影片相關函數
+  // 影片播放處理函數
   const handleVideoPress = async () => {
     const finalVideoUrl = video_url || videoUrl;
     
@@ -83,7 +83,7 @@ const VocabularyCard = React.memo(({
       }
     } catch (error) {
       console.warn('影片播放錯誤:', error);
-      Alert.alert('錯誤', '影片播放失敗，請稍後再試');
+      Alert.alert('錯誤', '影片播放失敗，請稍後重試');
       setVideoError(true);
     }
   };
@@ -181,7 +181,7 @@ const VocabularyCard = React.memo(({
                 source={{ uri: finalImageUrl }} 
                 style={styles.wordImage}
                 resizeMode="contain"
-                onError={(error) => console.warn('圖片加載失敗:', error.nativeEvent.error)}
+                onError={(error) => console.warn('圖片載入失敗:', error.nativeEvent.error)}
               />
               
               {/* 影片播放按鈕覆蓋在圖片上 */}

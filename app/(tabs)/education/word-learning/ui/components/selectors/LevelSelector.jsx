@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme } from '../MaterialYouTheme';
+import { MaterialYouTheme } from '../../themes/MaterialYouTheme';
 
 const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
   const levelOptions = [
@@ -11,7 +11,7 @@ const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
       icon: 'leaf-outline',
       color: MaterialYouTheme.secondary.secondary40,
       bgColor: MaterialYouTheme.secondary.secondary90,
-      description: '基礎單詞，適合初學者'
+      description: '基礎詞彙，適合初學者'
     },
     {
       level: '中級',
@@ -19,7 +19,7 @@ const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
       icon: 'school-outline',
       color: MaterialYouTheme.tertiary.tertiary40,
       bgColor: MaterialYouTheme.tertiary.tertiary90,
-      description: '進階單詞，有一定基礎'
+      description: '常用詞彙，有一定基礎'
     },
     {
       level: '高級',
@@ -27,14 +27,14 @@ const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
       icon: 'trophy-outline',
       color: MaterialYouTheme.primary.primary40,
       bgColor: MaterialYouTheme.primary.primary90,
-      description: '複雜單詞，挑戰高難度'
+      description: '複雜詞彙，挑戰進階'
     }
   ];
 
   return (
     <View style={[styles.container, style]}>
-      <Text style={styles.title}>按難度等級學習</Text>
-      <Text style={styles.subtitle}>選擇適合您的學習等級</Text>
+      <Text style={styles.title}>選擇難度分級學習</Text>
+      <Text style={styles.subtitle}>選擇最適合您的學習等級</Text>
       
       <View style={styles.optionsContainer}>
         {levelOptions.map((option) => (

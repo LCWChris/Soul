@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 import { getWordStats } from '@/utils/word-stats';
 
 const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyLevel, selectedLearningStatus }) => {
@@ -24,8 +24,8 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
       const statsData = await getWordStats(filters);
       setStats(statsData);
     } catch (error) {
-      console.error('獲取統計數據失敗:', error);
-      // 設置默認統計
+      console.error('?��?統�圖標��?失�?:', error);
+      // 設置默�?統�?
       setStats({
         totalWords: 0,
         favoriteWords: 0,
@@ -50,7 +50,7 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={MaterialYouTheme.primary.primary40} />
-          <Text style={styles.loadingText}>載入統計數據...</Text>
+          <Text style={styles.loadingText}>載入統�圖標��?...</Text>
         </View>
       </View>
     );
@@ -62,10 +62,10 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
 
   return (
     <View style={styles.container}>
-      {/* 主要進度卡片 */}
+      {/* 主�圖標�度?��? */}
       <View style={styles.mainCard}>
         <View style={styles.progressHeader}>
-          <Text style={styles.progressTitle}>學習進度</Text>
+          <Text style={styles.progressTitle}>學�圖標�度</Text>
           <Text style={styles.progressPercentage}>{progressRate}%</Text>
         </View>
         
@@ -83,7 +83,7 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{totalWords}</Text>
-            <Text style={styles.statLabel}>總單詞</Text>
+            <Text style={styles.statLabel}>總單字</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{learning + reviewing + mastered}</Text>
@@ -133,7 +133,7 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
         <View style={styles.recommendationGrid}>
           <View style={styles.recommendationItem}>
             <Text style={styles.recommendationNumber}>{todayRecommendation.newWords}</Text>
-            <Text style={styles.recommendationLabel}>新單詞</Text>
+            <Text style={styles.recommendationLabel}>新單字</Text>
           </View>
           <View style={styles.recommendationItem}>
             <Text style={styles.recommendationNumber}>{todayRecommendation.reviewWords}</Text>

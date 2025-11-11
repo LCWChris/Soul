@@ -1,4 +1,4 @@
-// SOUL/app/(tabs)/education/word-learning/components/WordLearningCard.jsx
+﻿// SOUL/app/(tabs)/education/word-learning/components/WordLearningCard.jsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -8,8 +8,8 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../MaterialYouTheme';
-import { useLearningTracking } from '../hooks/useLearningTracking';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../../themes/MaterialYouTheme';
+import { useLearningTracking } from '../../../api/hooks/useLearningTracking';
 
 const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
   const {
@@ -24,7 +24,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
   const [isLearned, setIsLearned] = useState(false);
   const [isMastered, setIsMastered] = useState(false);
 
-  // 當組件掛載時記錄查看
+  // 組件加載時記錄查看
   useEffect(() => {
     if (word?._id) {
       setViewStartTime(Date.now());
@@ -44,7 +44,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
     if (!word?._id || isLearned) return;
 
     const timeSpent = viewStartTime ? Math.round((Date.now() - viewStartTime) / 1000) : 0; // 轉換為秒
-    console.log('📚 標記為已學習:', { wordId: word._id, timeSpent });
+    console.log('📝 標記為已學會:', { wordId: word._id, timeSpent });
     
     const success = await recordWordLearned(word._id, timeSpent, 'medium');
 
@@ -52,7 +52,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
       console.log('✅ 學習記錄成功');
       setIsLearned(true);
       onWordLearned?.(word);
-      Alert.alert('太棒了！', '已記錄你學會了這個單詞');
+      Alert.alert('太棒了!', '已成功記錄學習了這個單字');
     } else {
       console.log('❌ 學習記錄失敗');
     }
@@ -67,14 +67,14 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
     if (success) {
       setIsMastered(true);
       onWordMastered?.(word);
-      Alert.alert('恭喜！', '你已經完全掌握了這個單詞');
+      Alert.alert('恭喜!', '你已經完全掌握這個單字');
     }
   };
 
   const handlePractice = async (isCorrect) => {
     if (!word?._id) return;
 
-    const timeSpent = 5; // 練習時間 5秒
+    const timeSpent = 5; // 練習假設 5秒
     await recordWordPractice(word._id, timeSpent, isCorrect, 'medium');
   };
 
@@ -84,14 +84,14 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
 
   return (
     <View style={styles.container}>
-      {/* 單詞標題 */}
+      {/* 卡片標題 */}
       <View style={styles.header}>
         <Text style={styles.title}>{word.title}</Text>
         <View style={styles.statusBadges}>
           {isLearned && (
             <View style={[styles.badge, styles.learnedBadge]}>
               <Ionicons name="checkmark" size={12} color="white" />
-              <Text style={styles.badgeText}>已學習</Text>
+              <Text style={styles.badgeText}>已學會</Text>
             </View>
           )}
           {isMastered && (
@@ -103,7 +103,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
         </View>
       </View>
 
-      {/* 單詞內容 */}
+      {/* 卡片內容 */}
       <Text style={styles.content}>{word.content}</Text>
 
       {/* 分類標籤 */}
@@ -130,7 +130,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
             color={isLearned ? MaterialYouTheme.neutral.neutral60 : MaterialYouTheme.primary.primary40} 
           />
           <Text style={[styles.actionText, isLearned && styles.actionTextDisabled]}>
-            {isLearned ? '已學習' : '標記為已學習'}
+            {isLearned ? '已學會' : '標記為已學會'}
           </Text>
         </TouchableOpacity>
 

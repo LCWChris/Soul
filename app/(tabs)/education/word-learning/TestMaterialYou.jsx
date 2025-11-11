@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { MaterialYouTheme, Typography, Spacing } from './ui';
+import { MaterialYouTheme, Typography, Spacing } from './ui/themes/MaterialYouTheme';
 
 const TestMaterialYou = () => {
   return (

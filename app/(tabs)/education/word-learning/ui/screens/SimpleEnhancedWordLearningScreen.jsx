@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from './MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../themes/MaterialYouTheme';
 // import { useFavorites } from '../../../../utils/favorites.js'; // 暫時註解掉
 
 const { width: screenWidth } = Dimensions.get('window');

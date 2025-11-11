@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme } from '../MaterialYouTheme';
+import { MaterialYouTheme } from '../../themes/MaterialYouTheme';
 import { LEARNING_STATUS } from '@/utils/learning-progress';
 
 const LearningProgressSelector = ({ onSelectProgress, selectedProgress, style }) => {
@@ -12,7 +12,7 @@ const LearningProgressSelector = ({ onSelectProgress, selectedProgress, style })
       icon: 'ellipse-outline',
       color: MaterialYouTheme.neutral.neutral50,
       bgColor: MaterialYouTheme.neutral.neutral95,
-      description: '還沒開始學習的單詞'
+      description: '尚未開始學習的單字'
     },
     {
       status: LEARNING_STATUS.LEARNING,
@@ -36,14 +36,14 @@ const LearningProgressSelector = ({ onSelectProgress, selectedProgress, style })
       icon: 'checkmark-circle-outline',
       color: "#2563EB", // 藍色主題
       bgColor: "#EFF6FF", // 淡藍色背景
-      description: '完全掌握的單詞'
+      description: '完全掌握該單字'
     }
   ];
 
   return (
     <View style={[styles.container, style]}>
-      <Text style={styles.title}>按掌握程度學習</Text>
-      <Text style={styles.subtitle}>選擇您想要學習的單詞掌握程度</Text>
+      <Text style={styles.title}>選擇進度學習</Text>
+      <Text style={styles.subtitle}>選擇您想要學習的掌握程度</Text>
       
       <View style={styles.optionsContainer}>
         {progressOptions.map((option) => (
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   selectedCard: {
-    borderColor: "#2563EB", // 藍色邊框
+    borderColor: "#2563EB", // ?�色?��?
     transform: [{ scale: 1.02 }],
   },
   optionHeader: {

@@ -1,7 +1,12 @@
-# 忽略組件文件，防止被視為路由
-components/**
-hooks/**
-services/**
-MaterialYouTheme.js
-*.styles.js
-utils/**
+# 忽略 API 層 (後端)
+api/**
+
+# 忽略 UI 層組件 (前端)
+ui/components/**
+ui/themes/**
+
+# 忽略文件檔案
+*.md
+README.md
+ARCHITECTURE.md
+REFACTORING_SUMMARY.md

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,21 +16,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import { useUser } from '@clerk/clerk-expo';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 import { toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
-import LearningStatusSelector from './LearningStatusSelector';
+import LearningProgressSelector from '../progress/LearningProgressSelector';
 import { updateWordProgress, getWordProgress, LEARNING_STATUS } from '@/utils/learning-progress';
-import VocabularyService from '../services/VocabularyService';
+import VocabularyService from '../../../api/services/VocabularyService';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-// 計算 iPhone 型號的安全頂部間距
+// 計算 iPhone 安全區域內距
 const getTopSafeAreaPadding = () => {
   if (Platform.OS === 'ios') {
     const { height, width } = Dimensions.get('window');
-    // iPhone 14 Pro Max, 15 Pro Max 等有動態島的機型
+    // iPhone 14 Pro Max, 15 Pro Max 等動態島機型
     if (height >= 926 || width >= 926) return 35;
-    // iPhone X/XS/11/12/13/14 等有劉海的機型
+    // iPhone X/XS/11/12/13/14 等劉海屏機型
     if (height >= 812 || width >= 812) return 30;
     // 其他 iPhone 機型
     return 25;
@@ -45,7 +45,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
   const [isFavorite, setIsFavorite] = useState(word?.isFavorite || false);
   const [learningStatus, setLearningStatus] = useState(LEARNING_STATUS.NOT_STARTED);
   
-  // 影片相關狀態
+  // 影片播放狀態
   const [showVideo, setShowVideo] = useState(true); // 預設顯示影片
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [videoError, setVideoError] = useState(false);
@@ -56,12 +56,12 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
   const hasImage = word?.image_url || word?.imageUrl;
   const hasBothMedia = hasVideo && hasImage;
 
-  // 當 word 變化時，更新收藏狀態和學習狀態
+  // 當 word 變化時更新收藏狀態和學習進度
   useEffect(() => {
     setIsFavorite(word?.isFavorite || false);
     if (word) {
       loadWordProgress();
-      // 根據可用媒體設置初始顯示狀態
+      // 根據可用媒體設置預設顯示狀態
       const hasVideo = word.video_url;
       const hasImage = word.image_url || word.imageUrl;
       if (hasVideo) {
@@ -101,7 +101,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
     }
   };
 
-  // 學習進度處理
+  // 學習進度更新
   const handleStatusChange = async (newStatus) => {
     if (!word) return;
     
@@ -112,7 +112,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
       // 更新本地狀態
       setLearningStatus(newStatus);
       
-      // 更新儲存的學習進度
+      // 更新後端學習進度
       await updateWordProgress(wordId, newStatus);
       
       // 記錄學習活動到後端
@@ -120,7 +120,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
         try {
           let action = 'review';
           
-          // 根據狀態變化確定動作類型
+          // 根據狀態確定操作類型
           if (oldStatus === LEARNING_STATUS.NOT_STARTED && newStatus === LEARNING_STATUS.LEARNING) {
             action = 'learn';
           } else if (newStatus === LEARNING_STATUS.MASTERED) {
@@ -134,51 +134,51 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
             wordId, 
             action, 
             {
-              timeSpent: 8, // 詳情頁學習時間 8秒
+              timeSpent: 8, // 詳情頁學習約8秒
               isCorrect: true
             }
           );
-          console.log('✅ 詳情頁學習活動已記錄:', { userId: user.id, wordId, action });
+          console.log('從詳情頁學習活動已記錄:', { userId: user.id, wordId, action });
         } catch (recordError) {
           console.warn('記錄學習活動失敗:', recordError);
           // 即使記錄失敗也不影響本地進度更新
         }
       }
       
-      // 通知主頁面更新
+      // 通知主組件更新
       if (onProgressChange) {
         onProgressChange(wordId, newStatus);
       }
       
-      console.log('📚 詳情頁：更新學習狀態:', wordId, oldStatus, '->', newStatus);
+      console.log('從 詳情頁更新學習狀態', wordId, oldStatus, '->', newStatus);
     } catch (error) {
       console.error('更新學習進度失敗:', error);
     }
   };
 
-  // 收藏狀態同步
+  // 收藏切換
   const handleFavoriteToggle = async () => {
     const wordId = word.id || word._id;
-    console.log('💖 詳情頁：嘗試切換收藏:', wordId, word);
+    console.log('從 詳情頁嘗試切換收藏:', wordId, word);
     
     const newFavoriteStatus = !isFavorite;
     setIsFavorite(newFavoriteStatus);
     
-    // 通知主頁面收藏狀態變化
+    // 通知主組件收藏狀態變化
     if (onFavoriteChange) {
       onFavoriteChange(wordId, newFavoriteStatus);
     }
     
-    // 實際更新收藏資料
+    // 實際更新後端資料
     try {
       const result = await toggleFavoriteUtil(wordId);
-      console.log('💖 詳情頁：收藏操作結果:', result);
+      console.log('從 詳情頁切換收藏結果:', result);
     } catch (error) {
-      console.error('💖 詳情頁：收藏操作失敗:', error);
+      console.error('從 詳情頁切換收藏失敗:', error);
     }
   };
 
-  // 影片處理函數
+  // 影片播放函數
   const handleVideoPlay = async () => {
     if (videoRef.current) {
       setIsVideoPlaying(true);
@@ -203,7 +203,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
   const toggleMediaType = () => {
     if (hasBothMedia) {
       setShowVideo(!showVideo);
-      // 如果切換到圖片，暫停影片
+      // 如果切換到不顯示影片
       if (showVideo && videoRef.current) {
         handleVideoPause();
       }
@@ -224,7 +224,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Ionicons name="close" size={24} color={MaterialYouTheme.neutral.neutral30} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>單詞詳情</Text>
+          <Text style={styles.headerTitle}>單字詳情</Text>
           <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoriteToggle}>
             <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={24} color={isFavorite ? "#2563EB" : MaterialYouTheme.neutral.neutral30} />
           </TouchableOpacity>
@@ -239,18 +239,18 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
             )}
           </View>
 
-          {/* 媒體區域：圖片或影片，左右切換詞彙 */}
+          {/* 媒體顯示區域（圖片或影片）左右滑動切換詞彙 */}
           {(word.image_url || word.imageUrl || word.video_url) && (
             <View style={styles.imageSection}>
               <View style={styles.imageContainer}>
-                {/* 左滑區域：切換到上一個詞彙 */}
+                {/* 左側滑動按鈕（切換到上一個單字） */}
                 <TouchableOpacity style={styles.imageSwipeArea} onPress={onSwipeRight}>
                   <Ionicons name="chevron-back" size={32} color="#2563EB" />
                 </TouchableOpacity>
                 
-                {/* 媒體顯示區域 */}
+                {/* 媒體顯示容器 */}
                 <View style={styles.mediaContainer}>
-                  {/* 根據 showVideo 狀態和媒體可用性決定顯示內容 */}
+                  {/* 根據 showVideo 和媒體可用性決定顯示內容 */}
                   {(showVideo && hasVideo) ? (
                     <View style={styles.videoContainer}>
                       <Video
@@ -277,7 +277,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
                           </TouchableOpacity>
                         </View>
                       )}
-                      {/* 播放時的暫停按鈕 - 點擊影片任意位置暫停 */}
+                      {/* 播放時可觸摸暫停 - 點擊影片任何位置暫停 */}
                       {isVideoPlaying && (
                         <TouchableOpacity
                           style={styles.videoTouchArea}
@@ -286,7 +286,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
                       )}
                     </View>
                   ) : (
-                    /* 顯示圖片 */
+                    // 顯示圖片
                     hasImage && (
                       <Image
                         source={{ uri: word.image_url || word.imageUrl }}
@@ -296,7 +296,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
                     )
                   )}
                   
-                  {/* 媒體切換按鈕 - 只有當同時有影片和圖片時才顯示 */}
+                  {/* 媒體切換按鈕 - 只在同時有影片和圖片時顯示 */}
                   {hasBothMedia && (
                     <TouchableOpacity 
                       style={styles.mediaToggleButton}
@@ -311,7 +311,7 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
                   )}
                 </View>
                 
-                {/* 右滑區域：切換到下一個詞彙 */}
+                {/* 右側滑動按鈕（切換到下一個單字） */}
                 <TouchableOpacity style={styles.imageSwipeArea} onPress={onSwipeLeft}>
                   <Ionicons name="chevron-forward" size={32} color="#2563EB" />
                 </TouchableOpacity>
@@ -352,9 +352,9 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
           </View>
 
           {/* Action Buttons - replaced with Learning Status Selector */}
-          <LearningStatusSelector
-            currentStatus={learningStatus}
-            onStatusChange={handleStatusChange}
+          <LearningProgressSelector
+            selectedProgress={learningStatus}
+            onSelectProgress={handleStatusChange}
             style={styles.statusSelector}
           />
         </ScrollView>
@@ -382,7 +382,7 @@ const getLevelText = (level) => {
     case 'beginner':
       return '初學';
     case 'intermediate':
-      return '進階';
+      return '中級';
     case 'advanced':
       return '熟練';
     default:
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-    paddingTop: getTopSafeAreaPadding(), // 動態計算 iPhone 型號的安全間距
+    paddingTop: getTopSafeAreaPadding(), // 動態計算 iPhone 安全區域內距
   },
   header: {
     flexDirection: 'row',
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(37, 99, 235, 0.1)', // 藍色透明邊框
+    borderBottomColor: 'rgba(37, 99, 235, 0.1)', // 淺色半透明
     backgroundColor: 'rgba(255, 255, 255, 0.8)', // 半透明白色背景
   },
   closeButton: {
@@ -487,7 +487,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)', // 減少透明度讓背景更清晰
+    backgroundColor: 'rgba(0, 0, 0, 0.2)', // 減少不透明度背景覆蓋層
   },
   playButton: {
     width: 60,

@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-expo";
+﻿import { useUser } from "@clerk/clerk-expo";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -13,19 +13,15 @@ import {
 } from "react-native";
 
 // Material You Components & Theme
-import { 
-  MaterialYouTheme, 
-  Spacing, 
-  Typography,
-  LearningProgressNew as LearningProgress,
-  LearningProgressSelector,
-  LevelSelector,
-  MaterialSearchBar,
-  MaterialTopAppBar,
-  VocabularyCard,
-  VocabularyCategories,
-  WordDetailModal 
-} from "../";
+import { MaterialYouTheme, Spacing, Typography } from '../themes/MaterialYouTheme';
+import LearningProgress from '../components/progress/LearningProgressNew';
+import LearningProgressSelector from '../components/progress/LearningProgressSelector';
+import LevelSelector from '../components/selectors/LevelSelector';
+import MaterialSearchBar from '../components/material/MaterialSearchBar';
+import MaterialTopAppBar from '../components/material/MaterialTopAppBar';
+import VocabularyCard from '../components/cards/VocabularyCard';
+import VocabularyCategories from '../components/VocabularyCategories';
+import WordDetailModal from '../components/modals/WordDetailModal';
 
 // API Services
 import { VocabularyService, useLearningTracking } from "../../api";
