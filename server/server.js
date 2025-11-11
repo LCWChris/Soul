@@ -5,7 +5,7 @@ const cors = require("cors");
 const cloudinary = require("cloudinary").v2;
 const { Webhook } = require("svix"); // 新增
 require("dotenv").config({ path: "../.env" });
-const User = require("./models/user"); // 引入 User 模型
+const User = require("./models/User"); // 引入 User 模型 (修正大小寫)
 // 匯入問卷路由
 const preferencesRouter = require("./routes/preferences");
 // 匯入學習統計路由
