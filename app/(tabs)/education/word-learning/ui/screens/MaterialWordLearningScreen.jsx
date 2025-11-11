@@ -12,16 +12,23 @@ import {
   View,
 } from "react-native";
 
-// Material You Components
-import { MaterialYouTheme, Spacing, Typography } from "./MaterialYouTheme";
-import LearningProgress from "./components/LearningProgressNew";
-import LearningProgressSelector from "./components/LearningProgressSelector";
-import LevelSelector from "./components/LevelSelector";
-import MaterialSearchBar from "./components/MaterialSearchBar";
-import MaterialTopAppBar from "./components/MaterialTopAppBar";
-import VocabularyCard from "./components/VocabularyCard";
-import VocabularyCategories from "./components/VocabularyCategories";
-import WordDetailModal from "./components/WordDetailModal";
+// Material You Components & Theme
+import { 
+  MaterialYouTheme, 
+  Spacing, 
+  Typography,
+  LearningProgressNew as LearningProgress,
+  LearningProgressSelector,
+  LevelSelector,
+  MaterialSearchBar,
+  MaterialTopAppBar,
+  VocabularyCard,
+  VocabularyCategories,
+  WordDetailModal 
+} from "../";
+
+// API Services
+import { VocabularyService, useLearningTracking } from "../../api";
 
 // Services and Utilities
 import { API_CONFIG } from "@/constants/api";
@@ -37,8 +44,6 @@ import {
   updateWordProgress,
 } from "@/utils/learning-progress";
 import axios from "axios";
-import { VocabularyService } from "./services/VocabularyService";
-import { useLearningTracking } from "./hooks/useLearningTracking";
 
 const MaterialWordLearningScreen = () => {
   const router = useRouter();

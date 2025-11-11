@@ -15,9 +15,8 @@ import { useRouter } from 'expo-router';
 import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from './MaterialYouTheme';
-import MaterialTopAppBar from './components/MaterialTopAppBar';
-import { VocabularyService } from './services/VocabularyService';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, MaterialTopAppBar } from './ui';
+import { VocabularyService } from './api';
 
 const { width: screenWidth } = Dimensions.get('window');
 
