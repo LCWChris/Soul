@@ -8,7 +8,8 @@
     "scheme": "soul",
     "userInterfaceStyle": "light",
     "androidStatusBar": {
-      "barStyle": "dark-content"
+      "barStyle": "dark-content",
+      "backgroundColor": "#ffffff"
     },
     "newArchEnabled": true,
     "ios": {
@@ -26,7 +27,9 @@
         "RECORD_AUDIO",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
-        "INTERNET"
+        "INTERNET",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -58,6 +61,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "487704d4-6ebf-46ae-a2e6-5a259e673d69"
+      }
     }
   }
 }
