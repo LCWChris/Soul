@@ -1,4 +1,4 @@
 // word-learning 頁面的入口點 - Material You 設計
-import MaterialWordLearningScreen from './MaterialWordLearningScreen';
+import { MaterialWordLearningScreen } from './ui';
 
 export default MaterialWordLearningScreen;

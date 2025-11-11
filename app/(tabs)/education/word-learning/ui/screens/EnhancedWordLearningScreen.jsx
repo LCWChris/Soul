@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,9 +14,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from './MaterialYouTheme';
-import EnhancedVocabularyCard from './components/EnhancedVocabularyCard';
-import MaterialButton, { MaterialFAB, MaterialIconButton } from './components/MaterialButton';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../themes/MaterialYouTheme';
+import EnhancedVocabularyCard from '../components/cards/EnhancedVocabularyCard';
+import MaterialButton, { MaterialFAB, MaterialIconButton } from '../components/material/MaterialButton';
 // import { useWordLearning } from './hooks/useWordLearning'; // 暫時註解掉
 // import { useFavorites } from '../../../../utils/favorites.js'; // 暫時註解掉
 

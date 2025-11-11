@@ -1,4 +1,4 @@
-// SOUL/app/(tabs)/education/word-learning/components/AchievementModal.jsx
+﻿// SOUL/app/(tabs)/education/word-learning/components/AchievementModal.jsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -11,8 +11,8 @@ import {
 } from 'react-native';
 import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../MaterialYouTheme';
-import { VocabularyService } from '../services/VocabularyService';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../../themes/MaterialYouTheme';
+import VocabularyService from '../../../api/services/VocabularyService';
 
 const AchievementModal = ({ visible, onClose }) => {
   const { user } = useUser();
@@ -46,8 +46,8 @@ const AchievementModal = ({ visible, onClose }) => {
         setAchievements([
           {
             id: 'first_word',
-            title: '初次學習',
-            description: '學習第一個單詞',
+            title: '首次學習',
+            description: '學習第一個單字',
             icon: 'school',
             earned: true,
             earnedAt: new Date(),
@@ -61,8 +61,8 @@ const AchievementModal = ({ visible, onClose }) => {
           },
           {
             id: 'words_50',
-            title: '詞彙新手',
-            description: '學習50個單詞',
+            title: '詞彙大師',
+            description: '學習50個單字',
             icon: 'book',
             earned: false,
           },
@@ -70,14 +70,14 @@ const AchievementModal = ({ visible, onClose }) => {
       }
     } catch (error) {
       console.error('載入成就失敗:', error);
-      setError('載入成就數據失敗，顯示模擬數據');
+      setError('載入成就資料失敗，顯示模擬數據');
       
       // 顯示模擬成就
       setAchievements([
         {
           id: 'first_word',
-          title: '初次學習',
-          description: '學習第一個單詞',
+          title: '首次學習',
+          description: '學習第一個單字',
           icon: 'school',
           earned: true,
           earnedAt: new Date(),
@@ -91,8 +91,8 @@ const AchievementModal = ({ visible, onClose }) => {
         },
         {
           id: 'words_50',
-          title: '詞彙新手',
-          description: '學習50個單詞',
+          title: '詞彙大師',
+          description: '學習50個單字',
           icon: 'book',
           earned: false,
         },
@@ -133,7 +133,7 @@ const AchievementModal = ({ visible, onClose }) => {
     >
       <View style={styles.overlay}>
         <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-          {/* 標題欄 */}
+          {/* 標題列 */}
           <View style={styles.header}>
             <Text style={styles.title}>學習成就</Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>

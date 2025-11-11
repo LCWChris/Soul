@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -7,10 +7,10 @@ import {
   StyleSheet,
   Animated
 } from 'react-native';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 
 const MaterialSearchBar = ({ 
-  placeholder = "搜尋單詞...", 
+  placeholder = "搜尋單字...", 
   onSearchChange, 
   onFocus, 
   onBlur,
@@ -51,7 +51,7 @@ const MaterialSearchBar = ({
 
   const animatedBorderColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [MaterialYouTheme.neutral.neutral80, "#2563EB"], // 藍色邊框
+    outputRange: [MaterialYouTheme.neutral.neutral80, "#2563EB"], // 藍色主題
   });
 
   const animatedBackgroundColor = animatedValue.interpolate({

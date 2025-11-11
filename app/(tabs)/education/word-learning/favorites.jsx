@@ -14,10 +14,10 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from './MaterialYouTheme';
-import MaterialTopAppBar from './components/MaterialTopAppBar';
-import VocabularyCard from './components/VocabularyCard';
-import WordDetailModal from './components/WordDetailModal';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from './ui/themes/MaterialYouTheme';
+import MaterialTopAppBar from './ui/components/material/MaterialTopAppBar';
+import VocabularyCard from './ui/components/cards/VocabularyCard';
+import WordDetailModal from './ui/components/modals/WordDetailModal';
 import { getFavorites, toggleFavorite } from '@/utils/favorites';
 import { API_CONFIG } from '@/constants/api';
 

@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-expo";
+﻿import { useUser } from "@clerk/clerk-expo";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -12,16 +12,19 @@ import {
   View,
 } from "react-native";
 
-// Material You Components
-import { MaterialYouTheme, Spacing, Typography } from "./MaterialYouTheme";
-import LearningProgress from "./components/LearningProgressNew";
-import LearningProgressSelector from "./components/LearningProgressSelector";
-import LevelSelector from "./components/LevelSelector";
-import MaterialSearchBar from "./components/MaterialSearchBar";
-import MaterialTopAppBar from "./components/MaterialTopAppBar";
-import VocabularyCard from "./components/VocabularyCard";
-import VocabularyCategories from "./components/VocabularyCategories";
-import WordDetailModal from "./components/WordDetailModal";
+// Material You Components & Theme
+import { MaterialYouTheme, Spacing, Typography } from '../themes/MaterialYouTheme';
+import LearningProgress from '../components/progress/LearningProgressNew';
+import LearningProgressSelector from '../components/progress/LearningProgressSelector';
+import LevelSelector from '../components/selectors/LevelSelector';
+import MaterialSearchBar from '../components/material/MaterialSearchBar';
+import MaterialTopAppBar from '../components/material/MaterialTopAppBar';
+import VocabularyCard from '../components/cards/VocabularyCard';
+import VocabularyCategories from '../components/VocabularyCategories';
+import WordDetailModal from '../components/modals/WordDetailModal';
+
+// API Services
+import { VocabularyService, useLearningTracking } from "../../api";
 
 // Services and Utilities
 import { API_CONFIG } from "@/constants/api";
@@ -37,8 +40,6 @@ import {
   updateWordProgress,
 } from "@/utils/learning-progress";
 import axios from "axios";
-import { VocabularyService } from "./services/VocabularyService";
-import { useLearningTracking } from "./hooks/useLearningTracking";
 
 const MaterialWordLearningScreen = () => {
   const router = useRouter();

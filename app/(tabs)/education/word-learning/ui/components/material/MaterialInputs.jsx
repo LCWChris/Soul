@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 // This is a component file, not a route
 import React, { useState, useRef, useEffect } from 'react';
 import {
@@ -11,10 +11,10 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 
 /**
- * Material You 風格文字輸入框
+ * Material You 風格?��?輸入�?
  */
 export const MaterialTextInput = ({
   label,
@@ -159,9 +159,9 @@ export const MaterialTextInput = ({
 
   return (
     <View style={[styles.container, style]}>
-      {/* 輸入框容器 */}
+      {/* 輸入框容圖標*/}
       <View style={[styles.inputContainer, getContainerStyles()]}>
-        {/* 前置圖標 */}
+        {/* ?�置?��? */}
         {leadingIcon && (
           <View style={styles.leadingIcon}>
             <Ionicons
@@ -182,7 +182,7 @@ export const MaterialTextInput = ({
           </Animated.Text>
         )}
 
-        {/* 輸入框 */}
+        {/* 輸入�?*/}
         <TextInput
           ref={inputRef}
           style={[getInputStyles(), inputStyle]}
@@ -202,7 +202,7 @@ export const MaterialTextInput = ({
           {...props}
         />
 
-        {/* 後置圖標 */}
+        {/* 後置?��? */}
         {trailingIcon && (
           <TouchableOpacity
             style={styles.trailingIcon}
@@ -221,7 +221,7 @@ export const MaterialTextInput = ({
         )}
       </View>
 
-      {/* 錯誤訊息或幫助文字 */}
+      {/* ?�誤訊息?�幫?��?�?*/}
       {(error || helperText) && (
         <View style={styles.supportingText}>
           <Text
@@ -248,14 +248,14 @@ export const MaterialTextInput = ({
 };
 
 /**
- * 搜尋輸入框
+ * ?��?輸入�?
  */
 export const MaterialSearchInput = ({
   value,
   onChangeText,
   onSubmitEditing,
   onClear,
-  placeholder = '搜尋...',
+  placeholder = '?��?...',
   showFilter = false,
   onFilterPress,
   style,
@@ -408,7 +408,7 @@ export const MaterialSelector = ({
 };
 
 const styles = StyleSheet.create({
-  // 文字輸入框樣式
+  // ?��?輸入框樣�?
   container: {
     width: '100%',
   },
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     color: MaterialYouTheme.onSurfaceVariant.onSurfaceVariant,
   },
 
-  // 搜尋輸入框樣式
+  // ?��?輸入框樣�?
   searchContainer: {
     width: '100%',
   },
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
   },
 
-  // 選擇器樣式
+  // ?��圖標�樣�?
   selectorContainer: {
     width: '100%',
     marginVertical: Spacing.sm,

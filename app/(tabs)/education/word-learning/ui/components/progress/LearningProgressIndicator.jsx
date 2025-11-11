@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme } from '../MaterialYouTheme';
+import { MaterialYouTheme } from '../../themes/MaterialYouTheme';
 import { LEARNING_STATUS } from '@/utils/learning-progress';
 
 const LearningProgressIndicator = ({ status, onPress, size = 'medium' }) => {
@@ -28,8 +28,8 @@ const LearningProgressIndicator = ({ status, onPress, size = 'medium' }) => {
       case LEARNING_STATUS.MASTERED:
         return {
           icon: 'checkmark-circle',
-          color: "#2563EB", // 藍色主題
-          bgColor: "#EFF6FF", // 淡藍色背景
+          color: "#2563EB", // ?�色主�?
+          bgColor: "#EFF6FF", // 淡�圖標��圖標?
         };
       default:
         return {

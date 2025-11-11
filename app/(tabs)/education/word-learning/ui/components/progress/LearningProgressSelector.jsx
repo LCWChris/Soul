@@ -1,51 +1,60 @@
-import React from 'react';
+﻿import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme } from '../MaterialYouTheme';
+import { MaterialYouTheme } from '../../themes/MaterialYouTheme';
+import { LEARNING_STATUS } from '@/utils/learning-progress';
 
-const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
-  const levelOptions = [
+const LearningProgressSelector = ({ onSelectProgress, selectedProgress, style }) => {
+  const progressOptions = [
     {
-      level: '初級',
-      label: '初級',
-      icon: 'leaf-outline',
-      color: MaterialYouTheme.secondary.secondary40,
-      bgColor: MaterialYouTheme.secondary.secondary90,
-      description: '基礎單詞，適合初學者'
+      status: LEARNING_STATUS.NOT_STARTED,
+      label: '未開始',
+      icon: 'ellipse-outline',
+      color: MaterialYouTheme.neutral.neutral50,
+      bgColor: MaterialYouTheme.neutral.neutral95,
+      description: '尚未開始學習的單字'
     },
     {
-      level: '中級',
-      label: '中級',
+      status: LEARNING_STATUS.LEARNING,
+      label: '學習中',
       icon: 'school-outline',
       color: MaterialYouTheme.tertiary.tertiary40,
       bgColor: MaterialYouTheme.tertiary.tertiary90,
-      description: '進階單詞，有一定基礎'
+      description: '正在學習但還不熟悉'
     },
     {
-      level: '高級',
-      label: '高級',
-      icon: 'trophy-outline',
-      color: MaterialYouTheme.primary.primary40,
-      bgColor: MaterialYouTheme.primary.primary90,
-      description: '複雜單詞，挑戰高難度'
+      status: LEARNING_STATUS.REVIEWING,
+      label: '複習中',
+      icon: 'refresh-outline',
+      color: MaterialYouTheme.secondary.secondary40,
+      bgColor: MaterialYouTheme.secondary.secondary90,
+      description: '基本掌握，需要複習鞏固'
+    },
+    {
+      status: LEARNING_STATUS.MASTERED,
+      label: '已掌握',
+      icon: 'checkmark-circle-outline',
+      color: "#2563EB", // 藍色主題
+      bgColor: "#EFF6FF", // 淡藍色背景
+      description: '完全掌握該單字'
     }
   ];
 
   return (
     <View style={[styles.container, style]}>
-      <Text style={styles.title}>按難度等級學習</Text>
-      <Text style={styles.subtitle}>選擇適合您的學習等級</Text>
+      <Text style={styles.title}>選擇進度學習</Text>
+      <Text style={styles.subtitle}>選擇您想要學習的掌握程度</Text>
       
       <View style={styles.optionsContainer}>
-        {levelOptions.map((option) => (
+        {progressOptions.map((option) => (
           <TouchableOpacity
-            key={option.level}
+            key={option.status}
             style={[
               styles.optionCard,
               { backgroundColor: option.bgColor },
-              selectedLevel === option.level && styles.selectedCard
+              selectedProgress === option.status && styles.selectedCard
             ]}
-            onPress={() => onSelectLevel(option.level)}
+            onPress={() => onSelectProgress(option.status)}
           >
             <View style={styles.optionHeader}>
               <View style={[styles.iconContainer, { backgroundColor: option.color }]}>
@@ -90,7 +99,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   selectedCard: {
-    borderColor: MaterialYouTheme.primary.primary40,
+    borderColor: "#2563EB", // ?�色?��?
     transform: [{ scale: 1.02 }],
   },
   optionHeader: {
@@ -117,4 +126,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LevelSelector;
+export default LearningProgressSelector;

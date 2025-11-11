@@ -52,6 +52,12 @@ module.exports = defineConfig([
       'react-hooks/exhaustive-deps': 'warn',  // useEffect 依賴檢查
       'react/jsx-uses-react': 'off',          // React 17+ 不需要
       'react/react-in-jsx-scope': 'off',      // React 17+ 不需要
+      
+      // 檔案命名規範：含 JSX 的檔案必須使用 .jsx 副檔名
+      'react/jsx-filename-extension': ['warn', { 
+        extensions: ['.jsx', '.tsx'],
+        allow: 'as-needed' // 允許 .js/.ts 但不建議
+      }],
     },
   },
   {

@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 // This is a component file, not a route
 import React, { useState, useRef } from 'react';
 import { 
@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../../themes/MaterialYouTheme';
 // import LearningProgressIndicator from './LearningProgressIndicator'; // 暫時註解掉
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -89,7 +89,7 @@ const EnhancedVocabularyCard = React.memo(({
   const getLevelText = (level) => {
     switch (level) {
       case 'beginner':
-        return '初級';
+        return '入門';
       case 'intermediate':
         return '中級';
       case 'advanced':
@@ -99,7 +99,7 @@ const EnhancedVocabularyCard = React.memo(({
     }
   };
 
-  // 影片相關函數
+  // 影片播放處理函數
   const handleVideoPress = async () => {
     const finalVideoUrl = video_url || videoUrl;
     
@@ -125,7 +125,7 @@ const EnhancedVocabularyCard = React.memo(({
       }
     } catch (error) {
       console.warn('影片播放錯誤:', error);
-      Alert.alert('錯誤', '影片播放失敗，請稍後再試');
+      Alert.alert('錯誤', '影片播放失敗，請稍後重試');
       setVideoError(true);
     }
   };
@@ -238,7 +238,7 @@ const EnhancedVocabularyCard = React.memo(({
               {definition}
             </Text>
 
-            {/* 例句展開/收合 */}
+            {/* 例句展開/收起 */}
             {example && (
               <TouchableOpacity 
                 style={styles.exampleToggle}
@@ -251,7 +251,7 @@ const EnhancedVocabularyCard = React.memo(({
                   color={MaterialYouTheme.primary.primary40} 
                 />
                 <Text style={styles.exampleToggleText}>
-                  {showExample ? '收合例句' : '查看例句'}
+                  {showExample ? '收起例句' : '展開例句'}
                 </Text>
               </TouchableOpacity>
             )}
@@ -263,7 +263,7 @@ const EnhancedVocabularyCard = React.memo(({
             )}
           </View>
 
-          {/* 右側圖片和操作區域 */}
+          {/* 右側圖片與操作區域 */}
           <View style={styles.rightSection}>
             {/* 圖片/影片容器 */}
             <View style={styles.mediaContainer}>
@@ -328,7 +328,7 @@ const EnhancedVocabularyCard = React.memo(({
                     ]}
                     resizeMode="cover"
                     onLoad={() => setImageLoaded(true)}
-                    onError={(error) => console.warn('圖片加載失敗:', error.nativeEvent.error)}
+                    onError={(error) => console.warn('圖片載入失敗:', error.nativeEvent.error)}
                   />
                   {!imageLoaded && (
                     <View style={styles.imagePlaceholder}>
@@ -399,7 +399,7 @@ const EnhancedVocabularyCard = React.memo(({
           </View>
         </View>
 
-        {/* 底部快速操作 */}
+        {/* 底部快速操作列 */}
         <View style={styles.actionBar}>
           <TouchableOpacity style={styles.quickAction} activeOpacity={0.7}>
             <Ionicons name="volume-high-outline" size={18} color={MaterialYouTheme.primary.primary40} />
