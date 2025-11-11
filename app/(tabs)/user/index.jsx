@@ -1,12 +1,8 @@
-// C:\soul\Soul\app\(tabs)\user\index.jsx
-// (此版本將「註銷帳號」改用 React Native Alert)
-
 import { API_CONFIG } from "@/constants/api";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-// 👇 1. 匯入 Alert
 import { Alert, ScrollView, StyleSheet } from "react-native";
 import {
   Button,
@@ -113,9 +109,6 @@ export default function UserScreen() {
     }
   };
 
-  // ==========================================================
-  // ===== 👇 2. 新增 Alert 確認函數 👇 =====
-  // ==========================================================
   const showDeleteConfirmation = () => {
     Alert.alert(
       "⚠️ 確認註銷帳號", // 標題
@@ -135,9 +128,6 @@ export default function UserScreen() {
       { cancelable: true }
     );
   };
-  // ==========================================================
-  // ===== 👆 新增 Alert 確認函數結束 👆 =====
-  // ==========================================================
 
   // ✅ 取得問卷
   const fetchPreferences = async () => {
@@ -214,7 +204,7 @@ export default function UserScreen() {
             <Divider style={{ marginVertical: 8 }} />
             <Button
               mode="contained-tonal"
-              onPress={() => router.push('/user/update-username')} // <--- 修改這裡
+              onPress={() => router.push('/user/update-username')}
             >
               修改使用者名稱
             </Button>
@@ -281,25 +271,19 @@ export default function UserScreen() {
             >
               登出
             </Button>
-            {/* ========================================================== */}
-            {/* ===== 👇 3. 修改按鈕 onPress 👇 ===== */}
-            {/* ========================================================== */}
             <Button
               mode="contained"
               buttonColor="#b91c1c"
               style={{ marginTop: 8 }}
-              onPress={showDeleteConfirmation} // <--- 修改這裡
+              onPress={showDeleteConfirmation}
             >
               註銷帳號
             </Button>
-            {/* ========================================================== */}
-            {/* ===== 👆 修改按鈕 onPress 結束 👆 ===== */}
-            {/* ========================================================== */}
           </Card.Content>
         </Card>
       </ScrollView>
 
-      {/* Snackbar 提示 (保持不變) */}
+      {/* Snackbar 提示*/}
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}

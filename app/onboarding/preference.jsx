@@ -128,7 +128,7 @@ export default function PreferenceQuestionnaire() {
         const res = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`);
         const data = await res.json();
 
-        // 你的後端會回 { categories:[{name,count}], learning_levels:[...], contexts:[...] }
+        // 後端會回 { categories:[{name,count}], learning_levels:[...], contexts:[...] }
         const catNames = (data?.categories || []).map((c) => c.name).filter(Boolean);
         if (!cancelled) {
           const VALID_CONTEXTS = ["daily", "school", "workplace"];
