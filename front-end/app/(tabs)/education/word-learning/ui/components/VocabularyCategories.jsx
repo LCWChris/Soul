@@ -1,20 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import { API_CONFIG } from "@/constants/api";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  ScrollView,
-  ActivityIndicator,
-  Alert,
-  Platform
-} from 'react-native';
-import { API_CONFIG } from '@/constants/api';
-import axios from 'axios';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../themes/MaterialYouTheme';
+  View,
+} from "react-native";
+import {
+  BorderRadius,
+  Elevation,
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from "../themes/MaterialYouTheme";
 
-const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selectedCategory, selectedLearningLevel }) => {
+const VocabularyCategories = ({
+  onCategorySelect,
+  onLearningLevelSelect,
+  selectedCategory,
+  selectedLearningLevel,
+}) => {
   const [categories, setCategories] = useState([]);
   const [learningLevels, setLearningLevels] = useState([]);
   const [volumes, setVolumes] = useState([]);
@@ -30,28 +39,31 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
     try {
       setLoading(true);
       setError(null);
-      console.log('🏷️ 正在獲取分類數據...');
-      const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`, {
-        headers: {
-          'ngrok-skip-browser-warning': 'true'
+      console.log("🏷️ 正在獲取分類數據...");
+      const response = await axios.get(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`,
+        {
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+          },
         }
-      });
+      );
       const data = response.data;
-      console.log('🏷️ 分類數據獲取成功:', data);
-      
+      console.log("🏷️ 分類數據獲取成功:", data);
+
       setCategories(data.categories || []);
       setLearningLevels(data.learning_levels || []);
       setVolumes(data.volumes || []);
-      console.log('🏷️ 已設定分類:', data.categories?.length || 0, '個');
+      console.log("🏷️ 已設定分類:", data.categories?.length || 0, "個");
       setRetryCount(0); // 重置重試計數
     } catch (error) {
-      console.error('獲取分類失敗:', error);
-      setError('無法載入分類資料');
-      
+      console.error("獲取分類失敗:", error);
+      setError("無法載入分類資料");
+
       // 自動重試邏輯
       if (retryCount < 2) {
         setTimeout(() => {
-          setRetryCount(prev => prev + 1);
+          setRetryCount((prev) => prev + 1);
           fetchCategories();
         }, 2000 * (retryCount + 1)); // 遞增延遲
       }
@@ -67,32 +79,32 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
 
   const getLearningLevelDisplayName = (level) => {
     const levelMap = {
-      'beginner': '🟢 初學者',
-      'intermediate': '🟡 進階者',
-      'advanced': '🔴 熟練者'
+      beginner: "🟢 初學者",
+      intermediate: "🟡 進階者",
+      advanced: "🔴 熟練者",
     };
     return levelMap[level] || level;
   };
 
   const getCategoryIcon = (categoryName) => {
     const iconMap = {
-      '生活用語': '🏠',
-      '情感表達': '💭',
-      '動作描述': '🏃‍♂️',
-      '物品名稱': '📱',
-      '其他': '🔤',
+      生活用語: "🏠",
+      情感表達: "💭",
+      動作描述: "🏃‍♂️",
+      物品名稱: "📱",
+      其他: "🔤",
       // 兼容舊的分類名稱
-      '家庭生活': '🏠',
-      '日常動作': '🏃‍♂️',
-      '數字時間': '🕐',
-      '動物自然': '🦁',
-      '人物關係': '👥',
-      '食物飲品': '🍽️',
-      '身體健康': '💪',
-      '地點場所': '📍',
-      '物品工具': '📱'
+      家庭生活: "🏠",
+      日常動作: "🏃‍♂️",
+      數字時間: "🕐",
+      動物自然: "🦁",
+      人物關係: "👥",
+      食物飲品: "🍽️",
+      身體健康: "💪",
+      地點場所: "📍",
+      物品工具: "📱",
     };
-    return iconMap[categoryName] || '📝';
+    return iconMap[categoryName] || "📝";
   };
 
   if (loading) {
@@ -100,7 +112,7 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2563EB" />
         <Text style={styles.loadingText}>
-          {retryCount > 0 ? `重試中 (${retryCount}/2)...` : '載入分類中...'}
+          {retryCount > 0 ? `重試中 (${retryCount}/2)...` : "載入分類中..."}
         </Text>
       </View>
     );
@@ -133,9 +145,9 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
   }
 
   return (
-    <ScrollView 
-      style={[styles.container, Platform.OS === 'web' && { minHeight: 400 }]} 
-      contentContainerStyle={Platform.OS === 'web' ? { flexGrow: 1 } : {}}
+    <ScrollView
+      style={[styles.container, Platform.OS === "web" && { minHeight: 400 }]}
+      contentContainerStyle={Platform.OS === "web" ? { flexGrow: 1 } : {}}
       showsVerticalScrollIndicator={false}
     >
       {/* 主題分類選擇 */}
@@ -144,35 +156,39 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
         <Text style={styles.sectionSubtitle}>選擇感興趣的學習主題</Text>
         <View style={styles.categoryGrid}>
           {categories
-            .filter(category => category && category.trim() !== '' && category !== ' ')
+            .filter(
+              (category) =>
+                category && category.trim() !== "" && category !== " "
+            )
             .map((category, index) => (
               <TouchableOpacity
                 key={`category-${index}-${category}`}
                 style={[
                   styles.categoryCard,
-                selectedCategory === category && styles.selectedCategoryCard
-              ]}
-              onPress={() => onCategorySelect(category)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.categoryIconContainer}>
-                <Text style={styles.categoryIcon}>
-                  {getCategoryIcon(category)}
+                  selectedCategory === category && styles.selectedCategoryCard,
+                ]}
+                onPress={() => onCategorySelect(category)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.categoryIconContainer}>
+                  <Text style={styles.categoryIcon}>
+                    {getCategoryIcon(category)}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.categoryTitle,
+                    selectedCategory === category &&
+                      styles.selectedCategoryTitle,
+                  ]}
+                >
+                  {category}
                 </Text>
-              </View>
-              <Text style={[
-                styles.categoryTitle,
-                selectedCategory === category && styles.selectedCategoryTitle
-              ]}>
-                {category}
-              </Text>
-              <View style={styles.categoryBadge}>
-                <Text style={styles.categoryCount}>
-                  詞彙
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View style={styles.categoryBadge}>
+                  <Text style={styles.categoryCount}>詞彙</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
         </View>
       </View>
 
@@ -182,8 +198,8 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
           <TouchableOpacity
             style={styles.clearButton}
             onPress={() => {
-              onCategorySelect('');
-              onLearningLevelSelect('');
+              onCategorySelect("");
+              onLearningLevelSelect("");
             }}
             activeOpacity={0.7}
           >
@@ -202,8 +218,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: MaterialYouTheme.neutral.neutral99,
     padding: Spacing.xl,
   },
@@ -211,7 +227,7 @@ const styles = StyleSheet.create({
     ...Typography.bodyMedium,
     color: MaterialYouTheme.neutral.neutral40,
     marginTop: Spacing.md,
-    textAlign: 'center',
+    textAlign: "center",
   },
   section: {
     backgroundColor: MaterialYouTheme.neutral.neutral95,
@@ -225,7 +241,7 @@ const styles = StyleSheet.create({
     ...Typography.titleLarge,
     color: "#1D4ED8", // 藍色標題
     marginBottom: Spacing.xs,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   sectionSubtitle: {
     ...Typography.bodyMedium,
@@ -240,7 +256,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
     borderColor: MaterialYouTheme.secondary.secondary80,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   selectedLevelChip: {
     backgroundColor: "#EFF6FF", // 淡藍色背景
@@ -249,35 +265,35 @@ const styles = StyleSheet.create({
   levelChipContent: {
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
-    alignItems: 'center',
+    alignItems: "center",
   },
   levelChipText: {
     ...Typography.labelLarge,
     color: MaterialYouTheme.secondary.secondary30,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   selectedLevelChipText: {
     color: "#1D4ED8", // 藍色文字
-    fontWeight: '600',
+    fontWeight: "600",
   },
   categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: Platform.OS === 'web' ? Spacing.sm : undefined,
-    marginHorizontal: Platform.OS === 'web' ? -Spacing.sm/2 : 0,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: Platform.OS === "web" ? Spacing.sm : undefined,
+    marginHorizontal: Platform.OS === "web" ? -Spacing.sm / 2 : 0,
   },
   categoryCard: {
-    width: Platform.OS === 'web' ? 'calc(50% - 8px)' : '48%',
+    width: Platform.OS === "web" ? "calc(50% - 8px)" : "48%",
     backgroundColor: MaterialYouTheme.secondary.secondary95,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
     borderColor: MaterialYouTheme.secondary.secondary90,
     minHeight: 100,
-    justifyContent: 'space-between',
-    marginBottom: Platform.OS === 'web' ? 0 : Spacing.sm,
+    justifyContent: "space-between",
+    marginBottom: Platform.OS === "web" ? 0 : Spacing.sm,
   },
   selectedCategoryCard: {
     backgroundColor: "#EFF6FF", // 淡藍色背景
@@ -289,8 +305,8 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: MaterialYouTheme.secondary.secondary80,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: Spacing.sm,
   },
   categoryIcon: {
@@ -299,13 +315,13 @@ const styles = StyleSheet.create({
   categoryTitle: {
     ...Typography.labelMedium,
     color: MaterialYouTheme.secondary.secondary20,
-    textAlign: 'center',
-    fontWeight: '500',
+    textAlign: "center",
+    fontWeight: "500",
     marginBottom: Spacing.xs,
   },
   selectedCategoryTitle: {
     color: "#1E40AF", // 深藍色標題
-    fontWeight: '600',
+    fontWeight: "600",
   },
   categoryBadge: {
     backgroundColor: MaterialYouTheme.tertiary.tertiary90,
@@ -316,12 +332,12 @@ const styles = StyleSheet.create({
   categoryCount: {
     ...Typography.labelSmall,
     color: MaterialYouTheme.tertiary.tertiary30,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   clearButton: {
     backgroundColor: MaterialYouTheme.error.error90,
     borderColor: MaterialYouTheme.error.error50,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
@@ -329,12 +345,12 @@ const styles = StyleSheet.create({
   clearButtonText: {
     ...Typography.labelLarge,
     color: MaterialYouTheme.error.error30,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: Spacing.xl,
     backgroundColor: MaterialYouTheme.neutral.neutral99,
   },
@@ -343,8 +359,8 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     backgroundColor: MaterialYouTheme.error.error90,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: Spacing.lg,
   },
   errorIcon: {
@@ -354,13 +370,13 @@ const styles = StyleSheet.create({
     ...Typography.headlineSmall,
     color: MaterialYouTheme.error.error30,
     marginBottom: Spacing.sm,
-    textAlign: 'center',
-    fontWeight: '600',
+    textAlign: "center",
+    fontWeight: "600",
   },
   errorMessage: {
     ...Typography.bodyMedium,
     color: MaterialYouTheme.neutral.neutral40,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: Spacing.xl,
     lineHeight: 20,
   },
@@ -372,12 +388,12 @@ const styles = StyleSheet.create({
   retryButtonText: {
     ...Typography.labelLarge,
     color: "#FFFFFF", // 白色文字
-    fontWeight: '500',
+    fontWeight: "500",
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: Spacing.xl,
     backgroundColor: MaterialYouTheme.neutral.neutral99,
     minHeight: 200,
@@ -390,13 +406,13 @@ const styles = StyleSheet.create({
     ...Typography.headlineSmall,
     color: MaterialYouTheme.neutral.neutral30,
     marginBottom: Spacing.sm,
-    textAlign: 'center',
-    fontWeight: '600',
+    textAlign: "center",
+    fontWeight: "600",
   },
   emptyMessage: {
     ...Typography.bodyMedium,
     color: MaterialYouTheme.neutral.neutral40,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
   },
 });

@@ -1,18 +1,23 @@
 // SOUL/app/(tabs)/education/word-learning/components/AchievementModal.jsx
-import React, { useState, useEffect } from 'react';
+import { useUser } from "@clerk/clerk-expo";
+import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 import {
-  View,
-  Text,
+  Animated,
   Modal,
-  TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Animated,
-} from 'react-native';
-import { useUser } from '@clerk/clerk-expo';
-import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../../themes/MaterialYouTheme';
-import { VocabularyService } from '../services/VocabularyService';
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  BorderRadius,
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from "../../themes/MaterialYouTheme";
+import { VocabularyService } from "../services/VocabularyService";
 
 const AchievementModal = ({ visible, onClose }) => {
   const { user } = useUser();
@@ -36,64 +41,64 @@ const AchievementModal = ({ visible, onClose }) => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await VocabularyService.getUserAchievements(user.id);
-      
+
       if (result && result.achievements && Array.isArray(result.achievements)) {
         setAchievements(result.achievements);
       } else {
         // API 返回空數據，使用模擬數據
         setAchievements([
           {
-            id: 'first_word',
-            title: '初次學習',
-            description: '學習第一個單詞',
-            icon: 'school',
+            id: "first_word",
+            title: "初次學習",
+            description: "學習第一個單詞",
+            icon: "school",
             earned: true,
             earnedAt: new Date(),
           },
           {
-            id: 'week_streak',
-            title: '堅持一週',
-            description: '連續學習7天',
-            icon: 'calendar',
+            id: "week_streak",
+            title: "堅持一週",
+            description: "連續學習7天",
+            icon: "calendar",
             earned: false,
           },
           {
-            id: 'words_50',
-            title: '詞彙新手',
-            description: '學習50個單詞',
-            icon: 'book',
+            id: "words_50",
+            title: "詞彙新手",
+            description: "學習50個單詞",
+            icon: "book",
             earned: false,
           },
         ]);
       }
     } catch (error) {
-      console.error('載入成就失敗:', error);
-      setError('載入成就數據失敗，顯示模擬數據');
-      
+      console.error("載入成就失敗:", error);
+      setError("載入成就數據失敗，顯示模擬數據");
+
       // 顯示模擬成就
       setAchievements([
         {
-          id: 'first_word',
-          title: '初次學習',
-          description: '學習第一個單詞',
-          icon: 'school',
+          id: "first_word",
+          title: "初次學習",
+          description: "學習第一個單詞",
+          icon: "school",
           earned: true,
           earnedAt: new Date(),
         },
         {
-          id: 'week_streak',
-          title: '堅持一週',
-          description: '連續學習7天',
-          icon: 'calendar',
+          id: "week_streak",
+          title: "堅持一週",
+          description: "連續學習7天",
+          icon: "calendar",
           earned: false,
         },
         {
-          id: 'words_50',
-          title: '詞彙新手',
-          description: '學習50個單詞',
-          icon: 'book',
+          id: "words_50",
+          title: "詞彙新手",
+          description: "學習50個單詞",
+          icon: "book",
           earned: false,
         },
       ]);
@@ -113,14 +118,14 @@ const AchievementModal = ({ visible, onClose }) => {
   };
 
   const getIconColor = (achievement) => {
-    return achievement.earned 
-      ? MaterialYouTheme.secondary.secondary40 
+    return achievement.earned
+      ? MaterialYouTheme.secondary.secondary40
       : MaterialYouTheme.neutral.neutral60;
   };
 
   const getBackgroundColor = (achievement) => {
-    return achievement.earned 
-      ? MaterialYouTheme.secondary.secondary95 
+    return achievement.earned
+      ? MaterialYouTheme.secondary.secondary95
       : MaterialYouTheme.neutral.neutral95;
   };
 
@@ -137,12 +142,19 @@ const AchievementModal = ({ visible, onClose }) => {
           <View style={styles.header}>
             <Text style={styles.title}>學習成就</Text>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={MaterialYouTheme.neutral.neutral30} />
+              <Ionicons
+                name="close"
+                size={24}
+                color={MaterialYouTheme.neutral.neutral30}
+              />
             </TouchableOpacity>
           </View>
 
           {/* 成就列表 */}
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.scrollView}
+            showsVerticalScrollIndicator={false}
+          >
             {loading ? (
               <View style={styles.loadingContainer}>
                 <Text style={styles.loadingText}>載入成就中...</Text>
@@ -154,18 +166,18 @@ const AchievementModal = ({ visible, onClose }) => {
             ) : (
               <View style={styles.achievementsGrid}>
                 {achievements.map((achievement) => (
-                  <View 
-                    key={achievement.id} 
+                  <View
+                    key={achievement.id}
                     style={[
                       styles.achievementCard,
-                      { backgroundColor: getBackgroundColor(achievement) }
+                      { backgroundColor: getBackgroundColor(achievement) },
                     ]}
                   >
                     <View style={styles.achievementIcon}>
-                      <Ionicons 
-                        name={achievement.icon} 
-                        size={32} 
-                        color={getIconColor(achievement)} 
+                      <Ionicons
+                        name={achievement.icon}
+                        size={32}
+                        color={getIconColor(achievement)}
                       />
                       {achievement.earned && (
                         <View style={styles.earnedBadge}>
@@ -173,24 +185,30 @@ const AchievementModal = ({ visible, onClose }) => {
                         </View>
                       )}
                     </View>
-                    
-                    <Text style={[
-                      styles.achievementTitle,
-                      !achievement.earned && styles.achievementTitleLocked
-                    ]}>
+
+                    <Text
+                      style={[
+                        styles.achievementTitle,
+                        !achievement.earned && styles.achievementTitleLocked,
+                      ]}
+                    >
                       {achievement.title}
                     </Text>
-                    
-                    <Text style={[
-                      styles.achievementDescription,
-                      !achievement.earned && styles.achievementDescriptionLocked
-                    ]}>
+
+                    <Text
+                      style={[
+                        styles.achievementDescription,
+                        !achievement.earned &&
+                          styles.achievementDescriptionLocked,
+                      ]}
+                    >
                       {achievement.description}
                     </Text>
-                    
+
                     {achievement.earned && achievement.earnedAt && (
                       <Text style={styles.earnedDate}>
-                        已獲得於 {new Date(achievement.earnedAt).toLocaleDateString()}
+                        已獲得於{" "}
+                        {new Date(achievement.earnedAt).toLocaleDateString()}
                       </Text>
                     )}
                   </View>
@@ -202,7 +220,8 @@ const AchievementModal = ({ visible, onClose }) => {
           {/* 統計資訊 */}
           <View style={styles.footer}>
             <Text style={styles.statsText}>
-              已獲得 {achievements.filter(a => a.earned).length} / {achievements.length} 個成就
+              已獲得 {achievements.filter((a) => a.earned).length} /{" "}
+              {achievements.length} 個成就
             </Text>
           </View>
         </Animated.View>
@@ -214,16 +233,16 @@ const AchievementModal = ({ visible, onClose }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: Spacing.lg,
   },
   container: {
     backgroundColor: MaterialYouTheme.neutral.neutral99,
     borderRadius: BorderRadius.xl,
-    width: '100%',
-    maxHeight: '80%',
+    width: "100%",
+    maxHeight: "80%",
     elevation: 8,
     shadowColor: MaterialYouTheme.neutral.neutral0,
     shadowOffset: { width: 0, height: 4 },
@@ -231,9 +250,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
@@ -252,7 +271,7 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     paddingVertical: Spacing.xl,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loadingText: {
     ...Typography.bodyMedium,
@@ -260,12 +279,12 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     paddingVertical: Spacing.xl,
-    alignItems: 'center',
+    alignItems: "center",
   },
   errorText: {
     ...Typography.bodyMedium,
     color: MaterialYouTheme.error.error40,
-    textAlign: 'center',
+    textAlign: "center",
   },
   achievementsGrid: {
     paddingVertical: Spacing.md,
@@ -274,28 +293,28 @@ const styles = StyleSheet.create({
   achievementCard: {
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
-    alignItems: 'center',
-    position: 'relative',
+    alignItems: "center",
+    position: "relative",
   },
   achievementIcon: {
     marginBottom: Spacing.sm,
-    position: 'relative',
+    position: "relative",
   },
   earnedBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: -4,
     right: -4,
     backgroundColor: MaterialYouTheme.secondary.secondary40,
     borderRadius: 8,
     width: 16,
     height: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   achievementTitle: {
     ...Typography.titleMedium,
     color: MaterialYouTheme.neutral.neutral20,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: Spacing.xs,
   },
   achievementTitleLocked: {
@@ -304,7 +323,7 @@ const styles = StyleSheet.create({
   achievementDescription: {
     ...Typography.bodyMedium,
     color: MaterialYouTheme.neutral.neutral40,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: Spacing.xs,
   },
   achievementDescriptionLocked: {
@@ -313,14 +332,14 @@ const styles = StyleSheet.create({
   earnedDate: {
     ...Typography.labelSmall,
     color: MaterialYouTheme.secondary.secondary40,
-    textAlign: 'center',
+    textAlign: "center",
   },
   footer: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: MaterialYouTheme.neutral.neutral90,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statsText: {
     ...Typography.bodyMedium,

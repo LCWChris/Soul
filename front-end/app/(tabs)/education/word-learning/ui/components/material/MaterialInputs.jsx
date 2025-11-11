@@ -1,17 +1,23 @@
 // @ts-nocheck
 // This is a component file, not a route
-import React, { useState, useRef, useEffect } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useRef, useState } from "react";
 import {
-  View,
+  Animated,
+  Platform,
+  StyleSheet,
   Text,
   TextInput,
-  StyleSheet,
-  Animated,
   TouchableOpacity,
-  Platform,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
+  View,
+} from "react-native";
+import {
+  BorderRadius,
+  Elevation,
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from "../../themes/MaterialYouTheme";
 
 /**
  * Material You 風格文字輸入框
@@ -23,14 +29,14 @@ export const MaterialTextInput = ({
   onChangeText,
   error,
   helperText,
-  variant = 'outlined', // outlined, filled
+  variant = "outlined", // outlined, filled
   leadingIcon,
   trailingIcon,
   onTrailingIconPress,
   multiline = false,
   secureTextEntry = false,
-  keyboardType = 'default',
-  autoCapitalize = 'sentences',
+  keyboardType = "default",
+  autoCapitalize = "sentences",
   maxLength,
   editable = true,
   style,
@@ -39,14 +45,14 @@ export const MaterialTextInput = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isLabelAnimated, setIsLabelAnimated] = useState(false);
-  
+
   const labelAnimation = useRef(new Animated.Value(value ? 1 : 0)).current;
   const borderAnimation = useRef(new Animated.Value(0)).current;
   const inputRef = useRef(null);
 
   useEffect(() => {
     const shouldAnimateLabel = isFocused || value;
-    
+
     Animated.timing(labelAnimation, {
       toValue: shouldAnimateLabel ? 1 : 0,
       duration: 200,
@@ -77,7 +83,7 @@ export const MaterialTextInput = ({
       marginVertical: Spacing.sm,
     };
 
-    if (variant === 'filled') {
+    if (variant === "filled") {
       return {
         ...baseStyle,
         backgroundColor: MaterialYouTheme.surfaceVariant.surfaceVariant,
@@ -122,18 +128,20 @@ export const MaterialTextInput = ({
     const animatedBackgroundColor = labelAnimation.interpolate({
       inputRange: [0, 1],
       outputRange: [
-        'transparent',
-        variant === 'outlined' ? MaterialYouTheme.surface.surface : 'transparent'
+        "transparent",
+        variant === "outlined"
+          ? MaterialYouTheme.surface.surface
+          : "transparent",
       ],
     });
 
     return {
-      position: 'absolute',
+      position: "absolute",
       left: leadingIcon ? 48 : 16,
       top: animatedTop,
       fontSize: animatedFontSize,
       backgroundColor: animatedBackgroundColor,
-      paddingHorizontal: variant === 'outlined' && isLabelAnimated ? 4 : 0,
+      paddingHorizontal: variant === "outlined" && isLabelAnimated ? 4 : 0,
       color: error
         ? MaterialYouTheme.error.error40
         : isFocused
@@ -146,14 +154,14 @@ export const MaterialTextInput = ({
   const getInputStyles = () => {
     return {
       flex: 1,
-      paddingTop: variant === 'filled' ? Spacing.lg : Spacing.md,
-      paddingBottom: variant === 'filled' ? Spacing.sm : Spacing.md,
+      paddingTop: variant === "filled" ? Spacing.lg : Spacing.md,
+      paddingBottom: variant === "filled" ? Spacing.sm : Spacing.md,
       paddingLeft: leadingIcon ? 48 : Spacing.md,
       paddingRight: trailingIcon ? 48 : Spacing.md,
       fontSize: 16,
       color: MaterialYouTheme.onSurface.onSurface,
-      textAlignVertical: multiline ? 'top' : 'center',
-      minHeight: multiline ? 80 : Platform.OS === 'ios' ? 20 : 24,
+      textAlignVertical: multiline ? "top" : "center",
+      minHeight: multiline ? 80 : Platform.OS === "ios" ? 20 : 24,
     };
   };
 
@@ -167,9 +175,10 @@ export const MaterialTextInput = ({
             <Ionicons
               name={leadingIcon}
               size={24}
-              color={isFocused
-                ? MaterialYouTheme.primary.primary40
-                : MaterialYouTheme.onSurfaceVariant.onSurfaceVariant
+              color={
+                isFocused
+                  ? MaterialYouTheme.primary.primary40
+                  : MaterialYouTheme.onSurfaceVariant.onSurfaceVariant
               }
             />
           </View>
@@ -190,8 +199,10 @@ export const MaterialTextInput = ({
           onChangeText={onChangeText}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          placeholder={!isLabelAnimated ? placeholder : ''}
-          placeholderTextColor={MaterialYouTheme.onSurfaceVariant.onSurfaceVariant}
+          placeholder={!isLabelAnimated ? placeholder : ""}
+          placeholderTextColor={
+            MaterialYouTheme.onSurfaceVariant.onSurfaceVariant
+          }
           multiline={multiline}
           secureTextEntry={secureTextEntry}
           keyboardType={keyboardType}
@@ -212,9 +223,10 @@ export const MaterialTextInput = ({
             <Ionicons
               name={trailingIcon}
               size={24}
-              color={isFocused
-                ? MaterialYouTheme.primary.primary40
-                : MaterialYouTheme.onSurfaceVariant.onSurfaceVariant
+              color={
+                isFocused
+                  ? MaterialYouTheme.primary.primary40
+                  : MaterialYouTheme.onSurfaceVariant.onSurfaceVariant
               }
             />
           </TouchableOpacity>
@@ -255,7 +267,7 @@ export const MaterialSearchInput = ({
   onChangeText,
   onSubmitEditing,
   onClear,
-  placeholder = '搜尋...',
+  placeholder = "搜尋...",
   showFilter = false,
   onFilterPress,
   style,
@@ -265,14 +277,19 @@ export const MaterialSearchInput = ({
 
   return (
     <View style={[styles.searchContainer, style]}>
-      <View style={[styles.searchInputContainer, isFocused && styles.searchInputFocused]}>
+      <View
+        style={[
+          styles.searchInputContainer,
+          isFocused && styles.searchInputFocused,
+        ]}
+      >
         <Ionicons
           name="search-outline"
           size={20}
           color={MaterialYouTheme.onSurfaceVariant.onSurfaceVariant}
           style={styles.searchIcon}
         />
-        
+
         <TextInput
           style={styles.searchInput}
           value={value}
@@ -281,7 +298,9 @@ export const MaterialSearchInput = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder={placeholder}
-          placeholderTextColor={MaterialYouTheme.onSurfaceVariant.onSurfaceVariant}
+          placeholderTextColor={
+            MaterialYouTheme.onSurfaceVariant.onSurfaceVariant
+          }
           returnKeyType="search"
           selectionColor={MaterialYouTheme.primary.primary40}
           {...props}
@@ -318,14 +337,16 @@ export const MaterialSelector = ({
   options = [],
   selectedValue,
   onSelect,
-  placeholder = '請選擇',
+  placeholder = "請選擇",
   label,
   error,
   style,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const selectedOption = options.find(option => option.value === selectedValue);
+  const selectedOption = options.find(
+    (option) => option.value === selectedValue
+  );
 
   return (
     <View style={[styles.selectorContainer, style]}>
@@ -334,12 +355,12 @@ export const MaterialSelector = ({
           {label}
         </Text>
       )}
-      
+
       <TouchableOpacity
         style={[
           styles.selectorButton,
           error && styles.selectorError,
-          isOpen && styles.selectorOpen
+          isOpen && styles.selectorOpen,
         ]}
         onPress={() => setIsOpen(!isOpen)}
         activeOpacity={0.7}
@@ -348,14 +369,14 @@ export const MaterialSelector = ({
           style={[
             Typography.bodyLarge,
             styles.selectorText,
-            !selectedOption && styles.selectorPlaceholder
+            !selectedOption && styles.selectorPlaceholder,
           ]}
         >
           {selectedOption?.label || placeholder}
         </Text>
-        
+
         <Ionicons
-          name={isOpen ? 'chevron-up' : 'chevron-down'}
+          name={isOpen ? "chevron-up" : "chevron-down"}
           size={20}
           color={MaterialYouTheme.onSurfaceVariant.onSurfaceVariant}
         />
@@ -368,7 +389,7 @@ export const MaterialSelector = ({
               key={option.value}
               style={[
                 styles.optionItem,
-                selectedValue === option.value && styles.optionSelected
+                selectedValue === option.value && styles.optionSelected,
               ]}
               onPress={() => {
                 onSelect(option.value);
@@ -380,12 +401,12 @@ export const MaterialSelector = ({
                 style={[
                   Typography.bodyLarge,
                   styles.optionText,
-                  selectedValue === option.value && styles.optionTextSelected
+                  selectedValue === option.value && styles.optionTextSelected,
                 ]}
               >
                 {option.label}
               </Text>
-              
+
               {selectedValue === option.value && (
                 <Ionicons
                   name="checkmark"
@@ -399,9 +420,7 @@ export const MaterialSelector = ({
       )}
 
       {error && (
-        <Text style={[Typography.bodySmall, styles.errorText]}>
-          {error}
-        </Text>
+        <Text style={[Typography.bodySmall, styles.errorText]}>{error}</Text>
       )}
     </View>
   );
@@ -410,28 +429,28 @@ export const MaterialSelector = ({
 const styles = StyleSheet.create({
   // 文字輸入框樣式
   container: {
-    width: '100%',
+    width: "100%",
   },
   inputContainer: {
-    position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'stretch',
+    position: "relative",
+    flexDirection: "row",
+    alignItems: "stretch",
   },
   leadingIcon: {
-    position: 'absolute',
+    position: "absolute",
     left: 12,
     top: 16,
     zIndex: 2,
   },
   trailingIcon: {
-    position: 'absolute',
+    position: "absolute",
     right: 12,
     top: 16,
     zIndex: 2,
   },
   supportingText: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: Spacing.md,
     paddingTop: Spacing.xs,
   },
@@ -441,17 +460,17 @@ const styles = StyleSheet.create({
 
   // 搜尋輸入框樣式
   searchContainer: {
-    width: '100%',
+    width: "100%",
   },
   searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: MaterialYouTheme.surfaceVariant.surfaceVariant,
     borderRadius: BorderRadius.xl,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   searchInputFocused: {
     borderColor: MaterialYouTheme.primary.primary40,
@@ -464,7 +483,7 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Typography.bodyLarge,
     color: MaterialYouTheme.onSurface.onSurface,
-    paddingVertical: Platform.OS === 'ios' ? 8 : 4,
+    paddingVertical: Platform.OS === "ios" ? 8 : 4,
   },
   clearButton: {
     marginLeft: Spacing.sm,
@@ -476,7 +495,7 @@ const styles = StyleSheet.create({
 
   // 選擇器樣式
   selectorContainer: {
-    width: '100%',
+    width: "100%",
     marginVertical: Spacing.sm,
   },
   selectorLabel: {
@@ -484,9 +503,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   selectorButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderWidth: 1,
@@ -519,9 +538,9 @@ const styles = StyleSheet.create({
     maxHeight: 200,
   },
   optionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
@@ -535,7 +554,7 @@ const styles = StyleSheet.create({
   },
   optionTextSelected: {
     color: MaterialYouTheme.primary.primary40,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   errorText: {
     color: MaterialYouTheme.error.error40,

@@ -1,30 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
-import { getWordStats } from '@/utils/word-stats';
+import { getWordStats } from "@/utils/word-stats";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import {
+  BorderRadius,
+  Elevation,
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from "../../themes/MaterialYouTheme";
 
-const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyLevel, selectedLearningStatus }) => {
+const LearningProgress = ({
+  selectedCategory,
+  selectedLevel,
+  selectedDifficultyLevel,
+  selectedLearningStatus,
+}) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
-  }, [selectedCategory, selectedLevel, selectedDifficultyLevel, selectedLearningStatus]);
+  }, [
+    selectedCategory,
+    selectedLevel,
+    selectedDifficultyLevel,
+    selectedLearningStatus,
+  ]);
 
   const fetchStats = async () => {
     try {
       setLoading(true);
-      
+
       // 構建篩選條件
       const filters = {};
       if (selectedCategory) filters.category = selectedCategory;
       if (selectedLevel) filters.level = selectedLevel;
       if (selectedDifficultyLevel) filters.level = selectedDifficultyLevel;
-      
+
       const statsData = await getWordStats(filters);
       setStats(statsData);
     } catch (error) {
-      console.error('獲取統計數據失敗:', error);
+      console.error("獲取統計數據失敗:", error);
       // 設置默認統計
       setStats({
         totalWords: 0,
@@ -37,8 +53,8 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
         todayRecommendation: {
           newWords: 0,
           reviewWords: 0,
-          masteredToday: 0
-        }
+          masteredToday: 0,
+        },
       });
     } finally {
       setLoading(false);
@@ -58,7 +74,16 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
 
   if (!stats) return null;
 
-  const { totalWords, favoriteWords, notStarted, learning, reviewing, mastered, progressRate, todayRecommendation } = stats;
+  const {
+    totalWords,
+    favoriteWords,
+    notStarted,
+    learning,
+    reviewing,
+    mastered,
+    progressRate,
+    todayRecommendation,
+  } = stats;
 
   return (
     <View style={styles.container}>
@@ -68,25 +93,22 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
           <Text style={styles.progressTitle}>學習進度</Text>
           <Text style={styles.progressPercentage}>{progressRate}%</Text>
         </View>
-        
+
         <View style={styles.progressBarContainer}>
           <View style={styles.progressBarBackground}>
-            <View 
-              style={[
-                styles.progressBar, 
-                { width: `${progressRate}%` }
-              ]} 
-            />
+            <View style={[styles.progressBar, { width: `${progressRate}%` }]} />
           </View>
         </View>
-        
+
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{totalWords}</Text>
             <Text style={styles.statLabel}>總單詞</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{learning + reviewing + mastered}</Text>
+            <Text style={styles.statNumber}>
+              {learning + reviewing + mastered}
+            </Text>
             <Text style={styles.statLabel}>已學習</Text>
           </View>
           <View style={styles.statItem}>
@@ -105,22 +127,39 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
         <Text style={styles.detailTitle}>學習狀態分布</Text>
         <View style={styles.statusGrid}>
           <View style={styles.statusItem}>
-            <View style={[styles.statusIndicator, { backgroundColor: MaterialYouTheme.neutral.neutral50 }]} />
+            <View
+              style={[
+                styles.statusIndicator,
+                { backgroundColor: MaterialYouTheme.neutral.neutral50 },
+              ]}
+            />
             <Text style={styles.statusCount}>{notStarted}</Text>
             <Text style={styles.statusLabel}>未開始</Text>
           </View>
           <View style={styles.statusItem}>
-            <View style={[styles.statusIndicator, { backgroundColor: MaterialYouTheme.tertiary.tertiary40 }]} />
+            <View
+              style={[
+                styles.statusIndicator,
+                { backgroundColor: MaterialYouTheme.tertiary.tertiary40 },
+              ]}
+            />
             <Text style={styles.statusCount}>{learning}</Text>
             <Text style={styles.statusLabel}>學習中</Text>
           </View>
           <View style={styles.statusItem}>
-            <View style={[styles.statusIndicator, { backgroundColor: MaterialYouTheme.secondary.secondary40 }]} />
+            <View
+              style={[
+                styles.statusIndicator,
+                { backgroundColor: MaterialYouTheme.secondary.secondary40 },
+              ]}
+            />
             <Text style={styles.statusCount}>{reviewing}</Text>
             <Text style={styles.statusLabel}>複習中</Text>
           </View>
           <View style={styles.statusItem}>
-            <View style={[styles.statusIndicator, { backgroundColor: "#2563EB" }]} />
+            <View
+              style={[styles.statusIndicator, { backgroundColor: "#2563EB" }]}
+            />
             <Text style={styles.statusCount}>{mastered}</Text>
             <Text style={styles.statusLabel}>已掌握</Text>
           </View>
@@ -132,15 +171,21 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
         <Text style={styles.recommendationTitle}>今日學習建議</Text>
         <View style={styles.recommendationGrid}>
           <View style={styles.recommendationItem}>
-            <Text style={styles.recommendationNumber}>{todayRecommendation.newWords}</Text>
+            <Text style={styles.recommendationNumber}>
+              {todayRecommendation.newWords}
+            </Text>
             <Text style={styles.recommendationLabel}>新單詞</Text>
           </View>
           <View style={styles.recommendationItem}>
-            <Text style={styles.recommendationNumber}>{todayRecommendation.reviewWords}</Text>
+            <Text style={styles.recommendationNumber}>
+              {todayRecommendation.reviewWords}
+            </Text>
             <Text style={styles.recommendationLabel}>待複習</Text>
           </View>
           <View style={styles.recommendationItem}>
-            <Text style={styles.recommendationNumber}>{todayRecommendation.masteredToday}</Text>
+            <Text style={styles.recommendationNumber}>
+              {todayRecommendation.masteredToday}
+            </Text>
             <Text style={styles.recommendationLabel}>今日掌握</Text>
           </View>
         </View>
@@ -156,9 +201,9 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: Spacing.xl,
     gap: Spacing.sm,
   },
@@ -173,20 +218,20 @@ const styles = StyleSheet.create({
     ...Elevation.level2,
   },
   progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: Spacing.md,
   },
   progressTitle: {
     ...Typography.titleLarge,
     color: "#1E40AF", // 深藍色標題
-    fontWeight: '600',
+    fontWeight: "600",
   },
   progressPercentage: {
     ...Typography.headlineSmall,
     color: "#2563EB", // 藍色百分比
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   progressBarContainer: {
     marginBottom: Spacing.lg,
@@ -195,25 +240,25 @@ const styles = StyleSheet.create({
     height: 8,
     backgroundColor: "#DBEAFE", // 淡藍色背景
     borderRadius: 4,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressBar: {
-    height: '100%',
+    height: "100%",
     backgroundColor: "#2563EB", // 藍色進度條
     borderRadius: 4,
   },
   statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   statItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   statNumber: {
     ...Typography.titleMedium,
     color: "#1E40AF", // 深藍色數字
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 2,
   },
   statLabel: {
@@ -229,16 +274,16 @@ const styles = StyleSheet.create({
   detailTitle: {
     ...Typography.titleMedium,
     color: MaterialYouTheme.neutral.neutral20,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: Spacing.md,
-    textAlign: 'center',
+    textAlign: "center",
   },
   statusGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   statusItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   statusIndicator: {
@@ -250,13 +295,13 @@ const styles = StyleSheet.create({
   statusCount: {
     ...Typography.titleSmall,
     color: MaterialYouTheme.neutral.neutral20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 2,
   },
   statusLabel: {
     ...Typography.labelSmall,
     color: MaterialYouTheme.neutral.neutral50,
-    textAlign: 'center',
+    textAlign: "center",
   },
   recommendationCard: {
     backgroundColor: MaterialYouTheme.tertiary.tertiary90,
@@ -267,28 +312,28 @@ const styles = StyleSheet.create({
   recommendationTitle: {
     ...Typography.titleMedium,
     color: MaterialYouTheme.tertiary.tertiary30,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: Spacing.md,
-    textAlign: 'center',
+    textAlign: "center",
   },
   recommendationGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   recommendationItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
   recommendationNumber: {
     ...Typography.titleLarge,
     color: MaterialYouTheme.tertiary.tertiary40,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 2,
   },
   recommendationLabel: {
     ...Typography.labelSmall,
     color: MaterialYouTheme.tertiary.tertiary50,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 

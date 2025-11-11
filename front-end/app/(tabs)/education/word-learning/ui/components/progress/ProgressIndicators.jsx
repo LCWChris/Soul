@@ -1,31 +1,36 @@
 // @ts-nocheck
 // This is a component file, not a route
-import React, { useEffect, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  Animated, 
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useRef } from "react";
+import {
+  Animated,
+  Dimensions,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  Dimensions 
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, ColorUtils } from '../../themes/MaterialYouTheme';
+  View,
+} from "react-native";
+import {
+  BorderRadius,
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from "../../themes/MaterialYouTheme";
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get("window");
 
 /**
  * 學習進度環形指示器
  */
-export const CircularProgressIndicator = ({ 
+export const CircularProgressIndicator = ({
   progress = 0, // 0-100
   size = 60,
   strokeWidth = 6,
   showText = true,
   animated = true,
   style,
-  children
+  children,
 }) => {
   const animatedProgress = useRef(new Animated.Value(0)).current;
   const radius = (size - strokeWidth) / 2;
@@ -49,7 +54,9 @@ export const CircularProgressIndicator = ({
   });
 
   return (
-    <View style={[styles.circularProgress, { width: size, height: size }, style]}>
+    <View
+      style={[styles.circularProgress, { width: size, height: size }, style]}
+    >
       <Animated.View style={styles.progressContainer}>
         {/* 背景圓圈 */}
         <View
@@ -61,10 +68,10 @@ export const CircularProgressIndicator = ({
               borderRadius: size / 2,
               borderWidth: strokeWidth,
               borderColor: MaterialYouTheme.neutralVariant.neutralVariant90,
-            }
+            },
           ]}
         />
-        
+
         {/* 進度圓圈 */}
         <Animated.View
           style={[
@@ -76,8 +83,8 @@ export const CircularProgressIndicator = ({
               borderRadius: size / 2,
               borderWidth: strokeWidth,
               borderColor: "#2563EB", // 藍色主題
-              transform: [{ rotate: '-90deg' }],
-            }
+              transform: [{ rotate: "-90deg" }],
+            },
           ]}
         >
           <LinearGradient
@@ -88,7 +95,7 @@ export const CircularProgressIndicator = ({
                 width: size - strokeWidth,
                 height: size - strokeWidth,
                 borderRadius: (size - strokeWidth) / 2,
-              }
+              },
             ]}
           />
         </Animated.View>
@@ -96,11 +103,10 @@ export const CircularProgressIndicator = ({
 
       {/* 中心內容 */}
       <View style={styles.centerContent}>
-        {children || (showText && (
-          <Text style={styles.progressText}>
-            {Math.round(progress)}%
-          </Text>
-        ))}
+        {children ||
+          (showText && (
+            <Text style={styles.progressText}>{Math.round(progress)}%</Text>
+          ))}
       </View>
     </View>
   );
@@ -109,13 +115,13 @@ export const CircularProgressIndicator = ({
 /**
  * 學習進度條
  */
-export const LearningProgressBar = ({ 
+export const LearningProgressBar = ({
   progress = 0, // 0-100
   height = 8,
   showLabel = true,
-  label = '',
+  label = "",
   animated = true,
-  style
+  style,
 }) => {
   const animatedWidth = useRef(new Animated.Value(0)).current;
 
@@ -133,8 +139,8 @@ export const LearningProgressBar = ({
 
   const progressWidth = animatedWidth.interpolate({
     inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-    extrapolate: 'clamp',
+    outputRange: ["0%", "100%"],
+    extrapolate: "clamp",
   });
 
   return (
@@ -145,9 +151,11 @@ export const LearningProgressBar = ({
           <Text style={styles.progressPercentage}>{Math.round(progress)}%</Text>
         </View>
       )}
-      
+
       <View style={[styles.progressBarTrack, { height }]}>
-        <Animated.View style={[styles.progressBarFill, { height, width: progressWidth }]}>
+        <Animated.View
+          style={[styles.progressBarFill, { height, width: progressWidth }]}
+        >
           <LinearGradient
             colors={["#3B82F6", "#2563EB"]} // 藍色漸層
             start={{ x: 0, y: 0 }}
@@ -163,12 +171,12 @@ export const LearningProgressBar = ({
 /**
  * 學習狀態指示器
  */
-export const LearningStatusIndicator = ({ 
-  status = 'new', // new, learning, reviewing, mastered, difficult
-  size = 'medium', // small, medium, large
+export const LearningStatusIndicator = ({
+  status = "new", // new, learning, reviewing, mastered, difficult
+  size = "medium", // small, medium, large
   onPress,
   style,
-  showLabel = true
+  showLabel = true,
 }) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
 
@@ -189,35 +197,35 @@ export const LearningStatusIndicator = ({
   const getStatusConfig = () => {
     const configs = {
       new: {
-        icon: 'add-circle-outline',
+        icon: "add-circle-outline",
         color: MaterialYouTheme.neutralVariant.neutralVariant40,
         backgroundColor: MaterialYouTheme.neutralVariant.neutralVariant95,
-        label: '新詞'
+        label: "新詞",
       },
       learning: {
-        icon: 'school-outline',
+        icon: "school-outline",
         color: MaterialYouTheme.tertiary.tertiary40,
         backgroundColor: MaterialYouTheme.tertiary.tertiary95,
-        label: '學習中'
+        label: "學習中",
       },
       reviewing: {
-        icon: 'refresh-outline',
+        icon: "refresh-outline",
         color: MaterialYouTheme.secondary.secondary40,
         backgroundColor: MaterialYouTheme.secondary.secondary95,
-        label: '復習'
+        label: "復習",
       },
       mastered: {
-        icon: 'checkmark-circle',
+        icon: "checkmark-circle",
         color: MaterialYouTheme.primary.primary40,
         backgroundColor: MaterialYouTheme.primary.primary95,
-        label: '已掌握'
+        label: "已掌握",
       },
       difficult: {
-        icon: 'warning-outline',
+        icon: "warning-outline",
         color: MaterialYouTheme.error.error40,
         backgroundColor: MaterialYouTheme.error.error95,
-        label: '困難'
-      }
+        label: "困難",
+      },
     };
     return configs[status] || configs.new;
   };
@@ -226,7 +234,7 @@ export const LearningStatusIndicator = ({
     const configs = {
       small: { iconSize: 16, containerSize: 32 },
       medium: { iconSize: 20, containerSize: 40 },
-      large: { iconSize: 24, containerSize: 48 }
+      large: { iconSize: 24, containerSize: 48 },
     };
     return configs[size];
   };
@@ -245,19 +253,19 @@ export const LearningStatusIndicator = ({
             width: sizeConfig.containerSize,
             height: sizeConfig.containerSize,
             backgroundColor: statusConfig.backgroundColor,
-          }
+          },
         ]}
         onPress={onPress}
         onPressIn={onPress ? handlePressIn : undefined}
         onPressOut={onPress ? handlePressOut : undefined}
         activeOpacity={onPress ? 0.7 : 1}
       >
-        <Ionicons 
-          name={statusConfig.icon} 
-          size={sizeConfig.iconSize} 
+        <Ionicons
+          name={statusConfig.icon}
+          size={sizeConfig.iconSize}
           color={statusConfig.color}
         />
-        {showLabel && size === 'large' && (
+        {showLabel && size === "large" && (
           <Text style={[styles.statusLabel, { color: statusConfig.color }]}>
             {statusConfig.label}
           </Text>
@@ -270,10 +278,10 @@ export const LearningStatusIndicator = ({
 /**
  * 多步驟進度指示器
  */
-export const StepProgressIndicator = ({ 
+export const StepProgressIndicator = ({
   steps = [],
   currentStep = 0,
-  style
+  style,
 }) => {
   const stepWidth = (screenWidth - Spacing.xl * 2) / Math.max(steps.length, 1);
 
@@ -283,37 +291,39 @@ export const StepProgressIndicator = ({
         {steps.map((step, index) => {
           const isActive = index <= currentStep;
           const isCurrent = index === currentStep;
-          
+
           return (
             <View key={index} style={styles.stepContainer}>
               {/* 連接線 */}
               {index > 0 && (
-                <View 
+                <View
                   style={[
                     styles.stepConnector,
-                    { backgroundColor: isActive 
-                      ? MaterialYouTheme.primary.primary40 
-                      : MaterialYouTheme.neutralVariant.neutralVariant90 
-                    }
-                  ]} 
+                    {
+                      backgroundColor: isActive
+                        ? MaterialYouTheme.primary.primary40
+                        : MaterialYouTheme.neutralVariant.neutralVariant90,
+                    },
+                  ]}
                 />
               )}
-              
+
               {/* 步驟圓點 */}
-              <View 
+              <View
                 style={[
                   styles.stepDot,
                   isCurrent && styles.stepDotCurrent,
-                  { backgroundColor: isActive 
-                    ? MaterialYouTheme.primary.primary40 
-                    : MaterialYouTheme.neutralVariant.neutralVariant90 
-                  }
+                  {
+                    backgroundColor: isActive
+                      ? MaterialYouTheme.primary.primary40
+                      : MaterialYouTheme.neutralVariant.neutralVariant90,
+                  },
                 ]}
               >
                 {isActive ? (
-                  <Ionicons 
-                    name="checkmark" 
-                    size={12} 
+                  <Ionicons
+                    name="checkmark"
+                    size={12}
                     color={MaterialYouTheme.primary.primary100}
                   />
                 ) : (
@@ -322,13 +332,14 @@ export const StepProgressIndicator = ({
               </View>
 
               {/* 步驟標籤 */}
-              <Text 
+              <Text
                 style={[
                   styles.stepLabel,
-                  { color: isActive 
-                    ? MaterialYouTheme.primary.primary40 
-                    : MaterialYouTheme.neutralVariant.neutralVariant50 
-                  }
+                  {
+                    color: isActive
+                      ? MaterialYouTheme.primary.primary40
+                      : MaterialYouTheme.neutralVariant.neutralVariant50,
+                  },
                 ]}
               >
                 {step}
@@ -344,42 +355,42 @@ export const StepProgressIndicator = ({
 const styles = StyleSheet.create({
   // 圓形進度條樣式
   circularProgress: {
-    position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
   },
   progressContainer: {
-    position: 'absolute',
+    position: "absolute",
   },
   progressCircle: {
-    position: 'absolute',
+    position: "absolute",
   },
   progressFill: {
-    borderRightColor: 'transparent',
-    borderBottomColor: 'transparent',
+    borderRightColor: "transparent",
+    borderBottomColor: "transparent",
   },
   gradientCircle: {
-    position: 'absolute',
+    position: "absolute",
     top: -3,
     left: -3,
   },
   centerContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   progressText: {
     ...Typography.labelLarge,
     color: MaterialYouTheme.primary.primary40,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // 進度條樣式
   progressBarContainer: {
-    width: '100%',
+    width: "100%",
   },
   progressLabelContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: Spacing.sm,
   },
   progressLabel: {
@@ -389,16 +400,16 @@ const styles = StyleSheet.create({
   progressPercentage: {
     ...Typography.labelMedium,
     color: MaterialYouTheme.primary.primary40,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   progressBarTrack: {
     backgroundColor: MaterialYouTheme.neutralVariant.neutralVariant90,
     borderRadius: BorderRadius.sm,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressBarFill: {
     borderRadius: BorderRadius.sm,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   progressGradient: {
     flex: 1,
@@ -407,14 +418,14 @@ const styles = StyleSheet.create({
   // 狀態指示器樣式
   statusIndicator: {
     borderRadius: BorderRadius.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: Spacing.sm,
   },
   statusLabel: {
     ...Typography.labelSmall,
     marginTop: Spacing.xs,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   // 步驟進度器樣式
@@ -422,17 +433,17 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.lg,
   },
   stepTrack: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   stepContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
-    position: 'relative',
+    position: "relative",
   },
   stepConnector: {
-    position: 'absolute',
+    position: "absolute",
     left: -50,
     width: 100,
     height: 2,
@@ -442,8 +453,8 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: Spacing.sm,
   },
   stepDotCurrent: {
@@ -457,7 +468,7 @@ const styles = StyleSheet.create({
   },
   stepLabel: {
     ...Typography.labelSmall,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 
