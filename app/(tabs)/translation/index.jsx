@@ -1163,29 +1163,29 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // 影片預覽區域
+ // 影片預覽區域 (修正後)
   videoPreviewContainer: {
     position: 'absolute',
-    bottom: 80, // 調整底部位置避免被 Tab Bar 遮擋
-    left: 8, // 減少左邊距
-    right: 8, // 減少右邊距
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', // 更透明的背景
+    bottom: 80,
+    left: 8,
+    right: 8,
+    backgroundColor: '#FFFFFF', // ✅ 改為不透明的白色
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    borderBottomLeftRadius: 16, // 添加底部圓角
+    borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
     paddingTop: 20,
     paddingBottom: 32,
     paddingHorizontal: 20,
     shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08, // 減少陰影透明度
+    shadowOpacity: 0.1, // 減少陰影
     shadowRadius: 16,
-    elevation: 6, // 減少高度
+    elevation: 10, // 增加高度
     zIndex: 10,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.15)', // 更透明的邊框
-    backdropFilter: 'blur(10px)', // 毛玻璃效果
+    borderColor: '#E8EEFF', // ✅ 改為不透明的淺色邊框
+    // (已移除 backdropFilter)
   },
   videoPreview: {
     position: 'relative',
@@ -1266,24 +1266,25 @@ const styles = StyleSheet.create({
     zIndex: 20,
     borderRadius: 16, // 添加圓角
   },
+  // 翻譯結果區域 (修正後)
   resultCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', // 更透明的背景
+    backgroundColor: '#FFFFFF', // ✅ 改為不透明的白色
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    borderBottomLeftRadius: 16, // 添加底部圓角
+    borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
     paddingTop: 20,
     paddingBottom: 32,
     paddingHorizontal: 20,
     maxHeight: screenHeight * 0.6,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.15)', // 更透明的邊框
+    borderColor: '#E8EEFF', // ✅ 改為不透明的淺色邊框
     shadowColor: '#2563EB',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08, // 減少陰影透明度
+    shadowOpacity: 0.1, // 減少陰影
     shadowRadius: 16,
-    elevation: 6, // 減少高度
-    backdropFilter: 'blur(10px)', // 毛玻璃效果
+    elevation: 10, // 增加高度
+    // (已移除 backdropFilter)
   },
   resultHeader: {
     flexDirection: 'row',

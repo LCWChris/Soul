@@ -2,11 +2,11 @@
 from fastapi import FastAPI, UploadFile, File, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel # 新增: 引入 BaseModel
+from pydantic import BaseModel
 import os
 import uuid
-# 💥 確保能正確導入新的 model_infer.py
-from model_infer import predict
+# 💥 [FIX] 導入 'predict' 和 'load_v9_model'
+from model_infer import predict, load_v9_model
 from dotenv import load_dotenv
 import motor.motor_asyncio
 from datetime import datetime
@@ -32,7 +32,15 @@ if MONGO_URL:
     vocab_collection = db.vocabularies
 
 # ----------------------------------------------------
-# 輔助函數：標準化模型輸出
+# 💥 [FIX] 新增：在 FastAPI 啟動時載入模型
+# ----------------------------------------------------
+@app.on_event("startup")
+def startup_event():
+    if not load_v9_model():
+        print("--- 警告: 模型載入失敗，API 將無法正常運作 ---")
+
+# ----------------------------------------------------
+# 輔助函數：標準化模型輸出 (保持不變)
 # ----------------------------------------------------
 
 def format_model_output(top3: list) -> dict:
@@ -40,19 +48,13 @@ def format_model_output(top3: list) -> dict:
     將 model_infer.py 的 Top-3 輸出轉換為前端期待的單一 JSON 結構。
     """
     if not top3 or "label" not in top3[0] or "error" in top3[0]:
-        # 推論失敗 (例如 "影格不足或手部未偵測") 或嚴重錯誤
         best_label = top3[0].get("label", "無法識別") if top3 else "無法識別"
-        
-        # ⚠️ 關鍵：返回 0.0% 讓前端 10% 邏輯啟動
         return {
             "translation": best_label,
             "confidence_score": 0.0
         }
     
-    # 成功推論，取 Top-1
     best = top3[0]
-    
-    # ⚠️ 關鍵：將 0.xx 轉換為 0.0 ~ 100.0 的百分比
     confidence_percent = round(best['confidence'] * 100, 1)
     
     return {
@@ -61,12 +63,11 @@ def format_model_output(top3: list) -> dict:
     }
 
 # ----------------------------------------------------
-# 路由定義
+# 路由定義 (保持不變)
 # ----------------------------------------------------
 
 @app.post("/translate")
 async def translate(file: UploadFile = File(...)):
-    # 處理檔案上傳的翻譯 (此路由現在也返回標準化 JSON)
     file_path = None
     try:
         filename = f"{uuid.uuid4()}.mp4"
@@ -77,7 +78,7 @@ async def translate(file: UploadFile = File(...)):
         with open(file_path, "wb") as f:
             f.write(await file.read())
 
-        top3 = predict(file_path)
+        top3 = predict(file_path) # 💥 呼叫 model_infer.py 的 predict
 
         print("🔍 Top-3 預測：", top3)
         return JSONResponse(content=format_model_output(top3))
@@ -91,7 +92,6 @@ async def translate(file: UploadFile = File(...)):
 
 @app.post("/translate-by-url")
 async def translate_by_url(request: Request):
-    # 處理 URL 下載的翻譯 (此路由現在返回標準化 JSON)
     file_path = None
     try:
         data = await request.json()
@@ -105,15 +105,14 @@ async def translate_by_url(request: Request):
         os.makedirs(save_dir, exist_ok=True)
         file_path = os.path.join(save_dir, filename)
 
-        # 下載影片
-        r = requests.get(video_url, timeout=30) # 設置下載超時
+        r = requests.get(video_url, timeout=30)
         if r.status_code != 200:
             raise HTTPException(status_code=400, detail=f"下載影片失敗，狀態碼: {r.status_code}")
             
         with open(file_path, "wb") as f:
             f.write(r.content)
 
-        top3 = predict(file_path)
+        top3 = predict(file_path) # 💥 呼叫 model_infer.py 的 predict
         
         print("🌐 Cloudinary URL 翻譯 Top-3：", top3)
         return JSONResponse(content=format_model_output(top3))
@@ -127,7 +126,6 @@ async def translate_by_url(request: Request):
 
 @app.post("/save-cloudinary-url")
 async def save_cloudinary_url(request: Request):
-    # 影片儲存 API 保持不變
     try:
         data = await request.json()
         title = data.get("title")
