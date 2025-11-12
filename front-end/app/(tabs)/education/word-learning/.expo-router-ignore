@@ -1,9 +1,19 @@
 # 只忽略純 UI 或邏輯層，不忽略 screens 需要的 components 路徑
+
+# 強化為遞迴忽略，避免在不同解析器下匹配失敗
+**/api/**
+**/ui/**
+
+# 額外精準忽略個別檔案（以防萬一）
 api/**
+api/index.js
+ui/index.js
 ui/components/**
 ui/themes/**
 ui/screens/EnhancedWordLearningScreen.jsx
 ui/screens/SimpleEnhancedWordLearningScreen.jsx
+
+# 非路由文件
 TestMaterialYou.jsx
 README.md
 REFACTORING_SUMMARY.md
