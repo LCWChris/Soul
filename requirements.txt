@@ -15,3 +15,4 @@ matplotlib
 motor
 scikit-image
 scikit-learn
+ffmpeg-python
