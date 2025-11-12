@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { MaterialYouTheme, Typography, Spacing } from './ui';
+// 避免循環匯出造成初始載入 undefined
+import { MaterialYouTheme, Typography, Spacing } from './ui/themes/MaterialYouTheme';
 
 const TestMaterialYou = () => {
   return (

@@ -13,19 +13,16 @@ import {
 } from "react-native";
 
 // Material You Components & Theme
-import { 
-  MaterialYouTheme, 
-  Spacing, 
-  Typography,
-  LearningProgressNew as LearningProgress,
-  LearningProgressSelector,
-  LevelSelector,
-  MaterialSearchBar,
-  MaterialTopAppBar,
-  VocabularyCard,
-  VocabularyCategories,
-  WordDetailModal 
-} from "../";
+// 避免循環依賴：改為直接從各自模組匯入，而不是使用 barrel (../)
+import { MaterialYouTheme, Spacing, Typography } from "../themes/MaterialYouTheme";
+import LearningProgress from "../components/progress/LearningProgressNew";
+import LearningProgressSelector from "../components/progress/LearningProgressSelector";
+import LevelSelector from "../components/selectors/LevelSelector";
+import MaterialSearchBar from "../components/material/MaterialSearchBar";
+import MaterialTopAppBar from "../components/material/MaterialTopAppBar";
+import VocabularyCard from "../components/cards/VocabularyCard";
+import VocabularyCategories from "../components/VocabularyCategories";
+import WordDetailModal from "../components/modals/WordDetailModal";
 
 // API Services
 import { VocabularyService, useLearningTracking } from "../../api";
@@ -573,11 +570,12 @@ const MaterialWordLearningScreen = () => {
   const topBarActions = [
     {
       icon: "heart",
-      onPress: () => router.push("/education/word-learning/favorites"),
+      // 使用相對路由，避免群組前綴導致 unmatched route
+      onPress: () => router.push("../favorites"),
     },
     {
       icon: "stats-chart",
-      onPress: () => router.push("/education/word-learning/progress"),
+      onPress: () => router.push("../progress"),
     },
   ];
 
