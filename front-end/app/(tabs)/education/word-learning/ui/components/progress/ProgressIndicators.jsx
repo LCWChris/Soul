@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 // This is a component file, not a route
 import React, { useEffect, useRef } from 'react';
 import { 
@@ -7,7 +7,7 @@ import {
   StyleSheet, 
   Animated, 
   TouchableOpacity,
-  Dimensions 
+  Dimensions, 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -25,7 +25,7 @@ export const CircularProgressIndicator = ({
   showText = true,
   animated = true,
   style,
-  children
+  children,
 }) => {
   const animatedProgress = useRef(new Animated.Value(0)).current;
   const radius = (size - strokeWidth) / 2;
@@ -61,7 +61,7 @@ export const CircularProgressIndicator = ({
               borderRadius: size / 2,
               borderWidth: strokeWidth,
               borderColor: MaterialYouTheme.neutralVariant.neutralVariant90,
-            }
+            },
           ]}
         />
         
@@ -75,20 +75,20 @@ export const CircularProgressIndicator = ({
               height: size,
               borderRadius: size / 2,
               borderWidth: strokeWidth,
-              borderColor: "#2563EB", // 藍色主題
+              borderColor: '#2563EB', // 藍色主題
               transform: [{ rotate: '-90deg' }],
-            }
+            },
           ]}
         >
           <LinearGradient
-            colors={["#3B82F6", "#2563EB"]} // 藍色漸層
+            colors={['#3B82F6', '#2563EB']} // 藍色漸層
             style={[
               styles.gradientCircle,
               {
                 width: size - strokeWidth,
                 height: size - strokeWidth,
                 borderRadius: (size - strokeWidth) / 2,
-              }
+              },
             ]}
           />
         </Animated.View>
@@ -115,7 +115,7 @@ export const LearningProgressBar = ({
   showLabel = true,
   label = '',
   animated = true,
-  style
+  style,
 }) => {
   const animatedWidth = useRef(new Animated.Value(0)).current;
 
@@ -149,7 +149,7 @@ export const LearningProgressBar = ({
       <View style={[styles.progressBarTrack, { height }]}>
         <Animated.View style={[styles.progressBarFill, { height, width: progressWidth }]}>
           <LinearGradient
-            colors={["#3B82F6", "#2563EB"]} // 藍色漸層
+            colors={['#3B82F6', '#2563EB']} // 藍色漸層
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.progressGradient}
@@ -168,7 +168,7 @@ export const LearningStatusIndicator = ({
   size = 'medium', // small, medium, large
   onPress,
   style,
-  showLabel = true
+  showLabel = true,
 }) => {
   const scaleValue = useRef(new Animated.Value(1)).current;
 
@@ -192,32 +192,32 @@ export const LearningStatusIndicator = ({
         icon: 'add-circle-outline',
         color: MaterialYouTheme.neutralVariant.neutralVariant40,
         backgroundColor: MaterialYouTheme.neutralVariant.neutralVariant95,
-        label: '新增'
+        label: '新增',
       },
       learning: {
         icon: 'school-outline',
         color: MaterialYouTheme.tertiary.tertiary40,
         backgroundColor: MaterialYouTheme.tertiary.tertiary95,
-        label: '學習中'
+        label: '學習中',
       },
       reviewing: {
         icon: 'refresh-outline',
         color: MaterialYouTheme.secondary.secondary40,
         backgroundColor: MaterialYouTheme.secondary.secondary95,
-        label: '復習'
+        label: '復習',
       },
       mastered: {
         icon: 'checkmark-circle',
         color: MaterialYouTheme.primary.primary40,
         backgroundColor: MaterialYouTheme.primary.primary95,
-        label: '已掌握'
+        label: '已掌握',
       },
       difficult: {
         icon: 'warning-outline',
         color: MaterialYouTheme.error.error40,
         backgroundColor: MaterialYouTheme.error.error95,
-        label: '困難'
-      }
+        label: '困難',
+      },
     };
     return configs[status] || configs.new;
   };
@@ -226,7 +226,7 @@ export const LearningStatusIndicator = ({
     const configs = {
       small: { iconSize: 16, containerSize: 32 },
       medium: { iconSize: 20, containerSize: 40 },
-      large: { iconSize: 24, containerSize: 48 }
+      large: { iconSize: 24, containerSize: 48 },
     };
     return configs[size];
   };
@@ -245,7 +245,7 @@ export const LearningStatusIndicator = ({
             width: sizeConfig.containerSize,
             height: sizeConfig.containerSize,
             backgroundColor: statusConfig.backgroundColor,
-          }
+          },
         ]}
         onPress={onPress}
         onPressIn={onPress ? handlePressIn : undefined}
@@ -273,7 +273,7 @@ export const LearningStatusIndicator = ({
 export const StepProgressIndicator = ({ 
   steps = [],
   currentStep = 0,
-  style
+  style,
 }) => {
   const stepWidth = (screenWidth - Spacing.xl * 2) / Math.max(steps.length, 1);
 
@@ -293,8 +293,8 @@ export const StepProgressIndicator = ({
                     styles.stepConnector,
                     { backgroundColor: isActive 
                       ? MaterialYouTheme.primary.primary40 
-                      : MaterialYouTheme.neutralVariant.neutralVariant90 
-                    }
+                      : MaterialYouTheme.neutralVariant.neutralVariant90, 
+                    },
                   ]} 
                 />
               )}
@@ -306,8 +306,8 @@ export const StepProgressIndicator = ({
                   isCurrent && styles.stepDotCurrent,
                   { backgroundColor: isActive 
                     ? MaterialYouTheme.primary.primary40 
-                    : MaterialYouTheme.neutralVariant.neutralVariant90 
-                  }
+                    : MaterialYouTheme.neutralVariant.neutralVariant90, 
+                  },
                 ]}
               >
                 {isActive ? (
@@ -327,8 +327,8 @@ export const StepProgressIndicator = ({
                   styles.stepLabel,
                   { color: isActive 
                     ? MaterialYouTheme.primary.primary40 
-                    : MaterialYouTheme.neutralVariant.neutralVariant50 
-                  }
+                    : MaterialYouTheme.neutralVariant.neutralVariant50, 
+                  },
                 ]}
               >
                 {step}

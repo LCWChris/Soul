@@ -3,7 +3,7 @@ import axios from 'axios';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity,View } from 'react-native';
-import ArrowBack from "@/components/ArrowBack";
+import ArrowBack from '@/components/ArrowBack';
 
 export default function VolumeIndex() {
   const { volumeId } = useLocalSearchParams();
@@ -13,7 +13,7 @@ export default function VolumeIndex() {
     const loadLessons = async () => {
       try {
         const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIALS}?volume=${volumeId}`;
-        console.log("🔗 載入教學單元，URL：", url);
+        console.log('🔗 載入教學單元，URL：', url);
 
         const response = await axios.get(url, {
           headers: {
@@ -21,10 +21,10 @@ export default function VolumeIndex() {
           },
         });
 
-        console.log("📄 回應資料：", response.data);
+        console.log('📄 回應資料：', response.data);
 
         if (!Array.isArray(response.data)) {
-          throw new Error("API 回應格式錯誤，預期為陣列");
+          throw new Error('API 回應格式錯誤，預期為陣列');
         }
 
         setLessons(response.data);

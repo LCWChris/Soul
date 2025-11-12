@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialYouTheme } from '../../themes/MaterialYouTheme';
@@ -28,8 +28,8 @@ const LearningProgressIndicator = ({ status, onPress, size = 'medium' }) => {
       case LEARNING_STATUS.MASTERED:
         return {
           icon: 'checkmark-circle',
-          color: "#2563EB", // 藍色主題
-          bgColor: "#EFF6FF", // 淡藍背景
+          color: '#2563EB', // 藍色主題
+          bgColor: '#EFF6FF', // 淡藍背景
         };
       default:
         return {
@@ -63,7 +63,7 @@ const LearningProgressIndicator = ({ status, onPress, size = 'medium' }) => {
       width: sizeConfig.containerSize,
       height: sizeConfig.containerSize,
       borderRadius: sizeConfig.containerSize / 2,
-    }
+    },
   ];
 
   return (

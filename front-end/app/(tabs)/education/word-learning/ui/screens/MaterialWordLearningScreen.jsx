@@ -1,11 +1,10 @@
-﻿import { useUser } from "@clerk/clerk-expo";
+import { useUser } from "@clerk/clerk-expo";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   FlatList,
   RefreshControl,
-  SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
@@ -13,18 +12,22 @@ import {
 } from "react-native";
 
 // Material You Components & Theme
-import { MaterialYouTheme, Spacing, Typography } from '../themes/MaterialYouTheme';
-import LearningProgress from '../components/progress/LearningProgressNew';
-import LearningProgressSelector from '../components/progress/LearningProgressSelector';
-import LevelSelector from '../components/selectors/LevelSelector';
-import MaterialSearchBar from '../components/material/MaterialSearchBar';
-import MaterialTopAppBar from '../components/material/MaterialTopAppBar';
-import VocabularyCard from '../components/cards/VocabularyCard';
-import VocabularyCategories from '../components/VocabularyCategories';
-import WordDetailModal from '../components/modals/WordDetailModal';
+import VocabularyCard from "../components/cards/VocabularyCard";
+import MaterialSearchBar from "../components/material/MaterialSearchBar";
+import MaterialTopAppBar from "../components/material/MaterialTopAppBar";
+import WordDetailModal from "../components/modals/WordDetailModal";
+import LearningProgress from "../components/progress/LearningProgressNew";
+import LearningProgressSelector from "../components/progress/LearningProgressSelector";
+import LevelSelector from "../components/selectors/LevelSelector";
+import VocabularyCategories from "../components/VocabularyCategories";
+import {
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from "../themes/MaterialYouTheme";
 
 // API Services
-import { VocabularyService, useLearningTracking } from "../../api";
+import { useLearningTracking, VocabularyService } from "../../api";
 
 // Services and Utilities
 import { API_CONFIG } from "@/constants/api";
@@ -45,9 +48,10 @@ const MaterialWordLearningScreen = () => {
   const router = useRouter();
   const { user } = useUser();
   const params = useLocalSearchParams(); // 獲取路由參數
-  
+
   // 學習追蹤 hook
-  const { recordWordLearned, recordWordView, recording } = useLearningTracking();
+  const { recordWordLearned, recordWordView, recording } =
+    useLearningTracking();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("");
@@ -393,11 +397,11 @@ const MaterialWordLearningScreen = () => {
   // 處理單詞學習進度變更
   const handleWordProgressChange = async (wordId) => {
     try {
-      console.log('🔄 開始處理學習進度變更:', wordId);
-      
+      console.log("🔄 開始處理學習進度變更:", wordId);
+
       // 獲取當前學習狀態
       const currentProgress = await getWordProgress(wordId);
-      console.log('📊 當前學習狀態:', currentProgress);
+      console.log("📊 當前學習狀態:", currentProgress);
 
       // 狀態循環:未開始 -> 學習中 -> 複習中 -> 已掌握 -> 未開始
       let nextStatus;
@@ -425,7 +429,7 @@ const MaterialWordLearningScreen = () => {
           action = "learn";
       }
 
-      console.log('➡️ 下一個狀態:', nextStatus, '動作:', action);
+      console.log("➡️ 下一個狀態:", nextStatus, "動作:", action);
 
       // 更新學習進度
       await updateWordProgress(wordId, nextStatus);
@@ -433,12 +437,12 @@ const MaterialWordLearningScreen = () => {
       // 記錄學習活動到後端 API
       if (user?.id && action !== "reset") {
         try {
-          console.log('📝 準備記錄學習活動到後端:', {
+          console.log("📝 準備記錄學習活動到後端:", {
             userId: user.id,
             wordId,
-            action
+            action,
           });
-          
+
           const result = await VocabularyService.recordLearningActivity(
             user.id,
             wordId,
@@ -448,19 +452,22 @@ const MaterialWordLearningScreen = () => {
               isCorrect: true,
             }
           );
-          
+
           console.log("✅ 學習活動記錄成功:", result);
         } catch (recordError) {
           console.error("❌ 記錄學習活動失敗:", recordError);
-          console.error("錯誤詳情:", recordError.response?.data || recordError.message);
+          console.error(
+            "錯誤詳情:",
+            recordError.response?.data || recordError.message
+          );
           // 即使記錄失敗也不影響本地進度更新
         }
       } else {
         if (!user?.id) {
-          console.warn('⚠️ 用戶未登入，無法記錄學習活動');
+          console.warn("⚠️ 用戶未登入，無法記錄學習活動");
         }
         if (action === "reset") {
-          console.log('🔄 重置操作，不記錄到後端');
+          console.log("🔄 重置操作，不記錄到後端");
         }
       }
 
@@ -600,98 +607,96 @@ const MaterialWordLearningScreen = () => {
 
   return (
     <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar backgroundColor="#F1F5FF" barStyle="dark-content" />
+      <StatusBar backgroundColor="#F1F5FF" barStyle="dark-content" />
 
-        <MaterialTopAppBar
-          title="單詞學習"
-          subtitle={
-            selectedLearningStatus
-              ? getProgressLabel(selectedLearningStatus)
-              : selectedDifficultyLevel
-              ? `${selectedDifficultyLevel}等級`
-              : selectedCategory || selectedLevel
-              ? `${selectedCategory} ${selectedLevel}`
-              : undefined
-          }
-          actions={topBarActions}
-          onBackPress={handleBackPress}
-          showBackButton={true} // 始終顯示返回按鈕
-          isMainScreen={showCategories} // 當顯示分類選擇時為主屏幕
-        />
+      <MaterialTopAppBar
+        title="單詞學習"
+        subtitle={
+          selectedLearningStatus
+            ? getProgressLabel(selectedLearningStatus)
+            : selectedDifficultyLevel
+            ? `${selectedDifficultyLevel}等級`
+            : selectedCategory || selectedLevel
+            ? `${selectedCategory} ${selectedLevel}`
+            : undefined
+        }
+        actions={topBarActions}
+        onBackPress={handleBackPress}
+        showBackButton={true} // 始終顯示返回按鈕
+        isMainScreen={showCategories} // 當顯示分類選擇時為主屏幕
+      />
 
-        <MaterialSearchBar
-          placeholder="搜尋單詞..."
-          onSearchChange={setSearchQuery}
-          value={searchQuery}
-        />
+      <MaterialSearchBar
+        placeholder="搜尋單詞..."
+        onSearchChange={setSearchQuery}
+        value={searchQuery}
+      />
 
-        <FlatList
-          data={words}
-          renderItem={renderWordCard}
-          keyExtractor={(item) =>
-            (item.id || item._id || Math.random()).toString()
-          }
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              colors={[MaterialYouTheme.primary.primary50]}
-              tintColor={MaterialYouTheme.primary.primary50}
-            />
-          }
-          ListHeaderComponent={
-            <>
-              {!loading &&
-                (selectedCategory ||
-                  selectedLevel ||
-                  selectedDifficultyLevel) && (
-                  <LearningProgress
-                    selectedCategory={selectedCategory}
-                    selectedLevel={selectedLevel}
-                    selectedDifficultyLevel={selectedDifficultyLevel}
-                    selectedLearningStatus={selectedLearningStatus}
-                  />
-                )}
-              {showCategories && (
-                <>
-                  <LearningProgressSelector
-                    onSelectProgress={handleProgressSelection}
-                    selectedProgress={selectedLearningStatus}
-                    style={{ marginBottom: 20 }}
-                  />
-                  <LevelSelector
-                    onSelectLevel={handleDifficultyLevelSelection}
-                    selectedLevel={selectedDifficultyLevel}
-                    style={{ marginBottom: 20 }}
-                  />
-                  <VocabularyCategories
-                    onCategorySelect={setSelectedCategory}
-                    onLearningLevelSelect={setSelectedLevel}
-                    selectedCategory={selectedCategory}
-                    selectedLearningLevel={selectedLevel}
-                  />
-                </>
+      <FlatList
+        data={words}
+        renderItem={renderWordCard}
+        keyExtractor={(item) =>
+          (item.id || item._id || Math.random()).toString()
+        }
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[MaterialYouTheme.primary.primary50]}
+            tintColor={MaterialYouTheme.primary.primary50}
+          />
+        }
+        ListHeaderComponent={
+          <>
+            {!loading &&
+              (selectedCategory ||
+                selectedLevel ||
+                selectedDifficultyLevel) && (
+                <LearningProgress
+                  selectedCategory={selectedCategory}
+                  selectedLevel={selectedLevel}
+                  selectedDifficultyLevel={selectedDifficultyLevel}
+                  selectedLearningStatus={selectedLearningStatus}
+                />
               )}
-            </>
-          }
-          ListEmptyComponent={
-            !showCategories && !loading ? renderEmptyState : null
-          }
-        />
+            {showCategories && (
+              <>
+                <LearningProgressSelector
+                  onSelectProgress={handleProgressSelection}
+                  selectedProgress={selectedLearningStatus}
+                  style={{ marginBottom: 20 }}
+                />
+                <LevelSelector
+                  onSelectLevel={handleDifficultyLevelSelection}
+                  selectedLevel={selectedDifficultyLevel}
+                  style={{ marginBottom: 20 }}
+                />
+                <VocabularyCategories
+                  onCategorySelect={setSelectedCategory}
+                  onLearningLevelSelect={setSelectedLevel}
+                  selectedCategory={selectedCategory}
+                  selectedLearningLevel={selectedLevel}
+                />
+              </>
+            )}
+          </>
+        }
+        ListEmptyComponent={
+          !showCategories && !loading ? renderEmptyState : null
+        }
+      />
 
-        <WordDetailModal
-          visible={showWordDetail}
-          word={selectedWord}
-          onClose={() => setShowWordDetail(false)}
-          onSwipeLeft={handleSwipeLeft}
-          onSwipeRight={handleSwipeRight}
-          onFavoriteChange={handleDetailFavoriteChange}
-          onProgressChange={handleDetailProgressChange}
-        />
-      </SafeAreaView>
+      <WordDetailModal
+        visible={showWordDetail}
+        word={selectedWord}
+        onClose={() => setShowWordDetail(false)}
+        onSwipeLeft={handleSwipeLeft}
+        onSwipeRight={handleSwipeRight}
+        onFavoriteChange={handleDetailFavoriteChange}
+        onProgressChange={handleDetailProgressChange}
+      />
     </LinearGradient>
   );
 };

@@ -10,12 +10,67 @@ const genAI = new GoogleGenerativeAI(API_KEY);
  */
 class GeminiService {
   constructor() {
-    // 使用 Gemini 2.5 Flash（最新穩定版本）
+    // 僅使用 Google 建議的 gemini-2.5-flash 作為唯一模型
     this.model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
     });
     this.conversationHistory = [];
     console.log("✅ Gemini Service 初始化成功 - 使用 gemini-2.5-flash");
+  }
+
+  /**
+   * 帶重試與退避策略的內容生成
+   * - 最多重試 3 次，指數退避（300ms, 800ms, 1500ms）加隨機抖動
+   * - 僅使用單一模型（gemini-2.5-flash），不做模型切換
+   */
+  async generateWithRetry(prompt, options = {}) {
+    const {
+      maxRetries = 3,
+      baseDelay = 300,
+      // 不使用備援
+    } = options;
+
+    let lastError;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const result = await this.model.generateContent(prompt);
+        return await result.response.text();
+      } catch (err) {
+        lastError = err;
+        const msg = (err?.message || "").toLowerCase();
+
+        const isOverload =
+          msg.includes("overloaded") ||
+          msg.includes("resource has been exhausted") ||
+          msg.includes("exceeded") ||
+          msg.includes("quota");
+
+        const isModelNotFound =
+          msg.includes("not found") ||
+          msg.includes("is not supported for generatecontent") ||
+          msg.includes("404");
+
+        const isRetryable =
+          isOverload ||
+          msg.includes("timeout") ||
+          msg.includes("temporarily") ||
+          msg.includes("unavailable") ||
+          msg.includes("service unavailable") ||
+          msg.includes("503") ||
+          msg.includes("ecconreset") ||
+          msg.includes("network");
+
+        // 僅針對暫時性錯誤做重試；模型不存在則直接拋出
+        if (attempt < maxRetries - 1 && isRetryable && !isModelNotFound) {
+          const jitter = Math.random() * 150;
+          const delay = baseDelay * (attempt + 1) + jitter;
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
+        }
+        break;
+      }
+    }
+    throw lastError;
   }
 
   /**
@@ -82,9 +137,7 @@ ${isNewUser ? "- 狀態：新用戶（首次使用）" : ""}
       const fullPrompt = `${systemPrompt}\n\n用戶問題：${userMessage}\n\n請回答：`;
 
       // 發送請求到 Gemini
-      const result = await this.model.generateContent(fullPrompt);
-      const response = await result.response;
-      const aiReply = response.text();
+      const aiReply = await this.generateWithRetry(fullPrompt);
 
       console.log("✅ Gemini 回覆:", aiReply);
 
@@ -124,9 +177,7 @@ ${isNewUser ? "- 狀態：新用戶（首次使用）" : ""}
     }」剛剛第一次使用 Soul 手語學習 APP。請給一個熱情的歡迎消息（50字內），並簡單介紹 APP 的主要功能，讓用戶知道可以做什麼。`;
 
     try {
-      const result = await this.model.generateContent(welcomePrompt);
-      const response = await result.response;
-      return response.text();
+      return await this.generateWithRetry(welcomePrompt);
     } catch (error) {
       console.error("❌ 獲取歡迎消息失敗:", error);
       return `👋 嗨 ${

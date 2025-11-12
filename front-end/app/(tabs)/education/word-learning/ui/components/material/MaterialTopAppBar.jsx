@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar, Platform, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,7 +30,7 @@ const MaterialTopAppBar = ({
   actions = [], 
   variant = 'small',
   onBackPress,
-  isMainScreen = false // 標記是否為主屏幕（分類選擇階段）
+  isMainScreen = false, // 標記是否為主屏幕（分類選擇階段）
 }) => {
   const router = useRouter();
 
@@ -68,8 +68,8 @@ const MaterialTopAppBar = ({
         styles.container, 
         { 
           height: getHeightByVariant(),
-          paddingTop: getTopSafeAreaPadding(isMainScreen) + Spacing.sm
-        }
+          paddingTop: getTopSafeAreaPadding(isMainScreen) + Spacing.sm,
+        },
       ]}>
         <View style={styles.topRow}>
           {showBackButton && (
@@ -85,7 +85,7 @@ const MaterialTopAppBar = ({
           <View style={styles.titleContainer}>
             <Text style={[
               variant === 'large' ? styles.titleLarge : styles.titleSmall,
-              styles.title
+              styles.title,
             ]}>
               {title}
             </Text>

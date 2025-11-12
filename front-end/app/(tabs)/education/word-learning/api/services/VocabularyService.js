@@ -28,7 +28,7 @@ export class VocabularyService {
         headers: {
           'ngrok-skip-browser-warning': 'true',
         },
-        timeout: API_CONFIG.TIMEOUT 
+        timeout: API_CONFIG.TIMEOUT, 
       });
       
       // 數據驗證
@@ -48,7 +48,7 @@ export class VocabularyService {
         headers: {
           'ngrok-skip-browser-warning': 'true',
         },
-        timeout: API_CONFIG.TIMEOUT 
+        timeout: API_CONFIG.TIMEOUT, 
       });
       
       // 數據驗證
@@ -69,7 +69,7 @@ export class VocabularyService {
         headers: {
           'ngrok-skip-browser-warning': 'true',
         },
-        timeout: API_CONFIG.TIMEOUT 
+        timeout: API_CONFIG.TIMEOUT, 
       });
       
       // 數據驗證
@@ -89,7 +89,7 @@ export class VocabularyService {
         headers: {
           'ngrok-skip-browser-warning': 'true',
         },
-        timeout: API_CONFIG.TIMEOUT 
+        timeout: API_CONFIG.TIMEOUT, 
       });
       
       // 數據驗證
@@ -106,7 +106,7 @@ export class VocabularyService {
     return this.makeRequestWithRetry(async () => {
       const params = {
         search: searchTerm,
-        ...filters
+        ...filters,
       };
       return await this.getWords(params);
     });
@@ -124,7 +124,7 @@ export class VocabularyService {
           headers: {
             'ngrok-skip-browser-warning': 'true',
           },
-          timeout: API_CONFIG.TIMEOUT 
+          timeout: API_CONFIG.TIMEOUT, 
         });
         
         console.log('📊 API 響應狀態:', response.status);
@@ -154,13 +154,13 @@ export class VocabularyService {
         userId,
         wordId,
         action,
-        ...options
+        ...options,
       }, { 
         headers: {
           'ngrok-skip-browser-warning': 'true',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        timeout: API_CONFIG.TIMEOUT 
+        timeout: API_CONFIG.TIMEOUT, 
       });
       
       if (!response.data || typeof response.data !== 'object') {
@@ -180,7 +180,7 @@ export class VocabularyService {
         headers: {
           'ngrok-skip-browser-warning': 'true',
         },
-        timeout: API_CONFIG.TIMEOUT 
+        timeout: API_CONFIG.TIMEOUT, 
       });
       
       if (!response.data || typeof response.data !== 'object') {
@@ -199,7 +199,7 @@ export class VocabularyService {
         headers: {
           'ngrok-skip-browser-warning': 'true',
         },
-        timeout: API_CONFIG.TIMEOUT 
+        timeout: API_CONFIG.TIMEOUT, 
       });
       
       if (!response.data || typeof response.data !== 'object') {
@@ -221,7 +221,7 @@ export class VocabularyService {
           headers: {
             'ngrok-skip-browser-warning': 'true',
           },
-          timeout: API_CONFIG.TIMEOUT 
+          timeout: API_CONFIG.TIMEOUT, 
         });
         
         if (!response.data || typeof response.data !== 'object') {
@@ -240,7 +240,7 @@ export class VocabularyService {
         masteredWords: 120,
         progressPercentage: Math.round((350 / 1200) * 100),
         category: filters.category || '全部',
-        level: filters.level || '全部'
+        level: filters.level || '全部',
       };
     }
   }

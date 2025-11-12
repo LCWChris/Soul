@@ -1,5 +1,6 @@
 // 網路連接檢測工具
 // 用於快速測試不同 IP 地址的連接狀況
+import { API_CONFIG } from "../constants/api";
 
 export const NetworkTester = {
   // 測試 API 連接

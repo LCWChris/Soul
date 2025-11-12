@@ -7,8 +7,8 @@ const apiClient = axios.create({
   timeout: API_CONFIG.TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true' // 所有請求都包含這個 header
-  }
+    'ngrok-skip-browser-warning': 'true', // 所有請求都包含這個 header
+  },
 });
 
 // 請求攔截器
@@ -20,7 +20,7 @@ apiClient.interceptors.request.use(
   (error) => {
     console.error('🌐 API 請求錯誤:', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 // 響應攔截器
@@ -47,7 +47,7 @@ apiClient.interceptors.response.use(
   (error) => {
     console.error(`❌ API 響應錯誤: ${error.config?.url}`, error.response?.status, error.message);
     return Promise.reject(error);
-  }
+  },
 );
 
 // 提供方便的方法
@@ -82,7 +82,7 @@ export const vocabularyAPI = {
   
   // 更新用戶偏好
   updatePreferences: (preferences) => 
-    apiClient.post(API_CONFIG.ENDPOINTS.PREFERENCES, preferences)
+    apiClient.post(API_CONFIG.ENDPOINTS.PREFERENCES, preferences),
 };
 
 export default apiClient;

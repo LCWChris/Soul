@@ -1,21 +1,21 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
   TextInput, 
   TouchableOpacity, 
   StyleSheet,
-  Animated
+  Animated,
 } from 'react-native';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 
 const MaterialSearchBar = ({ 
-  placeholder = "搜尋單字...", 
+  placeholder = '搜尋單字...', 
   onSearchChange, 
   onFocus, 
   onBlur,
   value,
-  autoFocus = false
+  autoFocus = false,
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [searchValue, setSearchValue] = useState(value || '');
@@ -51,12 +51,12 @@ const MaterialSearchBar = ({
 
   const animatedBorderColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [MaterialYouTheme.neutral.neutral80, "#2563EB"], // 藍色主題
+    outputRange: [MaterialYouTheme.neutral.neutral80, '#2563EB'], // 藍色主題
   });
 
   const animatedBackgroundColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ["rgba(255, 255, 255, 0.8)", "rgba(239, 246, 255, 0.9)"], // 藍色系背景
+    outputRange: ['rgba(255, 255, 255, 0.8)', 'rgba(239, 246, 255, 0.9)'], // 藍色系背景
   });
 
   return (
@@ -65,7 +65,7 @@ const MaterialSearchBar = ({
       {
         borderColor: animatedBorderColor,
         backgroundColor: animatedBackgroundColor,
-      }
+      },
     ]}>
       <View style={styles.searchIcon}>
         <Text style={styles.searchIconText}>🔍</Text>

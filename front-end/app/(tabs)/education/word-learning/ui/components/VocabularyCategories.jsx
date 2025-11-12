@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  Platform
+  Platform,
 } from 'react-native';
 import { API_CONFIG } from '@/constants/api';
 import axios from 'axios';
@@ -33,8 +33,8 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
       console.log('正在獲取分類資料...');
       const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.CATEGORIES}`, {
         headers: {
-          'ngrok-skip-browser-warning': 'true'
-        }
+          'ngrok-skip-browser-warning': 'true',
+        },
       });
       const data = response.data;
       console.log('獲取到的分類資料:', data);
@@ -69,7 +69,7 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
     const levelMap = {
       'beginner': '初級 - 入門者',
       'intermediate': '中級 - 進階者',
-      'advanced': '高級 - 熟練者'
+      'advanced': '高級 - 熟練者',
     };
     return levelMap[level] || level;
   };
@@ -90,7 +90,7 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
       '食物飲料': '🍎',
       '身體健康': '💪',
       '休閒娛樂': '🎮',
-      '工作工具': '🔧'
+      '工作工具': '🔧',
     };
     return iconMap[categoryName] || '📖';
   };
@@ -150,7 +150,7 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
                 key={`category-${index}-${category}`}
                 style={[
                   styles.categoryCard,
-                selectedCategory === category && styles.selectedCategoryCard
+                selectedCategory === category && styles.selectedCategoryCard,
               ]}
               onPress={() => onCategorySelect(category)}
               activeOpacity={0.7}
@@ -162,7 +162,7 @@ const VocabularyCategories = ({ onCategorySelect, onLearningLevelSelect, selecte
               </View>
               <Text style={[
                 styles.categoryTitle,
-                selectedCategory === category && styles.selectedCategoryTitle
+                selectedCategory === category && styles.selectedCategoryTitle,
               ]}>
                 {category}
               </Text>
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...Typography.titleLarge,
-    color: "#1D4ED8", // 藍色標題
+    color: '#1D4ED8', // 藍色標題
     marginBottom: Spacing.xs,
     fontWeight: '600',
   },
@@ -243,8 +243,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   selectedLevelChip: {
-    backgroundColor: "#EFF6FF", // 淡藍色背景
-    borderColor: "#2563EB", // 藍色邊框
+    backgroundColor: '#EFF6FF', // 淡藍色背景
+    borderColor: '#2563EB', // 藍色邊框
   },
   levelChipContent: {
     paddingVertical: Spacing.md,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedLevelChipText: {
-    color: "#1D4ED8", // 藍色文字
+    color: '#1D4ED8', // 藍色文字
     fontWeight: '600',
   },
   categoryGrid: {
@@ -280,8 +280,8 @@ const styles = StyleSheet.create({
     marginBottom: Platform.OS === 'web' ? 0 : Spacing.sm,
   },
   selectedCategoryCard: {
-    backgroundColor: "#EFF6FF", // 淡藍色背景
-    borderColor: "#2563EB", // 藍色邊框
+    backgroundColor: '#EFF6FF', // 淡藍色背景
+    borderColor: '#2563EB', // 藍色邊框
     borderWidth: 2,
   },
   categoryIconContainer: {
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   selectedCategoryTitle: {
-    color: "#1E40AF", // 深藍色標題
+    color: '#1E40AF', // 深藍色標題
     fontWeight: '600',
   },
   categoryBadge: {
@@ -365,13 +365,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   retryButton: {
-    backgroundColor: "#2563EB", // 藍色按鈕
+    backgroundColor: '#2563EB', // 藍色按鈕
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
   },
   retryButtonText: {
     ...Typography.labelLarge,
-    color: "#FFFFFF", // 白色文字
+    color: '#FFFFFF', // 白色文字
     fontWeight: '500',
   },
   emptyContainer: {

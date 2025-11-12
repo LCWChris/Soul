@@ -11,7 +11,7 @@ const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
       icon: 'leaf-outline',
       color: MaterialYouTheme.secondary.secondary40,
       bgColor: MaterialYouTheme.secondary.secondary90,
-      description: '基礎詞彙，適合初學者'
+      description: '基礎詞彙，適合初學者',
     },
     {
       level: '中級',
@@ -19,7 +19,7 @@ const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
       icon: 'school-outline',
       color: MaterialYouTheme.tertiary.tertiary40,
       bgColor: MaterialYouTheme.tertiary.tertiary90,
-      description: '常用詞彙，有一定基礎'
+      description: '常用詞彙，有一定基礎',
     },
     {
       level: '高級',
@@ -27,8 +27,8 @@ const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
       icon: 'trophy-outline',
       color: MaterialYouTheme.primary.primary40,
       bgColor: MaterialYouTheme.primary.primary90,
-      description: '複雜詞彙，挑戰進階'
-    }
+      description: '複雜詞彙，挑戰進階',
+    },
   ];
 
   return (
@@ -43,7 +43,7 @@ const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
             style={[
               styles.optionCard,
               { backgroundColor: option.bgColor },
-              selectedLevel === option.level && styles.selectedCard
+              selectedLevel === option.level && styles.selectedCard,
             ]}
             onPress={() => onSelectLevel(option.level)}
           >

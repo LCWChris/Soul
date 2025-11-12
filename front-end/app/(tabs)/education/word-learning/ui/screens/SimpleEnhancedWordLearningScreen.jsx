@@ -1,19 +1,24 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  RefreshControl,
-  Dimensions,
-  Platform,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import {
+  Dimensions,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../themes/MaterialYouTheme';
+import {
+  BorderRadius,
+  Elevation,
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from '../themes/MaterialYouTheme';
 // import { useFavorites } from '../../../../utils/favorites.js'; // 暫時註解掉
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -28,10 +33,10 @@ const SimpleEnhancedWordLearningScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
+    <LinearGradient colors={['#F1F5FF', '#E8EEFF']} style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="dark-content" backgroundColor="#F1F5FF" />
-        
+
         {/* 簡化版頭部 */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>單詞學習 - Enhanced</Text>
@@ -55,12 +60,20 @@ const SimpleEnhancedWordLearningScreen = () => {
             <Text style={styles.statisticsTitle}>學習統計</Text>
             <View style={styles.statisticsGrid}>
               <View style={styles.statItem}>
-                <Ionicons name="library-outline" size={24} color={MaterialYouTheme.primary.primary40} />
+                <Ionicons
+                  name="library-outline"
+                  size={24}
+                  color={MaterialYouTheme.primary.primary40}
+                />
                 <Text style={styles.statNumber}>0</Text>
                 <Text style={styles.statLabel}>總單詞</Text>
               </View>
               <View style={styles.statItem}>
-                <Ionicons name="checkmark-circle-outline" size={24} color={MaterialYouTheme.primary.primary40} />
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={24}
+                  color={MaterialYouTheme.primary.primary40}
+                />
                 <Text style={styles.statNumber}>0</Text>
                 <Text style={styles.statLabel}>已掌握</Text>
               </View>
@@ -69,7 +82,11 @@ const SimpleEnhancedWordLearningScreen = () => {
 
           {/* 佔位內容 */}
           <View style={styles.placeholderCard}>
-            <Ionicons name="construct-outline" size={48} color={MaterialYouTheme.neutralVariant.neutralVariant50} />
+            <Ionicons
+              name="construct-outline"
+              size={48}
+              color={MaterialYouTheme.neutralVariant.neutralVariant50}
+            />
             <Text style={styles.placeholderTitle}>Enhanced UI Components</Text>
             <Text style={styles.placeholderText}>
               Material You 風格的增強版組件正在建構中...
@@ -118,7 +135,9 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   statisticsCard: {
-    backgroundColor: MaterialYouTheme.primaryContainer.primaryContainer || MaterialYouTheme.primary.primary95,
+    backgroundColor:
+      MaterialYouTheme.primaryContainer.primaryContainer ||
+      MaterialYouTheme.primary.primary95,
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
@@ -150,7 +169,9 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   placeholderCard: {
-    backgroundColor: MaterialYouTheme.surfaceVariant.surfaceVariant || MaterialYouTheme.neutral.neutral95,
+    backgroundColor:
+      MaterialYouTheme.surfaceVariant.surfaceVariant ||
+      MaterialYouTheme.neutral.neutral95,
     borderRadius: BorderRadius.xl,
     padding: Spacing.xxl,
     alignItems: 'center',
@@ -158,14 +179,18 @@ const styles = StyleSheet.create({
   },
   placeholderTitle: {
     ...Typography.titleLarge,
-    color: MaterialYouTheme.onSurfaceVariant.onSurfaceVariant || MaterialYouTheme.neutral.neutral10,
+    color:
+      MaterialYouTheme.onSurfaceVariant.onSurfaceVariant ||
+      MaterialYouTheme.neutral.neutral10,
     marginTop: Spacing.lg,
     marginBottom: Spacing.md,
     fontWeight: '600',
   },
   placeholderText: {
     ...Typography.bodyLarge,
-    color: MaterialYouTheme.onSurfaceVariant.onSurfaceVariant || MaterialYouTheme.neutral.neutral30,
+    color:
+      MaterialYouTheme.onSurfaceVariant.onSurfaceVariant ||
+      MaterialYouTheme.neutral.neutral30,
     textAlign: 'center',
     lineHeight: 24,
     marginVertical: Spacing.sm,

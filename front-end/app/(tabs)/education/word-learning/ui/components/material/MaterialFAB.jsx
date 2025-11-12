@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View, Platform } from 'react-native';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 
@@ -8,7 +8,7 @@ const MaterialFAB = ({
   text, 
   variant = 'primary', 
   size = 'normal',
-  style 
+  style, 
 }) => {
   const getVariantStyles = () => {
     switch (variant) {
@@ -75,7 +75,7 @@ const MaterialFAB = ({
           ...sizeStyle,
         },
         style,
-        { bottom: Platform.OS === 'ios' ? 80 : 60 } // 修正底部距離
+        { bottom: Platform.OS === 'ios' ? 80 : 60 }, // 修正底部距離
       ]}
       onPress={onPress}
       activeOpacity={0.8}

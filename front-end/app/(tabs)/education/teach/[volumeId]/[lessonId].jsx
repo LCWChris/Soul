@@ -12,7 +12,7 @@ import {
   Dimensions, // <-- 確保引入 Dimensions
 } from 'react-native';
 import { Card, Text, Button,PaperProvider, MD3LightTheme } from 'react-native-paper';
-import ArrowBack from "@/components/ArrowBack";
+import ArrowBack from '@/components/ArrowBack';
 
 // 引入 SwiperFlatList
 import { SwiperFlatList } from 'react-native-swiper-flatlist'; // <-- 確保引入
@@ -47,7 +47,7 @@ export default function LessonPage() {
       try {
         console.log('📦 進入教材頁面，volumeId:', volumeId, 'lessonId:', lessonId);
         const res = await axios.get(
-          `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIAL}/${lessonId}`
+          `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIAL}/${lessonId}`,
         );
         setData(res.data);
       } catch (err) {
@@ -69,7 +69,7 @@ useEffect(() => {
       setLoadingWords(true);
 
       // 🔍 Debug：檢查型別與數值
-      console.log("📘 Debug Volume/Lesson:", {
+      console.log('📘 Debug Volume/Lesson:', {
         volume: data.volume,
         lesson: data.lesson,
         volumeType: typeof data.volume,
@@ -83,11 +83,11 @@ useEffect(() => {
         },
       });
 
-      console.log("📘 Debug Words 回傳:", res.data);
+      console.log('📘 Debug Words 回傳:', res.data);
 
       setWords(res.data || []);
     } catch (err) {
-      console.error("❌ 讀取詞彙失敗", err);
+      console.error('❌ 讀取詞彙失敗', err);
     } finally {
       setLoadingWords(false);
     }
@@ -210,13 +210,13 @@ const isLoading = !data && !error;
                 // 1. 檢查教材資料 (data) 是否已載入
                 //    data.lesson 才是「真實的課數」 (例如 1, 2, 5...)
                 if (!data || data.lesson === undefined) {
-                  console.error("錯誤：教材資料尚未載入，無法取得真實課數");
+                  console.error('錯誤：教材資料尚未載入，無法取得真實課數');
                   return;
                 }
 
                 // 2. 檢查 'volumeId' (來自 useLocalSearchParams) 是否存在
                 if (!volumeId) {
-                  console.error("錯誤：在 URL 中找不到 volumeId");
+                  console.error('錯誤：在 URL 中找不到 volumeId');
                   return;
                 }
 
@@ -307,11 +307,11 @@ const styles = StyleSheet.create({
     fontSize: 20, 
     fontWeight: '700', 
     color: '#111827', 
-    marginBottom: 4 
+    marginBottom: 4, 
   },
   meaningSwiper: { 
     fontSize: 16, 
-    color: '#374151' 
+    color: '#374151', 
   },
 
   // [自定義分頁圓點樣式]

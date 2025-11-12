@@ -31,7 +31,7 @@ export const useVocabulary = (filters = {}) => {
     words,
     loading,
     error,
-    refetch: fetchWords
+    refetch: fetchWords,
   };
 };
 
@@ -66,7 +66,7 @@ export const useCategories = () => {
     learningLevels,
     loading,
     error,
-    refetch: fetchCategories
+    refetch: fetchCategories,
   };
 };
 
@@ -82,7 +82,7 @@ export const useRecommendations = (learningLevel = 'beginner', limit = 10) => {
       setError(null);
       const data = await VocabularyService.getRecommendations({
         learning_level: learningLevel,
-        limit
+        limit,
       });
       setRecommendations(data);
     } catch (err) {
@@ -101,7 +101,7 @@ export const useRecommendations = (learningLevel = 'beginner', limit = 10) => {
     recommendations,
     loading,
     error,
-    refetch: fetchRecommendations
+    refetch: fetchRecommendations,
   };
 };
 
@@ -140,6 +140,6 @@ export const useVocabularySearch = () => {
     loading,
     error,
     search,
-    clearResults
+    clearResults,
   };
 };

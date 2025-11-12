@@ -36,7 +36,7 @@ export default function ApiDebugger() {
         console.log('Error details:', {
           name: error.name,
           message: error.message,
-          stack: error.stack
+          stack: error.stack,
         });
       }
     };

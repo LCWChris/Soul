@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 import { getWordStats } from '@/utils/word-stats';
@@ -37,8 +37,8 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
         todayRecommendation: {
           newWords: 0,
           reviewWords: 0,
-          masteredToday: 0
-        }
+          masteredToday: 0,
+        },
       });
     } finally {
       setLoading(false);
@@ -74,7 +74,7 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
             <View 
               style={[
                 styles.progressBar, 
-                { width: `${progressRate}%` }
+                { width: `${progressRate}%` },
               ]} 
             />
           </View>
@@ -120,7 +120,7 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
             <Text style={styles.statusLabel}>複習中</Text>
           </View>
           <View style={styles.statusItem}>
-            <View style={[styles.statusIndicator, { backgroundColor: "#2563EB" }]} />
+            <View style={[styles.statusIndicator, { backgroundColor: '#2563EB' }]} />
             <Text style={styles.statusCount}>{mastered}</Text>
             <Text style={styles.statusLabel}>已掌握</Text>
           </View>
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     color: MaterialYouTheme.neutral.neutral50,
   },
   mainCard: {
-    backgroundColor: "#EFF6FF", // 淡藍背景
+    backgroundColor: '#EFF6FF', // 淡藍背景
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     ...Elevation.level2,
@@ -180,12 +180,12 @@ const styles = StyleSheet.create({
   },
   progressTitle: {
     ...Typography.titleLarge,
-    color: "#1E40AF", // 深藍標題
+    color: '#1E40AF', // 深藍標題
     fontWeight: '600',
   },
   progressPercentage: {
     ...Typography.headlineSmall,
-    color: "#2563EB", // 藍色百分比
+    color: '#2563EB', // 藍色百分比
     fontWeight: 'bold',
   },
   progressBarContainer: {
@@ -193,13 +193,13 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 8,
-    backgroundColor: "#DBEAFE", // 淡藍背景
+    backgroundColor: '#DBEAFE', // 淡藍背景
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: "#2563EB", // 藍色進度條
+    backgroundColor: '#2563EB', // 藍色進度條
     borderRadius: 4,
   },
   statsRow: {
@@ -212,13 +212,13 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     ...Typography.titleMedium,
-    color: "#1E40AF", // 深藍數字
+    color: '#1E40AF', // 深藍數字
     fontWeight: 'bold',
     marginBottom: 2,
   },
   statLabel: {
     ...Typography.labelSmall,
-    color: "#2563EB", // 藍色標籤
+    color: '#2563EB', // 藍色標籤
   },
   detailCard: {
     backgroundColor: MaterialYouTheme.neutral.neutral99,

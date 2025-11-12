@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 import { getWordStats } from '@/utils/word-stats';
@@ -37,8 +37,8 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
         todayRecommendation: {
           newWords: 0,
           reviewWords: 0,
-          masteredToday: 0
-        }
+          masteredToday: 0,
+        },
       });
     } finally {
       setLoading(false);
@@ -74,7 +74,7 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
             <View 
               style={[
                 styles.progressBar, 
-                { width: `${progressRate}%` }
+                { width: `${progressRate}%` },
               ]} 
             />
           </View>

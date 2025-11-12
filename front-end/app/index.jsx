@@ -14,14 +14,14 @@ export default function Index() {
       if (!userId) return;
 
       const key = `questionnaireFilled_${userId}`;
-      console.log("[Index] 登入後檢查問卷 → key:", key);
+      console.log('[Index] 登入後檢查問卷 → key:', key);
 
       try {
         const filled = await AsyncStorage.getItem(key);
         console.log(`[Index] 讀取問卷狀態 → key: ${key}，值:`, filled);
-        setHasFilled(filled === "true");
+        setHasFilled(filled === 'true');
       } catch (e) {
-        console.error("[Index] 讀取問卷狀態失敗", e);
+        console.error('[Index] 讀取問卷狀態失敗', e);
       } finally {
         setIsLoading(false);
       }

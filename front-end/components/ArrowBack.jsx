@@ -1,6 +1,6 @@
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { useRouter } from "expo-router";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useRouter } from 'expo-router';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 export default function ArrowBack() {
   const router = useRouter(); // 使用 useRouter 來獲取路由對象
@@ -12,11 +12,11 @@ export default function ArrowBack() {
 }
 const styles = StyleSheet.create({
   backButton: {
-    position: "absolute",
+    position: 'absolute',
     top: 20,
     left: 20,
     padding: 10,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
     borderRadius: 50,
     zIndex: 1,
   },

@@ -1,4 +1,4 @@
-﻿// SOUL/app/(tabs)/education/word-learning/components/AchievementModal.jsx
+// SOUL/app/(tabs)/education/word-learning/components/AchievementModal.jsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -158,7 +158,7 @@ const AchievementModal = ({ visible, onClose }) => {
                     key={achievement.id} 
                     style={[
                       styles.achievementCard,
-                      { backgroundColor: getBackgroundColor(achievement) }
+                      { backgroundColor: getBackgroundColor(achievement) },
                     ]}
                   >
                     <View style={styles.achievementIcon}>
@@ -176,14 +176,14 @@ const AchievementModal = ({ visible, onClose }) => {
                     
                     <Text style={[
                       styles.achievementTitle,
-                      !achievement.earned && styles.achievementTitleLocked
+                      !achievement.earned && styles.achievementTitleLocked,
                     ]}>
                       {achievement.title}
                     </Text>
                     
                     <Text style={[
                       styles.achievementDescription,
-                      !achievement.earned && styles.achievementDescriptionLocked
+                      !achievement.earned && styles.achievementDescriptionLocked,
                     ]}>
                       {achievement.description}
                     </Text>

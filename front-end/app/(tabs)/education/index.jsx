@@ -1,7 +1,7 @@
 // app/education/index.jsx
-import ArrowBack from "@/components/ArrowBack";
-import { useRouter } from "expo-router";
-import { StyleSheet, View, ScrollView } from "react-native";
+import ArrowBack from '@/components/ArrowBack';
+import { useRouter } from 'expo-router';
+import { StyleSheet, View, ScrollView } from 'react-native';
 import {
   PaperProvider,
   MD3LightTheme,
@@ -10,17 +10,17 @@ import {
   Divider,
   Card,
   Chip,
-} from "react-native-paper";
-import { Ionicons } from "@expo/vector-icons";
+} from 'react-native-paper';
+import { Ionicons } from '@expo/vector-icons';
 
 const theme = {
   ...MD3LightTheme,
   colors: {
     ...MD3LightTheme.colors,
     // 改掉 paper 預設的紫色，統一走藍色系
-    primary: "#1E3A8A",   // 主色：深藍
-    secondary: "#2563EB", // 次要：亮藍
-    tertiary: "#0EA5E9",  // 裝飾：青藍
+    primary: '#1E3A8A',   // 主色：深藍
+    secondary: '#2563EB', // 次要：亮藍
+    tertiary: '#0EA5E9',  // 裝飾：青藍
   },
 };
 
@@ -34,7 +34,7 @@ export default function Education() {
       router.back();
     } else {
       // 如果沒有上一頁，可以導航到應用程式的根目錄或特定頁面
-      router.replace("/"); 
+      router.replace('/'); 
     }
   };
 
@@ -67,7 +67,7 @@ export default function Education() {
             style={styles.button}
             contentStyle={styles.buttonContent}    // 控制高度
             labelStyle={styles.buttonLabel}        // 控制字體大小
-            onPress={() => router.push("education/teach-screen")}
+            onPress={() => router.push('education/teach-screen')}
           >
             進入教學區
           </Button>
@@ -77,7 +77,7 @@ export default function Education() {
             style={styles.button}
             contentStyle={styles.buttonContent}
             labelStyle={styles.buttonLabel}
-            onPress={() => router.push("education/word-learning")}
+            onPress={() => router.push('education/word-learning')}
           >
             進入單字學習區
           </Button>
@@ -94,7 +94,7 @@ export default function Education() {
               </Text>
             </Card.Content>
             <Card.Actions>
-              <Button onPress={() => router.push("education/teach-screen")}>
+              <Button onPress={() => router.push('education/teach-screen')}>
                 繼續學習
               </Button>
             </Card.Actions>
@@ -108,7 +108,7 @@ export default function Education() {
 
 const styles = StyleSheet.create({
   // 【修改處 5】：新增 screenContainer 樣式
-  screenContainer: { flex: 1, backgroundColor: "#F9FAFB" }, 
+  screenContainer: { flex: 1, backgroundColor: '#F9FAFB' }, 
   
   // 【修改處 6】：調整原本的 container 樣式為 ScrollView
   scrollView: { flex: 1 }, 
@@ -122,29 +122,29 @@ const styles = StyleSheet.create({
   
   content: { padding: 20, gap: 16 },
   header: { gap: 6, marginBottom: 4 },
-  title: { color: "#1E3A8A", fontWeight: "700" },
-  subTitle: { color: "#475569" },
+  title: { color: '#1E3A8A', fontWeight: '700' },
+  subTitle: { color: '#475569' },
 
   // Button：更高更厚實 + 大字 + 大圓角
   button: {
     borderRadius: 18,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   buttonContent: {
     height: 64,              // ← 增加高度
-    justifyContent: "center"
+    justifyContent: 'center',
   },
   buttonLabel: {
     fontSize: 18,            // ← 字體更大
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: 0.5,
   },
 
   divider: { marginVertical: 8 },
-  sectionTitle: { marginTop: 8, marginBottom: 4, color: "#1F2937" },
+  sectionTitle: { marginTop: 8, marginBottom: 4, color: '#1F2937' },
 
-  card: { borderRadius: 16, overflow: "hidden" },
+  card: { borderRadius: 16, overflow: 'hidden' },
 
-  chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  chipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { borderRadius: 14 },
 });

@@ -124,22 +124,16 @@ export default function AIChatbot({ visible, onClose, userContext = {} }) {
       try {
         // 使用 Gemini 生成個性化歡迎消息
         const welcomePrompt = userContext.isNewUser
-          ? `你好！我是新用戶，第一次使用這個 APP。`
-          : `你好！`;
+          ? "你好！我是新用戶，第一次使用這個 APP。"
+          : "你好！";
 
         console.log("📤 發送歡迎消息");
 
-        // 添加超時保護 - 5秒後自動使用預設消息
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("API 超時")), 5000)
-        );
-
-        const apiPromise = GeminiService.sendMessage(
+        // 直接等待 Gemini 回應（不再做硬性 API 超時）
+        const aiReply = await GeminiService.sendMessage(
           welcomePrompt,
           userContext
         );
-
-        const aiReply = await Promise.race([apiPromise, timeoutPromise]);
 
         console.log("✅ 收到 AI 回應");
 
@@ -203,14 +197,8 @@ export default function AIChatbot({ visible, onClose, userContext = {} }) {
     }, 100);
 
     try {
-      // 添加超時保護 - 10秒後自動返回錯誤
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("API 請求超時")), 10000)
-      );
-
-      // 發送到 Gemini AI
-      const apiPromise = GeminiService.sendMessage(text.trim(), userContext);
-      const aiReply = await Promise.race([apiPromise, timeoutPromise]);
+      // 發送到 Gemini AI（不再做硬性 API 超時）
+      const aiReply = await GeminiService.sendMessage(text.trim(), userContext);
 
       console.log("✅ 收到 AI 回應:", aiReply.substring(0, 50) + "...");
 

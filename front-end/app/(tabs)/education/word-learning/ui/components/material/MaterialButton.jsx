@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 // This is a component file, not a route
 import React, { useState } from 'react';
 import { 
@@ -8,7 +8,7 @@ import {
   Animated, 
   View,
   ActivityIndicator,
-  Pressable 
+  Pressable, 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
@@ -40,7 +40,7 @@ const MaterialButton = ({
       toValue: 0.96,
       useNativeDriver: true,
       tension: 300,
-      friction: 20
+      friction: 20,
     }).start();
   };
 
@@ -50,7 +50,7 @@ const MaterialButton = ({
       toValue: 1,
       useNativeDriver: true,
       tension: 300,
-      friction: 20
+      friction: 20,
     }).start();
   };
 
@@ -78,7 +78,7 @@ const MaterialButton = ({
         paddingVertical: Spacing.lg,
         paddingHorizontal: Spacing.xxl,
         minHeight: 48,
-      }
+      },
     };
 
     // 變體樣式
@@ -103,7 +103,7 @@ const MaterialButton = ({
         backgroundColor: disabled 
           ? MaterialYouTheme.neutralVariant.neutralVariant90
           : MaterialYouTheme.primary.primary90,
-      }
+      },
     };
 
     return {
@@ -140,7 +140,7 @@ const MaterialButton = ({
         color: disabled 
           ? MaterialYouTheme.neutralVariant.neutralVariant30
           : MaterialYouTheme.primary.primary10,
-      }
+      },
     };
 
     return {
@@ -190,7 +190,7 @@ const MaterialButton = ({
         color={getIconColor()}
         style={[
           iconPosition === 'left' && title && { marginRight: Spacing.sm },
-          iconPosition === 'right' && title && { marginLeft: Spacing.sm }
+          iconPosition === 'right' && title && { marginLeft: Spacing.sm },
         ]}
       />
     );
@@ -219,7 +219,7 @@ const MaterialButton = ({
     return {
       color: variantRippleColors[variant],
       borderless: false,
-      radius: 200
+      radius: 200,
     };
   };
 
@@ -227,7 +227,7 @@ const MaterialButton = ({
     <Animated.View 
       style={[
         { transform: [{ scale: scaleValue }] },
-        style
+        style,
       ]}
     >
       <Pressable
@@ -266,7 +266,7 @@ export const MaterialFAB = ({
       toValue: 0.92,
       useNativeDriver: true,
       tension: 300,
-      friction: 20
+      friction: 20,
     }).start();
   };
 
@@ -276,7 +276,7 @@ export const MaterialFAB = ({
       toValue: 1,
       useNativeDriver: true,
       tension: 300,
-      friction: 20
+      friction: 20,
     }).start();
   };
 
@@ -296,7 +296,7 @@ export const MaterialFAB = ({
         width: 96,
         height: 96,
         iconSize: 32,
-      }
+      },
     };
     return sizeConfigs[size];
   };
@@ -314,7 +314,7 @@ export const MaterialFAB = ({
       surface: {
         backgroundColor: MaterialYouTheme.neutralVariant.neutralVariant90,
         iconColor: MaterialYouTheme.primary.primary40,
-      }
+      },
     };
     return variantStyles[variant];
   };
@@ -333,7 +333,7 @@ export const MaterialFAB = ({
             backgroundColor: variantStyle.backgroundColor,
             opacity: disabled ? 0.6 : 1,
           },
-          style
+          style,
         ]}
         onPress={disabled ? null : onPress}
         onPressIn={handlePressIn}
@@ -342,7 +342,7 @@ export const MaterialFAB = ({
         android_ripple={{
           color: MaterialYouTheme.primary.primary80,
           borderless: false,
-          radius: sizeConfig.width / 2
+          radius: sizeConfig.width / 2,
         }}
         {...props}
       >
@@ -377,7 +377,7 @@ export const MaterialIconButton = ({
       toValue: 0.90,
       useNativeDriver: true,
       tension: 300,
-      friction: 20
+      friction: 20,
     }).start();
   };
 
@@ -387,7 +387,7 @@ export const MaterialIconButton = ({
       toValue: 1,
       useNativeDriver: true,
       tension: 300,
-      friction: 20
+      friction: 20,
     }).start();
   };
 
@@ -407,7 +407,7 @@ export const MaterialIconButton = ({
       filled: {
         backgroundColor: MaterialYouTheme.primary.primary40,
         iconColor: MaterialYouTheme.primary.primary100,
-      }
+      },
     };
 
     return {
@@ -427,7 +427,7 @@ export const MaterialIconButton = ({
           styles.iconButton,
           variantStyle,
           { opacity: disabled ? 0.6 : 1 },
-          style
+          style,
         ]}
         onPress={disabled ? null : onPress}
         onPressIn={handlePressIn}
@@ -436,7 +436,7 @@ export const MaterialIconButton = ({
         android_ripple={{
           color: MaterialYouTheme.primary.primary90,
           borderless: false,
-          radius: 24
+          radius: 24,
         }}
         {...props}
       >

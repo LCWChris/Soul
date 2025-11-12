@@ -1,21 +1,21 @@
 // components/FloatingAIButton.jsx
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef } from "react";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useRef } from 'react';
 import {
   Animated,
   Platform,
   StyleSheet,
   TouchableOpacity,
   View,
-} from "react-native";
+} from 'react-native';
 
 export default function FloatingAIButton({ onPress, bottom = 20 }) {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    console.log("✨ FloatingAIButton mounted - 開始動畫");
+    console.log('✨ FloatingAIButton mounted - 開始動畫');
 
     // 進入動畫 - 加快啟動
     Animated.spring(scaleAnim, {
@@ -25,7 +25,7 @@ export default function FloatingAIButton({ onPress, bottom = 20 }) {
       useNativeDriver: true,
       delay: 100, // 添加小延遲確保組件完全載入
     }).start(() => {
-      console.log("✅ FloatingAIButton 動畫完成");
+      console.log('✅ FloatingAIButton 動畫完成');
     });
 
     // 脈衝動畫（吸引注意力）
@@ -41,7 +41,7 @@ export default function FloatingAIButton({ onPress, bottom = 20 }) {
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, []);
 
@@ -79,7 +79,7 @@ export default function FloatingAIButton({ onPress, bottom = 20 }) {
         style={styles.touchable}
       >
         <LinearGradient
-          colors={["#6366F1", "#4F46E5"]}
+          colors={['#6366F1', '#4F46E5']}
           style={styles.button}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -104,7 +104,7 @@ export default function FloatingAIButton({ onPress, bottom = 20 }) {
         </LinearGradient>
 
         {/* 陰影效果 */}
-        {Platform.OS === "ios" && <View style={styles.shadowContainer} />}
+        {Platform.OS === 'ios' && <View style={styles.shadowContainer} />}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -112,26 +112,26 @@ export default function FloatingAIButton({ onPress, bottom = 20 }) {
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
+    position: 'absolute',
     right: 20,
     zIndex: 9999, // 大幅提高 z-index
     elevation: 999, // Android 使用 elevation
   },
   touchable: {
-    position: "relative",
+    position: 'relative',
   },
   button: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     ...Platform.select({
       android: {
         elevation: 8,
       },
       ios: {
-        shadowColor: "#6366F1",
+        shadowColor: '#6366F1',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -139,37 +139,37 @@ const styles = StyleSheet.create({
     }),
   },
   pulseCircle: {
-    position: "absolute",
+    position: 'absolute',
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "rgba(99, 102, 241, 0.2)",
+    backgroundColor: 'rgba(99, 102, 241, 0.2)',
   },
   badge: {
-    position: "absolute",
+    position: 'absolute',
     top: 4,
     right: 4,
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   badgeDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#EF4444",
+    backgroundColor: '#EF4444',
   },
   shadowContainer: {
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     borderRadius: 30,
-    shadowColor: "#6366F1",
+    shadowColor: '#6366F1',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

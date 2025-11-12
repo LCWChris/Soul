@@ -1,6 +1,6 @@
 // education/quiz/index.jsx (完整程式碼)
 //新增改變註解
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -10,9 +10,9 @@ import {
   Image, 
   StyleSheet, 
   Alert, 
-} from "react-native";
+} from 'react-native';
 // 【修改 1/4：導入 useRouter】
-import { useLocalSearchParams, useRouter } from "expo-router"; 
+import { useLocalSearchParams, useRouter } from 'expo-router'; 
 
 // 【修正點：從 '@/constants/api' 導入配置】
 import { API_CONFIG } from '@/constants/api'; 
@@ -52,7 +52,7 @@ function checkAnswer(question, userValue) {
 function gradeQuiz(quiz, answers) { 
     // ... (程式碼保持不變)
     let correct = 0; 
-    const gradable = quiz.questions.filter((q) => !["video_response", "hotspot"].includes(q.type)); 
+    const gradable = quiz.questions.filter((q) => !['video_response', 'hotspot'].includes(q.type)); 
     for (const q of gradable) { 
         const user = answers[q.id]; 
         if (!user) continue; 
@@ -146,8 +146,8 @@ export default function QuizScreen() {
                 setQuiz(data);
                 // (重置狀態已移到 try 之前)
             } catch (error) {
-                console.error("Failed to fetch quiz data:", error);
-                Alert.alert("載入失敗", `無法從伺服器獲取測驗數據: ${error.message}`);
+                console.error('Failed to fetch quiz data:', error);
+                Alert.alert('載入失敗', `無法從伺服器獲取測驗數據: ${error.message}`);
                 setQuiz(null);
             } finally {
                 setIsJumping(false); 
@@ -172,15 +172,15 @@ export default function QuizScreen() {
         const correct = checkAnswer(currentQ, val); 
         
         const isMultiSelectFull = 
-            currentQ.type === "multi_select" && 
+            currentQ.type === 'multi_select' && 
             Array.isArray(val) && 
             val.length === currentQ.answer.length; 
             
         // 單選/是非題或複選題剛好選滿答案數量時，自動跳轉
         const shouldJumpAutomatically = 
-            currentQ.type === "single_choice" || 
-            currentQ.type === "true_false" ||
-            currentQ.type === "image_select" || // 【修正點 A: 新增 image_select 納入自動跳轉】
+            currentQ.type === 'single_choice' || 
+            currentQ.type === 'true_false' ||
+            currentQ.type === 'image_select' || // 【修正點 A: 新增 image_select 納入自動跳轉】
             isMultiSelectFull; 
 
         if (shouldJumpAutomatically) {
@@ -301,7 +301,7 @@ export default function QuizScreen() {
     }
 
     // 判斷是否為需要手動點擊的題型 (排序題或複選題)
-    const needsManualNext = (q.type === "order" || q.type === "multi_select");
+    const needsManualNext = (q.type === 'order' || q.type === 'multi_select');
 
     // (原有的 return 邏輯保持不變)
     return (
@@ -397,15 +397,15 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
     const isCorrectOption = (optId) => q.answer && q.answer.includes(optId);
 
     switch (q.type) {
-        case "single_choice":
-        case "true_false":
-        case "multi_select": 
+        case 'single_choice':
+        case 'true_false':
+        case 'multi_select': 
             return (
                 <View>
                     {q.options?.map((opt) => {
                         const selected = Array.isArray(value) && value.includes(opt.id);
                         
-                        let cardStyle = [s.card];
+                        const cardStyle = [s.card];
                         let icon = null;
 
                         if (isJumping) {
@@ -446,12 +446,12 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
                     })}
                 </View>
             );
-        case "image_select":
+        case 'image_select':
             return (
                 <View style={s.imageSelectContainer}>
                     {q.options?.map((opt) => {
                         const selected = Array.isArray(value) && value.includes(opt.id);
-                        let cardStyle = [s.imageOptionCard];
+                        const cardStyle = [s.imageOptionCard];
                         let icon = null;
 
                         if (isJumping) {
@@ -492,7 +492,7 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
                 </View>
             );
 
-        case "order": 
+        case 'order': 
             const list = value?.length ? value : q.items.map((i) => i.id);
             const isOrderCorrect = isJumping && checkAnswer(q, value);
             
@@ -534,7 +534,7 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
             );
 
         default:
-            return <Text style={{ color: "red" }}>未知題型：{q.type}</Text>;
+            return <Text style={{ color: 'red' }}>未知題型：{q.type}</Text>;
     }
 }
 
@@ -544,19 +544,19 @@ function QuestionRenderer({ q, value, onChange, isJumping }) {
 // =========================================================
 const s = StyleSheet.create({
     // ... (所有舊樣式保持不變)
-    page: { flex: 1, backgroundColor: "#fff" },
+    page: { flex: 1, backgroundColor: '#fff' },
     header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
-    headerTitle: { fontSize: 20, fontWeight: "700", color: "#1E3A8A" },
-    headerSub: { marginTop: 4, color: "#6B7280" },
+    headerTitle: { fontSize: 20, fontWeight: '700', color: '#1E3A8A' },
+    headerSub: { marginTop: 4, color: '#6B7280' },
     body: { paddingHorizontal: 20, marginTop: 8 },
-    media: { width: "100%", height: 180, borderRadius: 12, marginBottom: 12, resizeMode: "contain" }, 
-    prompt: { fontSize: 16, marginBottom: 12, color: "#111827" },
+    media: { width: '100%', height: 180, borderRadius: 12, marginBottom: 12, resizeMode: 'contain' }, 
+    prompt: { fontSize: 16, marginBottom: 12, color: '#111827' },
     
     progressBarContainer: {
-        height: 6, width: "100%", backgroundColor: "#E5E7EB", marginBottom: 10,
+        height: 6, width: '100%', backgroundColor: '#E5E7EB', marginBottom: 10,
     },
     progressBar: {
-        height: "100%", backgroundColor: "#3B82F6", borderRadius: 3,
+        height: '100%', backgroundColor: '#3B82F6', borderRadius: 3,
     },
     feedbackText: {
         fontSize: 24, fontWeight: '800', color: '#111827', textAlign: 'center',
@@ -566,37 +566,37 @@ const s = StyleSheet.create({
     },
     
     card: { 
-        padding: 14, borderRadius: 12, borderWidth: 1, borderColor: "#E5E7EB", backgroundColor: "#fff", marginBottom: 12, 
+        padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', backgroundColor: '#fff', marginBottom: 12, 
     },
-    cardSelected: { borderColor: "#3B82F6", backgroundColor: "#EFF6FF" },
-    cardCorrect: { borderColor: "#10B981", backgroundColor: "#D1FAE5" }, 
-    cardWrong: { borderColor: "#EF4444", backgroundColor: "#FEE2E2" },   
-    cardText: { fontSize: 16, color: "#111827" },
+    cardSelected: { borderColor: '#3B82F6', backgroundColor: '#EFF6FF' },
+    cardCorrect: { borderColor: '#10B981', backgroundColor: '#D1FAE5' }, 
+    cardWrong: { borderColor: '#EF4444', backgroundColor: '#FEE2E2' },   
+    cardText: { fontSize: 16, color: '#111827' },
 
     orderContainer: {
-        borderRadius: 12, overflow: 'hidden', marginBottom: 12, borderWidth: 1, borderColor: "#E5E7EB",
+        borderRadius: 12, overflow: 'hidden', marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB',
     },
     orderItem: { 
-        flexDirection: 'row', alignItems: 'center', padding: 14, backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: "#F3F4F6",
+        flexDirection: 'row', alignItems: 'center', padding: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
     },
     orderIndex: {
         fontSize: 16, fontWeight: 'bold', marginRight: 10, color: '#3B82F6',
     },
     orderText: { fontSize: 16, flex: 1 }, 
-    orderBtns: { flexDirection: "row" },
+    orderBtns: { flexDirection: 'row' },
     orderBtn: { 
-        paddingVertical: 4, paddingHorizontal: 8, backgroundColor: "#F3F4F6", borderRadius: 8, marginLeft: 8,
+        paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#F3F4F6', borderRadius: 8, marginLeft: 8,
     }, 
 
     footer: { 
-        flexDirection: "row", justifyContent: "space-between", padding: 16, borderTopWidth: 1, borderTopColor: "#F3F4F6", backgroundColor: "#fff", 
+        flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderTopWidth: 1, borderTopColor: '#F3F4F6', backgroundColor: '#fff', 
     }, 
-    btn: { paddingVertical: 12, paddingHorizontal: 18, borderRadius: 12, backgroundColor: "#E5E7EB" }, 
+    btn: { paddingVertical: 12, paddingHorizontal: 18, borderRadius: 12, backgroundColor: '#E5E7EB' }, 
     btnDisabled: { opacity: 0.5 }, 
-    btnPrimary: { backgroundColor: "#3B82F6" }, 
-    btnSuccess: { backgroundColor: "#10B981" }, 
-    btnTextLight: { color: "#fff", fontWeight: "700" }, 
-    btnTextDark: { color: "#111827", fontWeight: "700" }, 
+    btnPrimary: { backgroundColor: '#3B82F6' }, 
+    btnSuccess: { backgroundColor: '#10B981' }, 
+    btnTextLight: { color: '#fff', fontWeight: '700' }, 
+    btnTextDark: { color: '#111827', fontWeight: '700' }, 
     imageSelectContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -608,8 +608,8 @@ const s = StyleSheet.create({
         aspectRatio: 1, 
         borderRadius: 12, 
         borderWidth: 2, 
-        borderColor: "#E5E7EB", 
-        backgroundColor: "#fff", 
+        borderColor: '#E5E7EB', 
+        backgroundColor: '#fff', 
         marginBottom: 16, 
         overflow: 'hidden', 
     },
@@ -618,8 +618,8 @@ const s = StyleSheet.create({
         height: '100%',
     },
 
-    center: { flex: 1, alignItems: "center", justifyContent: "center" }, 
-    muted: { color: "#6B7280", marginTop: 6 }, 
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center' }, 
+    muted: { color: '#6B7280', marginTop: 6 }, 
 
     // 【新增 4/4：結算畫面的樣式】
     resultsContainer: {
@@ -649,6 +649,6 @@ const s = StyleSheet.create({
     title: { // (您原本的 !quiz 畫面有用到，但未定義)
         fontSize: 20, 
         fontWeight: 'bold', 
-        color: '#111827'
-    }
+        color: '#111827',
+    },
 });

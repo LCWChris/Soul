@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 // This is a component file, not a route
 import React, { useState, useRef, useEffect } from 'react';
 import {
@@ -123,7 +123,7 @@ export const MaterialTextInput = ({
       inputRange: [0, 1],
       outputRange: [
         'transparent',
-        variant === 'outlined' ? MaterialYouTheme.surface.surface : 'transparent'
+        variant === 'outlined' ? MaterialYouTheme.surface.surface : 'transparent',
       ],
     });
 
@@ -339,7 +339,7 @@ export const MaterialSelector = ({
         style={[
           styles.selectorButton,
           error && styles.selectorError,
-          isOpen && styles.selectorOpen
+          isOpen && styles.selectorOpen,
         ]}
         onPress={() => setIsOpen(!isOpen)}
         activeOpacity={0.7}
@@ -348,7 +348,7 @@ export const MaterialSelector = ({
           style={[
             Typography.bodyLarge,
             styles.selectorText,
-            !selectedOption && styles.selectorPlaceholder
+            !selectedOption && styles.selectorPlaceholder,
           ]}
         >
           {selectedOption?.label || placeholder}
@@ -368,7 +368,7 @@ export const MaterialSelector = ({
               key={option.value}
               style={[
                 styles.optionItem,
-                selectedValue === option.value && styles.optionSelected
+                selectedValue === option.value && styles.optionSelected,
               ]}
               onPress={() => {
                 onSelect(option.value);
@@ -380,7 +380,7 @@ export const MaterialSelector = ({
                 style={[
                   Typography.bodyLarge,
                   styles.optionText,
-                  selectedValue === option.value && styles.optionTextSelected
+                  selectedValue === option.value && styles.optionTextSelected,
                 ]}
               >
                 {option.label}

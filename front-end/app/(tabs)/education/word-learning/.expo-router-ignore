@@ -1,3 +1,17 @@
+# Ignore non-route modules inside this folder
+
+# Backend/API helpers – not routes
+api/**
+
+# UI implementation – components, screens, themes are NOT routes
+ui/**
+ui/index.js
+
+# Docs and misc
+*.md
+README.md
+ARCHITECTURE.md
+REFACTORING_SUMMARY.md
 # 忽略 API 層 (後端)
 api/**
 

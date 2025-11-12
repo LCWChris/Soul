@@ -1,4 +1,4 @@
-﻿// SOUL/app/(tabs)/education/word-learning/components/WordLearningCard.jsx
+// SOUL/app/(tabs)/education/word-learning/components/WordLearningCard.jsx
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -125,7 +125,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
           disabled={isLearned || recording}
         >
           <Ionicons 
-            name={isLearned ? "checkmark-circle" : "school"} 
+            name={isLearned ? 'checkmark-circle' : 'school'} 
             size={18} 
             color={isLearned ? MaterialYouTheme.neutral.neutral60 : MaterialYouTheme.primary.primary40} 
           />
@@ -140,7 +140,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
           disabled={isMastered || recording || !isLearned}
         >
           <Ionicons 
-            name={isMastered ? "star" : "star-outline"} 
+            name={isMastered ? 'star' : 'star-outline'} 
             size={18} 
             color={isMastered ? MaterialYouTheme.neutral.neutral60 : MaterialYouTheme.secondary.secondary40} 
           />

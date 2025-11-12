@@ -16,11 +16,11 @@ export const getWordStats = async (filters = {}) => {
     const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}`, {
       params: {
         ...filters,
-        limit: 1000 // 獲取足夠多的數據用於統計
+        limit: 1000, // 獲取足夠多的數據用於統計
       },
       headers: {
-        'ngrok-skip-browser-warning': 'true'
-      }
+        'ngrok-skip-browser-warning': 'true',
+      },
     });
     
     // API 直接返回陣列，確保數據格式正確
@@ -33,7 +33,7 @@ export const getWordStats = async (filters = {}) => {
     // 獲取學習進度和收藏數據
     const [learningProgress, favorites] = await Promise.all([
       getLearningProgress(),
-      getFavorites()
+      getFavorites(),
     ]);
     
     const favoritesSet = new Set(favorites);
@@ -69,8 +69,8 @@ export const getWordStats = async (filters = {}) => {
       todayRecommendation: {
         newWords: 0,      // 建議學習的新單詞數
         reviewWords: 0,   // 建議複習的單詞數
-        masteredToday: 0  // 今日已掌握的單詞數
-      }
+        masteredToday: 0,  // 今日已掌握的單詞數
+      },
     };
     
     // 遍歷所有單詞進行統計
@@ -163,8 +163,8 @@ export const getWordStats = async (filters = {}) => {
       todayRecommendation: {
         newWords: 0,
         reviewWords: 0,
-        masteredToday: 0
-      }
+        masteredToday: 0,
+      },
     };
   }
 };
@@ -189,7 +189,7 @@ export const getLearningTrend = async () => {
         date: date.toISOString().split('T')[0], // YYYY-MM-DD 格式
         newLearned: 0,
         reviewed: 0,
-        mastered: 0
+        mastered: 0,
       };
       
       Object.values(learningProgress).forEach(progress => {
@@ -233,10 +233,10 @@ export const getWordsNeedReview = async (limit = 10) => {
       axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.BOOK_WORDS}`, {
         params: { limit: 200 },
         headers: {
-          'ngrok-skip-browser-warning': 'true'
-        }
+          'ngrok-skip-browser-warning': 'true',
+        },
       }),
-      getLearningProgress()
+      getLearningProgress(),
     ]);
     
     // API 直接返回陣列，確保數據格式正確

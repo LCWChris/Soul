@@ -1,22 +1,32 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  Animated,
-  RefreshControl,
-  Dimensions,
-  Platform,
-} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useMemo, useState } from 'react';
+import {
+  Animated,
+  Dimensions,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../themes/MaterialYouTheme';
 import EnhancedVocabularyCard from '../components/cards/EnhancedVocabularyCard';
-import MaterialButton, { MaterialFAB, MaterialIconButton } from '../components/material/MaterialButton';
+import MaterialButton, {
+  MaterialFAB,
+  MaterialIconButton,
+} from '../components/material/MaterialButton';
+import {
+  BorderRadius,
+  ColorUtils,
+  Elevation,
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from '../themes/MaterialYouTheme';
 // import { useWordLearning } from './hooks/useWordLearning'; // 暫時註解掉
 // import { useFavorites } from '../../../../utils/favorites.js'; // 暫時註解掉
 
@@ -39,7 +49,7 @@ const EnhancedWordLearningScreen = () => {
   const loading = false;
   const error = null;
   const refreshWords = () => {};
-  
+
   // 暫時 mock favorites
   const favorites = [];
   const toggleFavorite = () => {};
@@ -53,25 +63,37 @@ const EnhancedWordLearningScreen = () => {
   const filteredAndSortedWords = useMemo(() => {
     if (!words) return [];
 
-    let filtered = words.filter(word => {
+    const filtered = words.filter((word) => {
       // 搜尋過濾
-      if (searchQuery && !word.word.toLowerCase().includes(searchQuery.toLowerCase()) && 
-          !word.definition.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (
+        searchQuery &&
+        !word.word.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        !word.definition.toLowerCase().includes(searchQuery.toLowerCase())
+      ) {
         return false;
       }
 
       // 等級過濾
-      if (selectedFilters.level !== 'all' && word.level !== selectedFilters.level) {
+      if (
+        selectedFilters.level !== 'all' &&
+        word.level !== selectedFilters.level
+      ) {
         return false;
       }
 
       // 分類過濾
-      if (selectedFilters.category !== 'all' && word.category !== selectedFilters.category) {
+      if (
+        selectedFilters.category !== 'all' &&
+        word.category !== selectedFilters.category
+      ) {
         return false;
       }
 
       // 學習狀態過濾
-      if (selectedFilters.status !== 'all' && word.learningStatus !== selectedFilters.status) {
+      if (
+        selectedFilters.status !== 'all' &&
+        word.learningStatus !== selectedFilters.status
+      ) {
         return false;
       }
 
@@ -89,14 +111,26 @@ const EnhancedWordLearningScreen = () => {
         filtered.sort((a, b) => a.word.localeCompare(b.word));
         break;
       case 'level':
-        const levelOrder = { 'beginner': 1, 'intermediate': 2, 'advanced': 3, 'expert': 4 };
-        filtered.sort((a, b) => (levelOrder[a.level] || 5) - (levelOrder[b.level] || 5));
+        const levelOrder = {
+          beginner: 1,
+          intermediate: 2,
+          advanced: 3,
+          expert: 4,
+        };
+        filtered.sort(
+          (a, b) => (levelOrder[a.level] || 5) - (levelOrder[b.level] || 5),
+        );
         break;
       case 'recent':
-        filtered.sort((a, b) => new Date(b.lastReviewed || 0) - new Date(a.lastReviewed || 0));
+        filtered.sort(
+          (a, b) =>
+            new Date(b.lastReviewed || 0) - new Date(a.lastReviewed || 0),
+        );
         break;
       case 'difficulty':
-        filtered.sort((a, b) => (b.difficultyScore || 0) - (a.difficultyScore || 0));
+        filtered.sort(
+          (a, b) => (b.difficultyScore || 0) - (a.difficultyScore || 0),
+        );
         break;
       default:
         break;
@@ -111,9 +145,9 @@ const EnhancedWordLearningScreen = () => {
 
     return {
       total: words.length,
-      mastered: words.filter(w => w.learningStatus === 'mastered').length,
-      learning: words.filter(w => w.learningStatus === 'learning').length,
-      favorites: words.filter(w => favorites.includes(w.word)).length,
+      mastered: words.filter((w) => w.learningStatus === 'mastered').length,
+      learning: words.filter((w) => w.learningStatus === 'learning').length,
+      favorites: words.filter((w) => favorites.includes(w.word)).length,
     };
   }, [words, favorites]);
 
@@ -131,7 +165,7 @@ const EnhancedWordLearningScreen = () => {
   const toggleFilterPanel = () => {
     const toValue = showFilterPanel ? 0 : 200;
     setShowFilterPanel(!showFilterPanel);
-    
+
     Animated.spring(filterPanelHeight, {
       toValue,
       useNativeDriver: false,
@@ -151,25 +185,41 @@ const EnhancedWordLearningScreen = () => {
       >
         <View style={styles.statisticsGrid}>
           <View style={styles.statCard}>
-            <Ionicons name="library-outline" size={24} color={MaterialYouTheme.primary.primary10} />
+            <Ionicons
+              name="library-outline"
+              size={24}
+              color={MaterialYouTheme.primary.primary10}
+            />
             <Text style={styles.statNumber}>{statistics.total}</Text>
             <Text style={styles.statLabel}>總單詞</Text>
           </View>
 
           <View style={styles.statCard}>
-            <Ionicons name="checkmark-circle-outline" size={24} color={MaterialYouTheme.primary.primary10} />
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={24}
+              color={MaterialYouTheme.primary.primary10}
+            />
             <Text style={styles.statNumber}>{statistics.mastered}</Text>
             <Text style={styles.statLabel}>已掌握</Text>
           </View>
 
           <View style={styles.statCard}>
-            <Ionicons name="school-outline" size={24} color={MaterialYouTheme.primary.primary10} />
+            <Ionicons
+              name="school-outline"
+              size={24}
+              color={MaterialYouTheme.primary.primary10}
+            />
             <Text style={styles.statNumber}>{statistics.learning}</Text>
             <Text style={styles.statLabel}>學習中</Text>
           </View>
 
           <View style={styles.statCard}>
-            <Ionicons name="heart-outline" size={24} color={MaterialYouTheme.primary.primary10} />
+            <Ionicons
+              name="heart-outline"
+              size={24}
+              color={MaterialYouTheme.primary.primary10}
+            />
             <Text style={styles.statNumber}>{statistics.favorites}</Text>
             <Text style={styles.statLabel}>收藏</Text>
           </View>
@@ -181,17 +231,25 @@ const EnhancedWordLearningScreen = () => {
   // 渲染過濾器面板
   const renderFilterPanel = () => (
     <Animated.View style={[styles.filterPanel, { height: filterPanelHeight }]}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
+      >
         <View style={styles.filterGroup}>
           <Text style={styles.filterGroupTitle}>等級</Text>
           <View style={styles.filterButtons}>
-            {['all', 'beginner', 'intermediate', 'advanced'].map(level => (
+            {['all', 'beginner', 'intermediate', 'advanced'].map((level) => (
               <MaterialButton
                 key={level}
                 title={level === 'all' ? '全部' : level}
-                variant={selectedFilters.level === level ? 'filled' : 'outlined'}
+                variant={
+                  selectedFilters.level === level ? 'filled' : 'outlined'
+                }
                 size="small"
-                onPress={() => setSelectedFilters(prev => ({ ...prev, level }))}
+                onPress={() =>
+                  setSelectedFilters((prev) => ({ ...prev, level }))
+                }
                 style={styles.filterButton}
               />
             ))}
@@ -205,8 +263,8 @@ const EnhancedWordLearningScreen = () => {
               { key: 'alphabetical', label: '字母' },
               { key: 'level', label: '等級' },
               { key: 'recent', label: '最近' },
-              { key: 'difficulty', label: '難度' }
-            ].map(sort => (
+              { key: 'difficulty', label: '難度' },
+            ].map((sort) => (
               <MaterialButton
                 key={sort.key}
                 title={sort.label}
@@ -232,8 +290,12 @@ const EnhancedWordLearningScreen = () => {
         end={{ x: 1, y: 1 }}
       >
         <SafeAreaView>
-          <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
-          
+          <StatusBar
+            barStyle="light-content"
+            backgroundColor="transparent"
+            translucent
+          />
+
           <View style={styles.headerContent}>
             <View style={styles.headerTop}>
               <View>
@@ -242,17 +304,19 @@ const EnhancedWordLearningScreen = () => {
                   {filteredAndSortedWords.length} 個單詞
                 </Text>
               </View>
-              
+
               <View style={styles.headerActions}>
                 <MaterialIconButton
                   icon="search-outline"
                   variant="filled"
-                  onPress={() => {/* 搜尋功能 */}}
+                  onPress={() => {
+                    /* 搜尋功能 */
+                  }}
                   style={styles.headerButton}
                 />
                 <MaterialIconButton
-                  icon={showFilterPanel ? "filter" : "filter-outline"}
-                  variant={showFilterPanel ? "filled" : "standard"}
+                  icon={showFilterPanel ? 'filter' : 'filter-outline'}
+                  variant={showFilterPanel ? 'filled' : 'standard'}
                   onPress={toggleFilterPanel}
                   style={styles.headerButton}
                 />
@@ -281,12 +345,16 @@ const EnhancedWordLearningScreen = () => {
           learningStatus={word.learningStatus}
           isFavorite={favorites.includes(word.word)}
           onToggleFavorite={() => toggleFavorite(word.word)}
-          onPress={() => {/* 單詞詳情 */}}
-          onProgressChange={() => {/* 進度更新 */}}
+          onPress={() => {
+            /* 單詞詳情 */
+          }}
+          onProgressChange={() => {
+            /* 進度更新 */
+          }}
           style={[
             styles.wordCard,
             index === 0 && styles.firstCard,
-            index === filteredAndSortedWords.length - 1 && styles.lastCard
+            index === filteredAndSortedWords.length - 1 && styles.lastCard,
           ]}
         />
       ))}
@@ -317,7 +385,7 @@ const EnhancedWordLearningScreen = () => {
   return (
     <View style={styles.container}>
       {renderHeader()}
-      
+
       <Animated.ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -332,14 +400,14 @@ const EnhancedWordLearningScreen = () => {
         }
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
+          { useNativeDriver: false },
         )}
         scrollEventThrottle={16}
       >
         {renderStatisticsCards()}
         {renderFilterPanel()}
         {renderWordList()}
-        
+
         <View style={styles.bottomSpacing} />
       </Animated.ScrollView>
 
@@ -348,7 +416,9 @@ const EnhancedWordLearningScreen = () => {
         size="medium"
         variant="primary"
         style={styles.fab}
-        onPress={() => {/* 添加單詞 */}}
+        onPress={() => {
+          /* 添加單詞 */
+        }}
       />
     </View>
   );

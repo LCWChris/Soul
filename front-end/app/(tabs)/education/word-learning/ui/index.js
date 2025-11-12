@@ -42,5 +42,5 @@ export {
   BorderRadius, 
   Elevation,
   ComponentStyles,
-  ColorUtils 
+  ColorUtils, 
 } from './themes/MaterialYouTheme';

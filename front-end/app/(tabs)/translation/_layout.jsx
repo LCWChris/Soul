@@ -17,7 +17,7 @@ export default function Layout() {
       surface: '#141218',
       onSurface: '#E6E0E9',
       surfaceContainer: '#211F26',
-    }
+    },
   };
 
   const theme = THEME[colorScheme] || THEME.light;

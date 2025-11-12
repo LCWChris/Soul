@@ -12,7 +12,7 @@ module.exports = defineConfig([
       'web-build/*',
       'server/node_modules/*',
       'server/python_script/__pycache__/*',
-      'app/(tabs)/translation/backend/__pycache__/*'
+      'app/(tabs)/translation/backend/__pycache__/*',
     ],
   },
   {
@@ -34,7 +34,7 @@ module.exports = defineConfig([
       'no-console': 'warn',                    // 開發時允許 console.log
       'no-unused-vars': ['warn', { 
         argsIgnorePattern: '^_',
-        varsIgnorePattern: '^_' 
+        varsIgnorePattern: '^_', 
       }],
       'react/prop-types': 'off',              // 關閉 PropTypes (使用 TypeScript)
       
@@ -56,7 +56,7 @@ module.exports = defineConfig([
       // 檔案命名規範：含 JSX 的檔案必須使用 .jsx 副檔名
       'react/jsx-filename-extension': ['warn', { 
         extensions: ['.jsx', '.tsx'],
-        allow: 'as-needed' // 允許 .js/.ts 但不建議
+        allow: 'as-needed', // 允許 .js/.ts 但不建議
       }],
     },
   },

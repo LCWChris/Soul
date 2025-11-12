@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialYouTheme } from '../../themes/MaterialYouTheme';
@@ -12,7 +12,7 @@ const LearningProgressSelector = ({ onSelectProgress, selectedProgress, style })
       icon: 'ellipse-outline',
       color: MaterialYouTheme.neutral.neutral50,
       bgColor: MaterialYouTheme.neutral.neutral95,
-      description: '尚未開始學習的單字'
+      description: '尚未開始學習的單字',
     },
     {
       status: LEARNING_STATUS.LEARNING,
@@ -20,7 +20,7 @@ const LearningProgressSelector = ({ onSelectProgress, selectedProgress, style })
       icon: 'school-outline',
       color: MaterialYouTheme.tertiary.tertiary40,
       bgColor: MaterialYouTheme.tertiary.tertiary90,
-      description: '正在學習但還不熟悉'
+      description: '正在學習但還不熟悉',
     },
     {
       status: LEARNING_STATUS.REVIEWING,
@@ -28,16 +28,16 @@ const LearningProgressSelector = ({ onSelectProgress, selectedProgress, style })
       icon: 'refresh-outline',
       color: MaterialYouTheme.secondary.secondary40,
       bgColor: MaterialYouTheme.secondary.secondary90,
-      description: '基本掌握，需要複習鞏固'
+      description: '基本掌握，需要複習鞏固',
     },
     {
       status: LEARNING_STATUS.MASTERED,
       label: '已掌握',
       icon: 'checkmark-circle-outline',
-      color: "#2563EB", // 藍色主題
-      bgColor: "#EFF6FF", // 淡藍色背景
-      description: '完全掌握該單字'
-    }
+      color: '#2563EB', // 藍色主題
+      bgColor: '#EFF6FF', // 淡藍色背景
+      description: '完全掌握該單字',
+    },
   ];
 
   return (
@@ -52,7 +52,7 @@ const LearningProgressSelector = ({ onSelectProgress, selectedProgress, style })
             style={[
               styles.optionCard,
               { backgroundColor: option.bgColor },
-              selectedProgress === option.status && styles.selectedCard
+              selectedProgress === option.status && styles.selectedCard,
             ]}
             onPress={() => onSelectProgress(option.status)}
           >
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   selectedCard: {
-    borderColor: "#2563EB", // 藍色邊框
+    borderColor: '#2563EB', // 藍色邊框
     transform: [{ scale: 1.02 }],
   },
   optionHeader: {

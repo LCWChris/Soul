@@ -13,7 +13,7 @@ export const LEARNING_STATUS = {
   NOT_STARTED: 'not_started',
   LEARNING: 'learning',
   REVIEWING: 'reviewing',
-  MASTERED: 'mastered'
+  MASTERED: 'mastered',
 };
 
 /**
@@ -62,7 +62,7 @@ export const updateWordProgress = async (wordId, status, userId = 'default') => 
       status: LEARNING_STATUS.NOT_STARTED, 
       reviewCount: 0,
       firstStudied: null,
-      lastStudied: null
+      lastStudied: null,
     };
 
     // 更新學習數據
@@ -107,7 +107,7 @@ export const getWordProgress = async (wordId, userId = 'default') => {
       status: LEARNING_STATUS.NOT_STARTED, 
       reviewCount: 0,
       firstStudied: null,
-      lastStudied: null
+      lastStudied: null,
     };
   } catch (error) {
     console.error('獲取單詞學習狀態失敗:', error);
@@ -115,7 +115,7 @@ export const getWordProgress = async (wordId, userId = 'default') => {
       status: LEARNING_STATUS.NOT_STARTED, 
       reviewCount: 0,
       firstStudied: null,
-      lastStudied: null
+      lastStudied: null,
     };
   }
 };
@@ -133,7 +133,7 @@ export const getLearningStats = async (userId = 'default') => {
       learning: 0,
       reviewing: 0,
       mastered: 0,
-      total: 0
+      total: 0,
     };
 
     Object.values(progressData).forEach(wordData => {
@@ -162,7 +162,7 @@ export const getLearningStats = async (userId = 'default') => {
       learning: 0,
       reviewing: 0,
       mastered: 0,
-      total: 0
+      total: 0,
     };
   }
 };

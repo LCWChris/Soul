@@ -1,26 +1,34 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import { toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  Modal,
-  Dimensions,
-  ScrollView,
-  SafeAreaView,
-  Platform,
-  Alert,
-} from 'react-native';
+  getWordProgress,
+  LEARNING_STATUS,
+  updateWordProgress,
+} from '@/utils/learning-progress';
+import { useUser } from '@clerk/clerk-expo';
 import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
-import { useUser } from '@clerk/clerk-expo';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
-import { toggleFavorite as toggleFavoriteUtil } from '@/utils/favorites';
-import LearningProgressSelector from '../progress/LearningProgressSelector';
-import { updateWordProgress, getWordProgress, LEARNING_STATUS } from '@/utils/learning-progress';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Dimensions,
+  Image,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import VocabularyService from '../../../api/services/VocabularyService';
+import {
+  BorderRadius,
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from '../../themes/MaterialYouTheme';
+import LearningProgressSelector from '../progress/LearningProgressSelector';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -39,12 +47,22 @@ const getTopSafeAreaPadding = () => {
   return 20;
 };
 
-const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, onFavoriteChange, onProgressChange }) => {
+const WordDetailModal = ({
+  visible,
+  word,
+  onClose,
+  onSwipeLeft,
+  onSwipeRight,
+  onFavoriteChange,
+  onProgressChange,
+}) => {
   const { user } = useUser();
   const [imageIndex, setImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(word?.isFavorite || false);
-  const [learningStatus, setLearningStatus] = useState(LEARNING_STATUS.NOT_STARTED);
-  
+  const [learningStatus, setLearningStatus] = useState(
+    LEARNING_STATUS.NOT_STARTED,
+  );
+
   // 影片播放狀態
   const [showVideo, setShowVideo] = useState(true); // 預設顯示影片
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -87,7 +105,11 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
   if (!word) return null;
 
   // 多圖支援
-  const imageUrls = Array.isArray(word.imageUrls) ? word.imageUrls : (word.image_url ? [word.image_url] : []);
+  const imageUrls = Array.isArray(word.imageUrls)
+    ? word.imageUrls
+    : word.image_url
+    ? [word.image_url]
+    : [];
 
   const handleSwipeLeft = () => {
     if (imageIndex < imageUrls.length - 1) {
@@ -104,52 +126,59 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
   // 學習進度更新
   const handleStatusChange = async (newStatus) => {
     if (!word) return;
-    
+
     try {
       const wordId = word.id || word._id;
       const oldStatus = learningStatus;
-      
+
       // 更新本地狀態
       setLearningStatus(newStatus);
-      
+
       // 更新後端學習進度
       await updateWordProgress(wordId, newStatus);
-      
+
       // 記錄學習活動到後端
       if (user?.id && newStatus !== LEARNING_STATUS.NOT_STARTED) {
         try {
           let action = 'review';
-          
+
           // 根據狀態確定操作類型
-          if (oldStatus === LEARNING_STATUS.NOT_STARTED && newStatus === LEARNING_STATUS.LEARNING) {
+          if (
+            oldStatus === LEARNING_STATUS.NOT_STARTED &&
+            newStatus === LEARNING_STATUS.LEARNING
+          ) {
             action = 'learn';
           } else if (newStatus === LEARNING_STATUS.MASTERED) {
             action = 'master';
           } else {
             action = 'review';
           }
-          
+
           await VocabularyService.recordLearningActivity(
-            user.id, 
-            wordId, 
-            action, 
+            user.id,
+            wordId,
+            action,
             {
               timeSpent: 8, // 詳情頁學習約8秒
-              isCorrect: true
-            }
+              isCorrect: true,
+            },
           );
-          console.log('從詳情頁學習活動已記錄:', { userId: user.id, wordId, action });
+          console.log('從詳情頁學習活動已記錄:', {
+            userId: user.id,
+            wordId,
+            action,
+          });
         } catch (recordError) {
           console.warn('記錄學習活動失敗:', recordError);
           // 即使記錄失敗也不影響本地進度更新
         }
       }
-      
+
       // 通知主組件更新
       if (onProgressChange) {
         onProgressChange(wordId, newStatus);
       }
-      
+
       console.log('從 詳情頁更新學習狀態', wordId, oldStatus, '->', newStatus);
     } catch (error) {
       console.error('更新學習進度失敗:', error);
@@ -160,15 +189,15 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
   const handleFavoriteToggle = async () => {
     const wordId = word.id || word._id;
     console.log('從 詳情頁嘗試切換收藏:', wordId, word);
-    
+
     const newFavoriteStatus = !isFavorite;
     setIsFavorite(newFavoriteStatus);
-    
+
     // 通知主組件收藏狀態變化
     if (onFavoriteChange) {
       onFavoriteChange(wordId, newFavoriteStatus);
     }
-    
+
     // 實際更新後端資料
     try {
       const result = await toggleFavoriteUtil(wordId);
@@ -217,147 +246,182 @@ const WordDetailModal = ({ visible, word, onClose, onSwipeLeft, onSwipeRight, on
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
+      <LinearGradient colors={['#F1F5FF', '#E8EEFF']} style={styles.container}>
         <SafeAreaView style={styles.safeArea}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={MaterialYouTheme.neutral.neutral30} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>單字詳情</Text>
-          <TouchableOpacity style={styles.favoriteButton} onPress={handleFavoriteToggle}>
-            <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={24} color={isFavorite ? "#2563EB" : MaterialYouTheme.neutral.neutral30} />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-          {/* Word Section */}
-          <View style={styles.wordSection}>
-            <Text style={styles.word}>{word.word || word.title}</Text>
-            {word.pronunciation && (
-              <Text style={styles.pronunciation}>/{word.pronunciation}/</Text>
-            )}
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons
+                name="close"
+                size={24}
+                color={MaterialYouTheme.neutral.neutral30}
+              />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>單字詳情</Text>
+            <TouchableOpacity
+              style={styles.favoriteButton}
+              onPress={handleFavoriteToggle}
+            >
+              <Ionicons
+                name={isFavorite ? 'heart' : 'heart-outline'}
+                size={24}
+                color={
+                  isFavorite ? '#2563EB' : MaterialYouTheme.neutral.neutral30
+                }
+              />
+            </TouchableOpacity>
           </View>
 
-          {/* 媒體顯示區域（圖片或影片）左右滑動切換詞彙 */}
-          {(word.image_url || word.imageUrl || word.video_url) && (
-            <View style={styles.imageSection}>
-              <View style={styles.imageContainer}>
-                {/* 左側滑動按鈕（切換到上一個單字） */}
-                <TouchableOpacity style={styles.imageSwipeArea} onPress={onSwipeRight}>
-                  <Ionicons name="chevron-back" size={32} color="#2563EB" />
-                </TouchableOpacity>
-                
-                {/* 媒體顯示容器 */}
-                <View style={styles.mediaContainer}>
-                  {/* 根據 showVideo 和媒體可用性決定顯示內容 */}
-                  {(showVideo && hasVideo) ? (
-                    <View style={styles.videoContainer}>
-                      <Video
-                        ref={videoRef}
-                        source={{ uri: word.video_url }}
-                        style={styles.detailVideo}
-                        resizeMode="contain"
-                        isLooping={true}
-                        shouldPlay={false}
-                        onPlaybackStatusUpdate={handleVideoStatusUpdate}
-                      />
-                      {/* 影片控制覆蓋層 - 只在暫停時顯示 */}
-                      {!isVideoPlaying && (
-                        <View style={styles.videoOverlay}>
-                          <TouchableOpacity
-                            style={styles.playButton}
-                            onPress={handleVideoPlay}
-                          >
-                            <Ionicons
-                              name="play"
-                              size={32}
-                              color="white"
-                            />
-                          </TouchableOpacity>
-                        </View>
-                      )}
-                      {/* 播放時可觸摸暫停 - 點擊影片任何位置暫停 */}
-                      {isVideoPlaying && (
-                        <TouchableOpacity
-                          style={styles.videoTouchArea}
-                          onPress={handleVideoPause}
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Word Section */}
+            <View style={styles.wordSection}>
+              <Text style={styles.word}>{word.word || word.title}</Text>
+              {word.pronunciation && (
+                <Text style={styles.pronunciation}>/{word.pronunciation}/</Text>
+              )}
+            </View>
+
+            {/* 媒體顯示區域（圖片或影片）左右滑動切換詞彙 */}
+            {(word.image_url || word.imageUrl || word.video_url) && (
+              <View style={styles.imageSection}>
+                <View style={styles.imageContainer}>
+                  {/* 左側滑動按鈕（切換到上一個單字） */}
+                  <TouchableOpacity
+                    style={styles.imageSwipeArea}
+                    onPress={onSwipeRight}
+                  >
+                    <Ionicons name="chevron-back" size={32} color="#2563EB" />
+                  </TouchableOpacity>
+
+                  {/* 媒體顯示容器 */}
+                  <View style={styles.mediaContainer}>
+                    {/* 根據 showVideo 和媒體可用性決定顯示內容 */}
+                    {showVideo && hasVideo ? (
+                      <View style={styles.videoContainer}>
+                        <Video
+                          ref={videoRef}
+                          source={{ uri: word.video_url }}
+                          style={styles.detailVideo}
+                          resizeMode="contain"
+                          isLooping={true}
+                          shouldPlay={false}
+                          onPlaybackStatusUpdate={handleVideoStatusUpdate}
                         />
-                      )}
-                    </View>
-                  ) : (
-                    // 顯示圖片
-                    hasImage && (
-                      <Image
-                        source={{ uri: word.image_url || word.imageUrl }}
-                        style={styles.detailImage}
-                        resizeMode="contain"
-                      />
-                    )
-                  )}
-                  
-                  {/* 媒體切換按鈕 - 只在同時有影片和圖片時顯示 */}
-                  {hasBothMedia && (
-                    <TouchableOpacity 
-                      style={styles.mediaToggleButton}
-                      onPress={toggleMediaType}
-                    >
-                      <Ionicons 
-                        name={showVideo ? "image" : "play-circle"} 
-                        size={24} 
-                        color="white" 
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
-                
-                {/* 右側滑動按鈕（切換到下一個單字） */}
-                <TouchableOpacity style={styles.imageSwipeArea} onPress={onSwipeLeft}>
-                  <Ionicons name="chevron-forward" size={32} color="#2563EB" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
+                        {/* 影片控制覆蓋層 - 只在暫停時顯示 */}
+                        {!isVideoPlaying && (
+                          <View style={styles.videoOverlay}>
+                            <TouchableOpacity
+                              style={styles.playButton}
+                              onPress={handleVideoPlay}
+                            >
+                              <Ionicons name="play" size={32} color="white" />
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                        {/* 播放時可觸摸暫停 - 點擊影片任何位置暫停 */}
+                        {isVideoPlaying && (
+                          <TouchableOpacity
+                            style={styles.videoTouchArea}
+                            onPress={handleVideoPause}
+                          />
+                        )}
+                      </View>
+                    ) : (
+                      // 顯示圖片
+                      hasImage && (
+                        <Image
+                          source={{ uri: word.image_url || word.imageUrl }}
+                          style={styles.detailImage}
+                          resizeMode="contain"
+                        />
+                      )
+                    )}
 
-          {/* Definition Section */}
-          <View style={styles.definitionSection}>
-            <Text style={styles.sectionTitle}>定義</Text>
-            <Text style={styles.definition}>{word.definition || word.content}</Text>
-          </View>
+                    {/* 媒體切換按鈕 - 只在同時有影片和圖片時顯示 */}
+                    {hasBothMedia && (
+                      <TouchableOpacity
+                        style={styles.mediaToggleButton}
+                        onPress={toggleMediaType}
+                      >
+                        <Ionicons
+                          name={showVideo ? 'image' : 'play-circle'}
+                          size={24}
+                          color="white"
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </View>
 
-          {/* Example Section */}
-          {word.example && (
-            <View style={styles.exampleSection}>
-              <Text style={styles.sectionTitle}>例句</Text>
-              <Text style={styles.example}>{word.example}</Text>
-            </View>
-          )}
-
-          {/* Metadata Section */}
-          <View style={styles.metadataSection}>
-            <View style={styles.metadataRow}>
-              <View style={styles.metadataItem}>
-                <Text style={styles.metadataLabel}>分類</Text>
-                <View style={styles.categoryTag}>
-                  <Text style={styles.categoryText}>{word.category}</Text>
-                </View>
-              </View>
-              <View style={styles.metadataItem}>
-                <Text style={styles.metadataLabel}>級別</Text>
-                <View style={[styles.levelTag, { backgroundColor: getLevelColor(word.level || word.learning_level) }]}>
-                  <Text style={styles.levelText}>{getLevelText(word.level || word.learning_level)}</Text>
+                  {/* 右側滑動按鈕（切換到下一個單字） */}
+                  <TouchableOpacity
+                    style={styles.imageSwipeArea}
+                    onPress={onSwipeLeft}
+                  >
+                    <Ionicons
+                      name="chevron-forward"
+                      size={32}
+                      color="#2563EB"
+                    />
+                  </TouchableOpacity>
                 </View>
               </View>
-            </View>
-          </View>
+            )}
 
-          {/* Action Buttons - replaced with Learning Status Selector */}
-          <LearningProgressSelector
-            selectedProgress={learningStatus}
-            onSelectProgress={handleStatusChange}
-            style={styles.statusSelector}
-          />
-        </ScrollView>
+            {/* Definition Section */}
+            <View style={styles.definitionSection}>
+              <Text style={styles.sectionTitle}>定義</Text>
+              <Text style={styles.definition}>
+                {word.definition || word.content}
+              </Text>
+            </View>
+
+            {/* Example Section */}
+            {word.example && (
+              <View style={styles.exampleSection}>
+                <Text style={styles.sectionTitle}>例句</Text>
+                <Text style={styles.example}>{word.example}</Text>
+              </View>
+            )}
+
+            {/* Metadata Section */}
+            <View style={styles.metadataSection}>
+              <View style={styles.metadataRow}>
+                <View style={styles.metadataItem}>
+                  <Text style={styles.metadataLabel}>分類</Text>
+                  <View style={styles.categoryTag}>
+                    <Text style={styles.categoryText}>{word.category}</Text>
+                  </View>
+                </View>
+                <View style={styles.metadataItem}>
+                  <Text style={styles.metadataLabel}>級別</Text>
+                  <View
+                    style={[
+                      styles.levelTag,
+                      {
+                        backgroundColor: getLevelColor(
+                          word.level || word.learning_level,
+                        ),
+                      },
+                    ]}
+                  >
+                    <Text style={styles.levelText}>
+                      {getLevelText(word.level || word.learning_level)}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Action Buttons - replaced with Learning Status Selector */}
+            <LearningProgressSelector
+              selectedProgress={learningStatus}
+              onSelectProgress={handleStatusChange}
+              style={styles.statusSelector}
+            />
+          </ScrollView>
         </SafeAreaView>
       </LinearGradient>
     </Modal>
@@ -445,7 +509,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: screenWidth - (Spacing.lg * 2),
+    width: screenWidth - Spacing.lg * 2,
     height: 250, // 增加高度以更好地顯示影片
     marginVertical: Spacing.md,
   },
@@ -528,7 +592,7 @@ const styles = StyleSheet.create({
     backgroundColor: MaterialYouTheme.neutral.neutral80,
   },
   indicatorActive: {
-    backgroundColor: "#2563EB",
+    backgroundColor: '#2563EB',
   },
   definitionSection: {
     paddingHorizontal: Spacing.lg,

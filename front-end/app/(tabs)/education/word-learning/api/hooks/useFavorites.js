@@ -94,6 +94,6 @@ export const useFavorites = () => {
     clearFavorites,
     addMultipleFavorites,
     favoritesCount: favorites.length,
-    refresh: loadFavorites
+    refresh: loadFavorites,
   };
 };

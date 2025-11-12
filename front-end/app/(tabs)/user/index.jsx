@@ -1,9 +1,9 @@
-import { API_CONFIG } from "@/constants/api";
-import { useAuth, useUser } from "@clerk/clerk-expo";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Alert, ScrollView, StyleSheet } from "react-native";
+import { API_CONFIG } from '@/constants/api';
+import { useAuth, useUser } from '@clerk/clerk-expo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
 import {
   Button,
   Card,
@@ -11,8 +11,8 @@ import {
   Paragraph,
   Snackbar,
   Text,
-  Title
-} from "react-native-paper";
+  Title,
+} from 'react-native-paper';
 
 export default function UserScreen() {
   const { user } = useUser();
@@ -25,53 +25,53 @@ export default function UserScreen() {
 
   // === Snackbar 狀態 ===
   const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   // ✅ 共用 API fetch 工具
   async function apiFetch(url, options = {}) {
-    const defaultHeaders = { "ngrok-skip-browser-warning": "true" };
+    const defaultHeaders = { 'ngrok-skip-browser-warning': 'true' };
     const res = await fetch(url, {
       ...options,
       headers: { ...defaultHeaders, ...(options.headers || {}) },
     });
-    const contentType = res.headers.get("content-type") || "";
+    const contentType = res.headers.get('content-type') || '';
     let data = null;
-    if (contentType.includes("application/json")) {
+    if (contentType.includes('application/json')) {
       try {
         data = await res.json();
       } catch (err) {
-        console.error("❌ JSON 解析失敗:", err);
+        console.error('❌ JSON 解析失敗:', err);
       }
     } else {
       const text = await res.text();
-      console.warn("⚠️ 回應不是 JSON，取回原始文字:", text.slice(0, 300));
+      console.warn('⚠️ 回應不是 JSON，取回原始文字:', text.slice(0, 300));
     }
     return { res, data };
   }
 
   // 問卷題目 key -> 中文標題
   const labels = {
-    purpose: "使用本 App 的主要目的",
-    frequency: "使用翻譯功能的頻率",
-    experience: "是否有學習手語的經驗",
-    studyTime: "每日希望學習時間",
-    interestCategory: "最感興趣的主題",
-    learningLevel: "目前的手語程度",
-    useContext: "最常使用手語的情境",
+    purpose: '使用本 App 的主要目的',
+    frequency: '使用翻譯功能的頻率',
+    experience: '是否有學習手語的經驗',
+    studyTime: '每日希望學習時間',
+    interestCategory: '最感興趣的主題',
+    learningLevel: '目前的手語程度',
+    useContext: '最常使用手語的情境',
   };
 
   // 額外對應：英文值 -> 中文顯示
   const valueLabels = {
     learningLevel: {
-      beginner: "初級",
-      intermediate: "中級",
-      advanced: "高級",
+      beginner: '初級',
+      intermediate: '中級',
+      advanced: '高級',
     },
     useContext: {
-      daily: "日常",
-      school: "學校",
-      workplace: "職場",
-      home_school: "學校", // 修正異常值
+      daily: '日常',
+      school: '學校',
+      workplace: '職場',
+      home_school: '學校', // 修正異常值
     },
   };
 
@@ -79,12 +79,12 @@ export default function UserScreen() {
   const handleSignOut = async () => {
     try {
       await signOut();
-      setSnackbarMessage("✅ 已登出");
+      setSnackbarMessage('✅ 已登出');
       setSnackbarVisible(true);
-      router.replace("/(auth)/sign-in");
+      router.replace('/(auth)/sign-in');
     } catch (e) {
-      console.error("登出失敗:", e);
-      setSnackbarMessage("❌ 登出失敗，請稍後再試");
+      console.error('登出失敗:', e);
+      setSnackbarMessage('❌ 登出失敗，請稍後再試');
       setSnackbarVisible(true);
     }
   };
@@ -95,37 +95,37 @@ export default function UserScreen() {
       // 1) 刪除 MongoDB 偏好
       await apiFetch(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`,
-        { method: "DELETE" }
+        { method: 'DELETE' },
       );
       // 2) 刪除 Clerk 帳號
       await user.delete();
-      setSnackbarMessage("✅ 帳號與偏好資料已刪除");
+      setSnackbarMessage('✅ 帳號與偏好資料已刪除');
       setSnackbarVisible(true);
-      router.replace("/(auth)/sign-up");
+      router.replace('/(auth)/sign-up');
     } catch (e) {
-      console.error("註銷失敗:", e);
-      setSnackbarMessage("❌ 註銷失敗，請稍後再試");
+      console.error('註銷失敗:', e);
+      setSnackbarMessage('❌ 註銷失敗，請稍後再試');
       setSnackbarVisible(true);
     }
   };
 
   const showDeleteConfirmation = () => {
     Alert.alert(
-      "⚠️ 確認註銷帳號", // 標題
-      "此動作無法恢復，帳號及相關資料將永久刪除。確定要繼續嗎？", // 訊息
+      '⚠️ 確認註銷帳號', // 標題
+      '此動作無法恢復，帳號及相關資料將永久刪除。確定要繼續嗎？', // 訊息
       [ // 按鈕陣列
         {
-          text: "取消",
-          onPress: () => console.log("取消註銷"),
-          style: "cancel"
+          text: '取消',
+          onPress: () => console.log('取消註銷'),
+          style: 'cancel',
         },
         {
-          text: "確定刪除",
+          text: '確定刪除',
           onPress: handleConfirmDelete, // 按下後執行刪除邏輯
-          style: "destructive"
-        }
+          style: 'destructive',
+        },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 
@@ -135,7 +135,7 @@ export default function UserScreen() {
     setLoading(true);
     const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`;
     try {
-      const { res, data } = await apiFetch(url, { method: "GET" });
+      const { res, data } = await apiFetch(url, { method: 'GET' });
       if (!res.ok) {
         setPreferences(null);
         setSnackbarMessage(`❌ 取得問卷失敗（${res.status}）`);
@@ -144,16 +144,16 @@ export default function UserScreen() {
       }
       if (data?.success && data.data) {
         setPreferences(data.data.answers);
-        setSnackbarMessage("✅ 已載入問卷答案");
+        setSnackbarMessage('✅ 已載入問卷答案');
         setSnackbarVisible(true);
       } else {
         setPreferences(null);
-        setSnackbarMessage("ℹ️ 尚未填寫問卷");
+        setSnackbarMessage('ℹ️ 尚未填寫問卷');
         setSnackbarVisible(true);
       }
     } catch (err) {
-      console.error("❌ 取得問卷失敗（網路/解析）:", err, { url });
-      setSnackbarMessage("❌ 取得問卷失敗，請稍後再試");
+      console.error('❌ 取得問卷失敗（網路/解析）:', err, { url });
+      setSnackbarMessage('❌ 取得問卷失敗，請稍後再試');
       setSnackbarVisible(true);
     } finally {
       setLoading(false);
@@ -166,21 +166,21 @@ export default function UserScreen() {
     try {
       const { data } = await apiFetch(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PREFERENCES}/${user.id}`,
-        { method: "DELETE" }
+        { method: 'DELETE' },
       );
       if (data.success) {
         setPreferences(null);
         await AsyncStorage.removeItem(`questionnaireFilled_${user.id}`);
-        setSnackbarMessage("✅ 問卷資料已清除");
+        setSnackbarMessage('✅ 問卷資料已清除');
         setSnackbarVisible(true);
-        router.replace("/onboarding/preference");
+        router.replace('/onboarding/preference');
       } else {
-        setSnackbarMessage("❌ 清除問卷失敗");
+        setSnackbarMessage('❌ 清除問卷失敗');
         setSnackbarVisible(true);
       }
     } catch (err) {
-      console.error("❌ 刪除問卷失敗:", err);
-      setSnackbarMessage("❌ 刪除問卷失敗，請稍後再試");
+      console.error('❌ 刪除問卷失敗:', err);
+      setSnackbarMessage('❌ 刪除問卷失敗，請稍後再試');
       setSnackbarVisible(true);
     }
   };
@@ -200,7 +200,7 @@ export default function UserScreen() {
           <Card.Content>
             <Title>👤 帳號設定</Title>
             <Paragraph>帳號：{user?.primaryEmailAddress?.emailAddress}</Paragraph>
-            <Paragraph>使用者名稱：{user?.username || "未設定"}</Paragraph>
+            <Paragraph>使用者名稱：{user?.username || '未設定'}</Paragraph>
             <Divider style={{ marginVertical: 8 }} />
             <Button
               mode="contained-tonal"
@@ -218,7 +218,7 @@ export default function UserScreen() {
             <Button
               mode="contained-tonal"
               style={{ marginTop: 8 }}
-              onPress={() => router.push("/onboarding/preference")}
+              onPress={() => router.push('/onboarding/preference')}
             >
               修改偏好問卷
             </Button>
@@ -241,7 +241,7 @@ export default function UserScreen() {
             </Button>
 
             {preferences && (
-              <Card style={{ marginTop: 12, backgroundColor: "#f3f4f6" }}>
+              <Card style={{ marginTop: 12, backgroundColor: '#f3f4f6' }}>
                 <Card.Content>
                   <Title>📋 問卷答案</Title>
                   {Object.entries(preferences).map(([key, value], index) => {
@@ -288,7 +288,7 @@ export default function UserScreen() {
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
         duration={2000}
-        style={{ backgroundColor: "#333" }}
+        style={{ backgroundColor: '#333' }}
       >
         {snackbarMessage}
       </Snackbar>

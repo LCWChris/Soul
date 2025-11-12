@@ -21,7 +21,7 @@ export const useLearningTracking = () => {
         user.id,
         wordId,
         action,
-        options
+        options,
       );
       
       console.log('學習活動記錄成功:', result);
