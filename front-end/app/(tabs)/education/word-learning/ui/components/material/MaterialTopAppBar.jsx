@@ -15,22 +15,18 @@ import {
   Typography,
 } from "../../themes/MaterialYouTheme";
 
-// 計算 iPhone 型號的安全頂部間距
 const getTopSafeAreaPadding = (isMainScreen = false) => {
   if (Platform.OS === "ios") {
     const { height, width } = Dimensions.get("window");
-    // 主屏幕（分類選擇）使用更小的間距
     if (isMainScreen) {
-      if (height >= 926 || width >= 926) return 5; // 動態島機型：從20減少到5
-      if (height >= 812 || width >= 812) return 3; // 劉海機型：從15減少到3
-      return 2; // 其他 iPhone：從10減少到2
+      if (height >= 926 || width >= 926) return 5;
+      if (height >= 812 || width >= 812) return 3;
+      return 2;
     }
-    // 其他頁面使用正常間距
     if (height >= 926 || width >= 926) return 35;
     if (height >= 812 || width >= 812) return 30;
     return 25;
   }
-  // Android 裝置
   return isMainScreen ? 5 : 20;
 };
 
@@ -41,34 +37,18 @@ const MaterialTopAppBar = ({
   actions = [],
   variant = "small",
   onBackPress,
-  isMainScreen = false, // 新參數：是否為主屏幕（分類選擇階段）
+  isMainScreen = false,
 }) => {
   const router = useRouter();
-
   const handleBackPress = () => {
-    if (onBackPress) {
-      onBackPress();
-    } else {
-      router.back();
-    }
+    if (onBackPress) onBackPress();
+    else router.back();
   };
-
   const getHeightByVariant = () => {
-    const baseHeight = (() => {
-      switch (variant) {
-        case "medium":
-          return 112;
-        case "large":
-          return 152;
-        default: // small
-          return 64;
-      }
-    })();
-
-    // 加上安全間距（根據是否為主屏幕調整）
+    const baseHeight =
+      variant === "medium" ? 112 : variant === "large" ? 152 : 64;
     return baseHeight + getTopSafeAreaPadding(isMainScreen);
   };
-
   return (
     <>
       <StatusBar backgroundColor="#F1F5FF" barStyle="dark-content" />
@@ -95,21 +75,20 @@ const MaterialTopAppBar = ({
               />
             </TouchableOpacity>
           )}
-
           <View style={styles.titleContainer}>
             <Text
               style={[
                 variant === "large" ? styles.titleLarge : styles.titleSmall,
                 styles.title,
               ]}
+              accessibilityRole="header"
             >
-              {title}
+              {String(title || "")}
             </Text>
             {subtitle && variant !== "small" && (
-              <Text style={styles.subtitle}>{subtitle}</Text>
+              <Text style={styles.subtitle}>{String(subtitle)}</Text>
             )}
           </View>
-
           <View style={styles.actions}>
             {actions.map((action, index) => (
               <TouchableOpacity
@@ -117,6 +96,12 @@ const MaterialTopAppBar = ({
                 style={styles.actionButton}
                 onPress={action.onPress}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  typeof action.icon === "string"
+                    ? `action-${action.icon}`
+                    : `action-${index}`
+                }
               >
                 {typeof action.icon === "string" && action.icon.length <= 2 ? (
                   <Text style={styles.actionIcon}>{action.icon}</Text>
@@ -131,10 +116,9 @@ const MaterialTopAppBar = ({
             ))}
           </View>
         </View>
-
         {subtitle && variant === "small" && (
           <View style={styles.subtitleRow}>
-            <Text style={styles.subtitle}>{subtitle}</Text>
+            <Text style={styles.subtitle}>{String(subtitle)}</Text>
           </View>
         )}
       </View>

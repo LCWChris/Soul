@@ -1,7 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from "react-native";
 // 避免循環匯出造成初始載入 undefined
-import { MaterialYouTheme, Typography, Spacing } from './ui/themes/MaterialYouTheme';
+import {
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from "./ui/themes/MaterialYouTheme";
 
 const TestMaterialYou = () => {
   return (
@@ -17,8 +20,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: MaterialYouTheme.surface.surface,
     padding: Spacing.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     ...Typography.headlineMedium,
@@ -28,7 +31,7 @@ const styles = StyleSheet.create({
   subtitle: {
     ...Typography.bodyLarge,
     color: MaterialYouTheme.onSurfaceVariant.onSurfaceVariant,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
 
