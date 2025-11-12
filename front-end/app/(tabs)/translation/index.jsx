@@ -1,10 +1,11 @@
-import ArrowBack from '@/components/ArrowBack';
-import { Ionicons } from '@expo/vector-icons';
-import { Audio, Video } from 'expo-av';
-import { CameraView, useCameraPermissions } from 'expo-camera';
-import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef, useState } from 'react';
+import ArrowBack from "@/components/ArrowBack";
+import { getTranslationApiUrl } from "@/utils/settings";
+import { Ionicons } from "@expo/vector-icons";
+import { Audio, Video } from "expo-av";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -14,7 +15,7 @@ import {
   Text,
   TouchableOpacity,
   View,
-} from 'react-native';
+} from "react-native";
 import Animated, {
   FadeInDown,
   FadeInUp,
@@ -24,15 +25,15 @@ import Animated, {
   withRepeat,
   withSpring,
   withTiming,
-} from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 function TranslateScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [audioPermission, setAudioPermission] = useState(null);
-  const [facing, setFacing] = useState('back');
+  const [facing, setFacing] = useState("back");
   const [videoUri, setVideoUri] = useState(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -60,10 +61,10 @@ function TranslateScreen() {
   // 請求麥克風權限
   useEffect(() => {
     (async () => {
-      console.log('📱 請求麥克風權限...');
+      console.log("📱 請求麥克風權限...");
       const { status } = await Audio.requestPermissionsAsync();
-      console.log('🎤 麥克風權限狀態:', status);
-      setAudioPermission(status === 'granted');
+      console.log("🎤 麥克風權限狀態:", status);
+      setAudioPermission(status === "granted");
     })();
   }, []);
 
@@ -73,7 +74,7 @@ function TranslateScreen() {
     const forceReadyTimer = setTimeout(() => {
       if (!isCameraReady) {
         console.log(
-          '🚨 5秒強制準備: onCameraReady 沒有觸發，強制設定相機為準備好',
+          "🚨 5秒強制準備: onCameraReady 沒有觸發，強制設定相機為準備好"
         );
         setIsCameraReady(true);
         setCameraInitializing(false);
@@ -103,7 +104,7 @@ function TranslateScreen() {
 
   // 相機準備回調 - 診斷增強版
   const onCameraReady = () => {
-    console.log('📷 相機準備完成');
+    console.log("📷 相機準備完成");
 
     // 清除所有計時器
     if (readyTimeoutRef.current) {
@@ -123,7 +124,7 @@ function TranslateScreen() {
 
   // 相機狀態重設 - 增強版
   const resetCameraState = () => {
-    console.log('🔄 重設相機狀態');
+    console.log("🔄 重設相機狀態");
     setIsCameraReady(false);
     setCameraInitializing(true);
     setForceReady(false);
@@ -142,13 +143,13 @@ function TranslateScreen() {
   // 增強的權限請求
   const requestCameraPermission = async () => {
     try {
-      console.log('📋 請求相機權限...');
+      console.log("📋 請求相機權限...");
       const result = await requestPermission();
-      console.log('權限請求結果:', result);
+      console.log("權限請求結果:", result);
       return result;
     } catch (error) {
-      console.error('權限請求錯誤:', error);
-      Alert.alert('錯誤', '無法請求相機權限');
+      console.error("權限請求錯誤:", error);
+      Alert.alert("錯誤", "無法請求相機權限");
       return null;
     }
   };
@@ -170,10 +171,10 @@ function TranslateScreen() {
   if (!permission || audioPermission === null) {
     // 新增診斷資訊
     console.log(
-      '⚠️ 權限狀態未知 - 相機:',
+      "⚠️ 權限狀態未知 - 相機:",
       !!permission,
-      '音頻:',
-      audioPermission,
+      "音頻:",
+      audioPermission
     );
     return (
       <SafeAreaView style={styles.permissionContainer}>
@@ -185,8 +186,8 @@ function TranslateScreen() {
           </Text>
           <View style={styles.loadingIndicator}>
             <View style={styles.loadingDot} />
-            <View style={[styles.loadingDot, { animationDelay: '0.1s' }]} />
-            <View style={[styles.loadingDot, { animationDelay: '0.2s' }]} />
+            <View style={[styles.loadingDot, { animationDelay: "0.1s" }]} />
+            <View style={[styles.loadingDot, { animationDelay: "0.2s" }]} />
           </View>
         </View>
       </SafeAreaView>
@@ -195,12 +196,12 @@ function TranslateScreen() {
 
   if (!permission.granted || !audioPermission) {
     console.log(
-      '❌ 權限未授權 - 相機:',
+      "❌ 權限未授權 - 相機:",
       permission.granted,
-      '音頻:',
-      audioPermission,
+      "音頻:",
+      audioPermission
     );
-    console.log('canAskAgain:', permission.canAskAgain);
+    console.log("canAskAgain:", permission.canAskAgain);
 
     return (
       <SafeAreaView style={styles.permissionContainer}>
@@ -216,10 +217,10 @@ function TranslateScreen() {
           {permission.canAskAgain ? (
             <TouchableOpacity
               onPress={async () => {
-                console.log('📋 請求所有權限...');
+                console.log("📋 請求所有權限...");
                 await requestPermission();
                 const { status } = await Audio.requestPermissionsAsync();
-                setAudioPermission(status === 'granted');
+                setAudioPermission(status === "granted");
               }}
               style={styles.permissionButton}
               activeOpacity={0.8}
@@ -243,24 +244,24 @@ function TranslateScreen() {
 
   const toggleCameraFacing = () => {
     resetCameraState(); // 使用新的重設函數
-    setFacing((prev) => (prev === 'back' ? 'front' : 'back'));
+    setFacing((prev) => (prev === "back" ? "front" : "back"));
   };
 
   const uploadVideoToCloudinary = async (videoUri) => {
     const data = new FormData();
-    data.append('file', {
+    data.append("file", {
       uri: videoUri,
-      type: 'video/mp4',
-      name: 'upload.mp4',
+      type: "video/mp4",
+      name: "upload.mp4",
     });
-    data.append('upload_preset', 'upload');
+    data.append("upload_preset", "upload");
 
     const res = await fetch(
-      'https://api.cloudinary.com/v1_1/dbmrnpwxd/video/upload',
+      "https://api.cloudinary.com/v1_1/dbmrnpwxd/video/upload",
       {
-        method: 'POST',
+        method: "POST",
         body: data,
-      },
+      }
     );
 
     if (!res.ok) throw new Error(await res.text());
@@ -270,10 +271,10 @@ function TranslateScreen() {
 
   // 無條件錄影 - 完全繞過所有檢查
   const unconditionalRecord = async () => {
-    console.log('🚨 無條件錄影模式 - 繞過所有檢查和等待');
+    console.log("🚨 無條件錄影模式 - 繞過所有檢查和等待");
 
     if (!cameraRef.current) {
-      Alert.alert('錯誤', '相機引用不存在');
+      Alert.alert("錯誤", "相機引用不存在");
       return;
     }
 
@@ -282,18 +283,18 @@ function TranslateScreen() {
       setIsRecording(true);
       recordingScale.value = withRepeat(withSpring(1.2), -1, true);
 
-      console.log('🎬 直接開始錄影（無條件模式）');
+      console.log("🎬 直接開始錄影（無條件模式）");
       const video = await cameraRef.current.recordAsync({
-        quality: '720p',
+        quality: "720p",
         maxDuration: 30,
         mute: false,
       });
 
-      console.log('✅ 無條件錄影成功', video.uri);
+      console.log("✅ 無條件錄影成功", video.uri);
       setVideoUri(video.uri);
     } catch (error) {
-      console.error('無條件錄影失敗:', error.message);
-      Alert.alert('錄影失敗', `即使無條件模式也失敗了: ${error.message}`);
+      console.error("無條件錄影失敗:", error.message);
+      Alert.alert("錄影失敗", `即使無條件模式也失敗了: ${error.message}`);
     } finally {
       setIsRecording(false);
       recordingScale.value = withSpring(1);
@@ -302,30 +303,30 @@ function TranslateScreen() {
 
   // 獨立的錄影執行邏輯，供倒數結束後呼叫
   const recordVideoLogic = async () => {
-    console.log('🟢 嘗試正常錄影...');
+    console.log("🟢 嘗試正常錄影...");
     setIsRecording(true);
     recordingScale.value = withRepeat(withSpring(1.2), -1, true);
 
     try {
       const video = await cameraRef.current.recordAsync({
-        quality: '720p',
+        quality: "720p",
         maxDuration: 30,
         mute: false,
       });
 
-      console.log('✅ 錄影成功', video.uri);
+      console.log("✅ 錄影成功", video.uri);
       setVideoUri(video.uri);
     } catch (error) {
-      console.error('正常錄影失敗:', error.message);
+      console.error("正常錄影失敗:", error.message);
 
-      if (error.message.includes('Camera is not ready')) {
+      if (error.message.includes("Camera is not ready")) {
         // 如果還是相機未準備，提供無條件錄影
-        Alert.alert('相機準備問題', '正常錄影失敗，是否要嘗試強制錄影？', [
-          { text: '取消', style: 'cancel' },
-          { text: '強制錄影', onPress: () => unconditionalRecord() },
+        Alert.alert("相機準備問題", "正常錄影失敗，是否要嘗試強制錄影？", [
+          { text: "取消", style: "cancel" },
+          { text: "強制錄影", onPress: () => unconditionalRecord() },
         ]);
       } else {
-        Alert.alert('錄影錯誤', error.message);
+        Alert.alert("錄影錯誤", error.message);
       }
     } finally {
       setIsRecording(false);
@@ -335,7 +336,7 @@ function TranslateScreen() {
 
   // 帶倒數計時的錄影啟動函數
   const startCountdownAndRecord = async () => {
-    console.log('🎥 開始錄影檢查 (帶倒數)', {
+    console.log("🎥 開始錄影檢查 (帶倒數)", {
       cameraRef: !!cameraRef.current,
       isRecording,
       isCameraReady,
@@ -345,33 +346,33 @@ function TranslateScreen() {
     });
 
     if (!cameraRef.current) {
-      Alert.alert('錯誤', '相機尚未初始化，請稍候');
+      Alert.alert("錯誤", "相機尚未初始化，請稍候");
       return;
     }
 
     if (isRecording) {
-      Alert.alert('提示', '正在錄影中，請勿重複操作');
+      Alert.alert("提示", "正在錄影中，請勿重複操作");
       return;
     }
 
     // 相機準備檢查
     if (!isCameraReady && !forceReady) {
       Alert.alert(
-        '相機狀態檢查',
-        'onCameraReady 回調似乎沒有觸發。選擇錄影方式：',
+        "相機狀態檢查",
+        "onCameraReady 回調似乎沒有觸發。選擇錄影方式：",
         [
-          { text: '取消', style: 'cancel' },
+          { text: "取消", style: "cancel" },
           {
-            text: '等待準備',
+            text: "等待準備",
             onPress: () => {
-              console.log('用戶選擇等待準備');
+              console.log("用戶選擇等待準備");
               setForceReady(true);
               setIsCameraReady(true);
               setTimeout(() => startCountdownAndRecord(), 500); // 重新嘗試倒數
             },
           },
-          { text: '直接錄影', onPress: () => unconditionalRecord() },
-        ],
+          { text: "直接錄影", onPress: () => unconditionalRecord() },
+        ]
       );
       return;
     }
@@ -436,13 +437,23 @@ function TranslateScreen() {
         setVideoUri(result.assets[0].uri);
       }
     } catch (error) {
-      Alert.alert('錯誤', '選擇影片失敗，請重試');
+      Alert.alert("錯誤", "選擇影片失敗，請重試");
     }
   };
 
   const uploadAndTranslateVideo = async () => {
     if (!videoUri) {
-      Alert.alert('提示', '請先錄製或選擇影片');
+      Alert.alert("提示", "請先錄製或選擇影片");
+      return;
+    }
+
+    // 1. 獲取 API URL
+    const apiUrl = await getTranslationApiUrl();
+    if (!apiUrl) {
+      Alert.alert(
+        "錯誤：未設定 API 位址",
+        "請先至「使用者設定」頁面的「開發者設定」中，輸入並儲存您的翻譯模型 API 位址。"
+      );
       return;
     }
 
@@ -457,34 +468,35 @@ function TranslateScreen() {
 
       // ① 上傳到 Cloudinary
       const cloudUrl = await uploadVideoToCloudinary(videoUri);
-      console.log('✅ Cloudinary 上傳成功：', cloudUrl);
+      console.log("✅ Cloudinary 上傳成功：", cloudUrl);
 
       uploadProgress.value = withTiming(0.6, { duration: 500 });
 
       // ② 寫入 MongoDB
       const nodeRes = await fetch(`${NODE_API}/api/vocabularies`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: '影片標題',
-          content: '',
-          level: '',
-          theme: '',
-          image_url: '',
+          title: "影片標題",
+          content: "",
+          level: "",
+          theme: "",
+          image_url: "",
           video_url: cloudUrl,
-          created_by: 'frontend',
+          created_by: "frontend",
           created_at: new Date().toISOString(),
         }),
       });
-      console.log('📤 Node.js API 回應狀態：', nodeRes.status);
+      console.log("📤 Node.js API 回應狀態：", nodeRes.status);
 
       uploadProgress.value = withTiming(0.8, { duration: 500 });
 
       // ③ 傳 Cloudinary 連結給 FastAPI 翻譯（by-url 模式）
-      console.log('🌍 發送到翻譯 API：', `${BACKEND_URL}/translate-by-url`);
-      const res = await fetch(`${BACKEND_URL}/translate-by-url`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const translationUrl = `${apiUrl}/translate-by-url`;
+      console.log("🌍 發送到翻譯 API：", translationUrl);
+      const res = await fetch(translationUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ video_url: cloudUrl }),
       });
 
@@ -503,56 +515,56 @@ function TranslateScreen() {
           if (confidence >= CONFIDENCE_THRESHOLD) {
             // 信心度高於 10%，顯示結果
             setTranslationResult(
-              `${data.translation} (信心度: ${confidence.toFixed(1)}%)`,
+              `${data.translation} (信心度: ${confidence.toFixed(1)}%)`
             );
             setShowResults(true);
           } else {
             // 信心度低於 10%，顯示無法翻譯
             console.log(
-              `❌ 信心度 (${confidence.toFixed(1)}%) 過低，顯示無法翻譯`,
+              `❌ 信心度 (${confidence.toFixed(1)}%) 過低，顯示無法翻譯`
             );
             setTranslationResult(
-              '抱歉，翻譯結果信心度過低 (低於10%)，請嘗試更清晰的手勢或換一個詞彙。',
+              "抱歉，翻譯結果信心度過低 (低於10%)，請嘗試更清晰的手勢或換一個詞彙。"
             );
             setShowResults(true);
           }
         } else if (data.translation) {
           // 兼容沒有信心度字段的舊 API
           console.warn(
-            '⚠️ API 返回 JSON 缺少 \'confidence_score\' 字段，將直接顯示翻譯結果。',
+            "⚠️ API 返回 JSON 缺少 'confidence_score' 字段，將直接顯示翻譯結果。"
           );
           setTranslationResult(data.translation);
           setShowResults(true);
         } else {
-          console.warn('⚠️ JSON 缺少 \'translation\' 字段或格式錯誤:', data);
-          throw new Error('翻譯結果格式錯誤或為空');
+          console.warn("⚠️ JSON 缺少 'translation' 字段或格式錯誤:", data);
+          throw new Error("翻譯結果格式錯誤或為空");
         }
       } else {
         // 💥 處理 4xx 或 5xx 錯誤碼
-        console.error('❌ 後端 API 響應錯誤，狀態碼:', res.status);
+        console.error("❌ 後端 API 響應錯誤，狀態碼:", res.status);
 
         const errorText = await res.text();
-        console.error('錯誤詳細信息 (非JSON):', errorText.substring(0, 200));
+        console.error("錯誤詳細信息 (非JSON):", errorText.substring(0, 200));
 
         setTranslationResult(`後端錯誤 (${res.status})，請檢查伺服器日誌`);
         setShowResults(true);
         throw new Error(
-          `後端返回 ${res.status} 錯誤: ${errorText.substring(0, 50)}...`,
+          `後端返回 ${res.status} 錯誤: ${errorText.substring(0, 50)}...`
         );
       }
     } catch (error) {
       // 捕捉網路連線、Cloudinary 或其他所有錯誤
-      console.error('上傳或翻譯失敗：', error);
+      console.error("上傳或翻譯失敗：", error);
 
       // 如果 translationResult 尚未被設定，則設定通用錯誤訊息
       if (!translationResult) {
-        setTranslationResult('翻譯失敗，請檢查網路或伺服器連線。');
+        setTranslationResult("翻譯失敗，請檢查網路或伺服器連線。");
         setShowResults(true);
       }
 
       Alert.alert(
-        '翻譯失敗',
-        `請檢查網路連線後重試。\n詳細錯誤: ${error.message}`,
+        "翻譯失敗",
+        `請檢查網路連線後重試。\n詳細錯誤: ${error.message}`
       );
     } finally {
       setIsUploading(false);
@@ -560,7 +572,7 @@ function TranslateScreen() {
   };
 
   return (
-    <LinearGradient colors={['#F1F5FF', '#E8EEFF']} style={styles.container}>
+    <LinearGradient colors={["#F1F5FF", "#E8EEFF"]} style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F1F5FF" />
 
       {/* 頂部導航欄 */}
@@ -612,7 +624,7 @@ function TranslateScreen() {
                 <View style={styles.statusCard}>
                   <Ionicons name="camera-outline" size={32} color="#2563EB" />
                   <Text style={styles.statusText}>
-                    {cameraInitializing ? '初始化相機...' : '準備中...'}
+                    {cameraInitializing ? "初始化相機..." : "準備中..."}
                   </Text>
                   <View style={styles.loadingDots}>
                     <View style={[styles.dot, styles.dot1]} />
@@ -672,7 +684,7 @@ function TranslateScreen() {
                     ]}
                   >
                     <Ionicons
-                      name={isRecording ? 'stop' : 'radio-button-on'}
+                      name={isRecording ? "stop" : "radio-button-on"}
                       size={28}
                       color="#FFFFFF"
                     />
@@ -685,7 +697,7 @@ function TranslateScreen() {
               style={styles.smallControlButton}
               onPress={() => {
                 resetCameraState();
-                Alert.alert('提示', '已重設相機狀態');
+                Alert.alert("提示", "已重設相機狀態");
               }}
               activeOpacity={0.8}
             >
@@ -807,98 +819,98 @@ const styles = StyleSheet.create({
   // 權限頁面樣式
   permissionContainer: {
     flex: 1,
-    backgroundColor: '#F1F5FF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F1F5FF",
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 32,
   },
   permissionContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 32,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 24,
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
-    shadowColor: '#2563EB',
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 16,
     elevation: 8,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.1)',
+    borderColor: "rgba(37, 99, 235, 0.1)",
   },
   permissionIcon: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E8EEFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#E8EEFF",
+    justifyContent: "center",
+    alignItems: "center",
   },
   permissionTitle: {
     fontSize: 24,
-    fontWeight: '600',
-    color: '#1E293B',
-    textAlign: 'center',
+    fontWeight: "600",
+    color: "#1E293B",
+    textAlign: "center",
   },
   permissionSubtitle: {
     fontSize: 16,
-    color: '#64748B',
-    textAlign: 'center',
+    color: "#64748B",
+    textAlign: "center",
     lineHeight: 24,
     marginBottom: 8,
   },
   permissionDescription: {
     fontSize: 16,
-    color: '#64748B',
-    textAlign: 'center',
+    color: "#64748B",
+    textAlign: "center",
     lineHeight: 24,
   },
   permissionButton: {
-    flexDirection: 'row',
-    backgroundColor: '#2563EB',
+    flexDirection: "row",
+    backgroundColor: "#2563EB",
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 24,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 8,
-    shadowColor: '#2563EB',
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   permissionButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 
   // 權限拒絕容器
   permissionDeniedContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 16,
   },
   permissionDeniedText: {
-    color: '#64748B',
+    color: "#64748B",
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
   },
 
   // 載入指示器
   loadingIndicator: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#2563EB',
+    backgroundColor: "#2563EB",
   },
 
   // 主要容器
@@ -908,38 +920,38 @@ const styles = StyleSheet.create({
 
   // 頂部導航欄
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 12, // 減少左右邊距，讓標題區域更寬
     paddingVertical: 16,
-    backgroundColor: 'rgba(37, 99, 235, 0.9)', // 半透明藍色
-    backdropFilter: 'blur(10px)',
+    backgroundColor: "rgba(37, 99, 235, 0.9)", // 半透明藍色
+    backdropFilter: "blur(10px)",
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
-    shadowColor: '#2563EB',
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 4,
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     letterSpacing: 0.5,
   },
   cameraFlipButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: "rgba(255, 255, 255, 0.1)",
   },
 
   // 主要內容區域
@@ -955,25 +967,25 @@ const styles = StyleSheet.create({
   cameraWrapper: {
     flex: 1,
     borderRadius: 16, // 減少圓角
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     padding: 4, // 減少內邊距
-    shadowColor: '#2563EB',
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
     elevation: 8,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.1)',
-    position: 'relative', // 添加相對定位
+    borderColor: "rgba(37, 99, 235, 0.1)",
+    position: "relative", // 添加相對定位
   },
 
   // 相機容器
   cameraContainer: {
     flex: 1,
     borderRadius: 12, // 減少圓角
-    overflow: 'hidden',
-    backgroundColor: '#F8FAFC',
-    position: 'relative',
+    overflow: "hidden",
+    backgroundColor: "#F8FAFC",
+    position: "relative",
   },
   camera: {
     flex: 1,
@@ -981,26 +993,26 @@ const styles = StyleSheet.create({
 
   // 相機控制條 - 改為浮動覆蓋層
   cameraControls: {
-    position: 'absolute', // 改為絕對定位，浮動在畫面上
+    position: "absolute", // 改為絕對定位，浮動在畫面上
     bottom: 20, // 距離底部
     left: 0,
     right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 24,
     paddingVertical: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)', // 極透明的背景
+    backgroundColor: "rgba(255, 255, 255, 0.1)", // 極透明的背景
     borderRadius: 24, // 圓角背景
     marginHorizontal: 20, // 左右邊距
-    shadowColor: '#2563EB',
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1, // 減少陰影透明度
     shadowRadius: 12,
     elevation: 4, // 減少高度
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.15)', // 更透明的邊框
-    backdropFilter: 'blur(10px)', // 毛玻璃效果
+    borderColor: "rgba(37, 99, 235, 0.15)", // 更透明的邊框
+    backdropFilter: "blur(10px)", // 毛玻璃效果
     zIndex: 10, // 確保在最上層
   },
 
@@ -1008,40 +1020,40 @@ const styles = StyleSheet.create({
   centerControlArea: {
     width: 88, // 與 recordButton 寬度相同
     height: 88, // 與 recordButton 高度相同
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   countdownDisplay: {
-    position: 'absolute',
+    position: "absolute",
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: 'rgba(37, 99, 235, 0.9)', // 藍色背景
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(37, 99, 235, 0.9)", // 藍色背景
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 11,
   },
   countdownText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 48,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 
   smallControlButton: {
     width: 52, // 稍微增大
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(235, 242, 255, 0.6)', // 更透明的背景
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#2563EB',
+    backgroundColor: "rgba(235, 242, 255, 0.6)", // 更透明的背景
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1, // 減少陰影透明度
     shadowRadius: 8,
     elevation: 3, // 減少高度
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.2)', // 更透明的邊框
-    backdropFilter: 'blur(5px)', // 毛玻璃效果
+    borderColor: "rgba(37, 99, 235, 0.2)", // 更透明的邊框
+    backdropFilter: "blur(5px)", // 毛玻璃效果
   },
 
   // 錄製按鈕
@@ -1049,47 +1061,47 @@ const styles = StyleSheet.create({
     width: 88, // 增大錄製按鈕
     height: 88,
     borderRadius: 44,
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#2563EB',
+    backgroundColor: "#2563EB",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
     elevation: 10,
     borderWidth: 4,
-    borderColor: '#FFFFFF',
+    borderColor: "#FFFFFF",
   },
   recordButtonInner: {
     width: 72, // 對應調整內部按鈕
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#1D4ED8',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#1D4ED8",
+    justifyContent: "center",
+    alignItems: "center",
   },
   recordButtonActive: {
-    backgroundColor: '#DC2626',
-    shadowColor: '#DC2626',
+    backgroundColor: "#DC2626",
+    shadowColor: "#DC2626",
   },
   recordButtonInnerActive: {
-    backgroundColor: '#B91C1C',
+    backgroundColor: "#B91C1C",
     borderRadius: 8,
   },
   recordButtonDisabled: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: "#94A3B8",
     shadowOpacity: 0.1,
-    borderColor: '#E2E8F0',
+    borderColor: "#E2E8F0",
   },
 
   // 錄製指示器覆蓋層
   recordingIndicatorOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 20,
     left: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -1099,55 +1111,55 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#EF4444',
+    backgroundColor: "#EF4444",
   },
   recordingText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 
   // 相機狀態覆蓋層
   cameraStatusOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   statusCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 32,
     paddingVertical: 24,
     borderRadius: 16,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 12,
-    shadowColor: '#2563EB',
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
     elevation: 8,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.1)',
+    borderColor: "rgba(37, 99, 235, 0.1)",
   },
   statusText: {
-    color: '#1E293B',
+    color: "#1E293B",
     fontSize: 16,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: "500",
+    textAlign: "center",
   },
   loadingDots: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 6,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#2563EB',
+    backgroundColor: "#2563EB",
   },
   dot1: {
     opacity: 0.3,
@@ -1161,66 +1173,66 @@ const styles = StyleSheet.create({
 
   // 緊急錄影區域
   emergencySection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.4)', // 更透明的背景
+    backgroundColor: "rgba(255, 255, 255, 0.4)", // 更透明的背景
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 8, // 左右邊距
     gap: 12,
-    shadowColor: '#2563EB',
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05, // 減少陰影透明度
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.15)', // 更透明的邊框
-    backdropFilter: 'blur(5px)', // 毛玻璃效果
+    borderColor: "rgba(37, 99, 235, 0.15)", // 更透明的邊框
+    backdropFilter: "blur(5px)", // 毛玻璃效果
   },
   emergencySectionTitle: {
-    color: '#64748B',
+    color: "#64748B",
     fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: "500",
+    textAlign: "center",
   },
   emergencyButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   emergencyButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
     gap: 8,
   },
   emergencyButtonPrimary: {
-    backgroundColor: '#2563EB',
+    backgroundColor: "#2563EB",
   },
   emergencyButtonSecondary: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: "#FEF2F2",
     borderWidth: 1,
-    borderColor: '#EF4444',
+    borderColor: "#EF4444",
   },
   emergencyButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   emergencyButtonTextSecondary: {
-    color: '#EF4444',
+    color: "#EF4444",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 
   // 影片預覽區域 (修正後)
   videoPreviewContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 80,
     left: 8,
     right: 8,
-    backgroundColor: '#FFFFFF', // ✅ 改為不透明的白色
+    backgroundColor: "#FFFFFF", // ✅ 改為不透明的白色
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderBottomLeftRadius: 16,
@@ -1228,98 +1240,98 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 32,
     paddingHorizontal: 20,
-    shadowColor: '#2563EB',
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1, // 減少陰影
     shadowRadius: 16,
     elevation: 10, // 增加高度
     zIndex: 10,
     borderWidth: 1,
-    borderColor: '#E8EEFF', // ✅ 改為不透明的淺色邊框
+    borderColor: "#E8EEFF", // ✅ 改為不透明的淺色邊框
     // (已移除 backdropFilter)
   },
   videoPreview: {
-    position: 'relative',
+    position: "relative",
     height: 220, // 增加高度讓影片預覽更大
     borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: '#F8FAFC',
+    overflow: "hidden",
+    backgroundColor: "#F8FAFC",
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.1)',
+    borderColor: "rgba(37, 99, 235, 0.1)",
   },
   videoPlayer: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   closeVideoButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   // 翻譯按鈕
   translateButton: {
-    flexDirection: 'row',
-    backgroundColor: '#2563EB',
+    flexDirection: "row",
+    backgroundColor: "#2563EB",
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    shadowColor: '#2563EB',
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   translateButtonDisabled: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: "#94A3B8",
     shadowOpacity: 0.1,
   },
   translateButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   uploadingContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     gap: 8,
   },
   uploadProgressBar: {
     width: 120,
     height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
     borderRadius: 2,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   uploadProgress: {
-    height: '100%',
-    backgroundColor: '#FFFFFF',
+    height: "100%",
+    backgroundColor: "#FFFFFF",
     borderRadius: 2,
   },
 
   // 翻譯結果區域
   resultsContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 80, // 調整底部位置避免被 Tab Bar 遮擋
     left: 8, // 減少左邊距
     right: 8, // 減少右邊距
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     paddingTop: 50,
     zIndex: 20,
     borderRadius: 16, // 添加圓角
   },
   // 翻譯結果區域 (修正後)
   resultCard: {
-    backgroundColor: '#FFFFFF', // ✅ 改為不透明的白色
+    backgroundColor: "#FFFFFF", // ✅ 改為不透明的白色
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderBottomLeftRadius: 16,
@@ -1329,8 +1341,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     maxHeight: screenHeight * 0.6,
     borderWidth: 1,
-    borderColor: '#E8EEFF', // ✅ 改為不透明的淺色邊框
-    shadowColor: '#2563EB',
+    borderColor: "#E8EEFF", // ✅ 改為不透明的淺色邊框
+    shadowColor: "#2563EB",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1, // 減少陰影
     shadowRadius: 16,
@@ -1338,36 +1350,36 @@ const styles = StyleSheet.create({
     // (已移除 backdropFilter)
   },
   resultHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     marginBottom: 16,
   },
   resultTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontWeight: "600",
+    color: "#1E293B",
     flex: 1,
   },
   closeResultButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 20,
     right: 20,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#E8EEFF',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#E8EEFF",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.2)',
+    borderColor: "rgba(37, 99, 235, 0.2)",
   },
   resultContent: {
     maxHeight: 200,
   },
   resultText: {
     fontSize: 16,
-    color: '#475569',
+    color: "#475569",
     lineHeight: 24,
   },
 });

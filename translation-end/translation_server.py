@@ -51,7 +51,7 @@ print(f"📱 API 文檔: http://localhost:{FASTAPI_PORT}/docs")
 print(f"🌐 網路訪問: http://0.0.0.0:{FASTAPI_PORT}")
 print("=" * 60)
 print("💡 這個腳本不使用 ngrok，適合雲端平台部署")
-print("💡 如需測試，請使用 dev_server.py")
+print("💡 如需測試，請使用 dev_translation.py")
 print("按 Ctrl+C 停止服務")
 print("=" * 60)
 
