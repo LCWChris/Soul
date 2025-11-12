@@ -11,13 +11,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { VocabularyService } from "../../../api";
 import {
   BorderRadius,
   MaterialYouTheme,
   Spacing,
   Typography,
 } from "../../themes/MaterialYouTheme";
-import { VocabularyService } from "../../../api";
 
 const AchievementModal = ({ visible, onClose }) => {
   const { user } = useUser();

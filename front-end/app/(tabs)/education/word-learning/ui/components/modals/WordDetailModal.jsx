@@ -21,13 +21,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { VocabularyService } from "../../../api";
 import {
   BorderRadius,
   MaterialYouTheme,
   Spacing,
   Typography,
 } from "../../themes/MaterialYouTheme";
-import { VocabularyService } from "../../../api";
 import LearningStatusSelector from "./LearningStatusSelector";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
