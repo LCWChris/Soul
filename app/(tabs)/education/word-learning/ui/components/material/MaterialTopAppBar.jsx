@@ -4,17 +4,17 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialYouTheme, Typography, Spacing, Elevation } from '../../themes/MaterialYouTheme';
 
-// 計�? iPhone ?��圖標��圖標��圖標��?�?
+// 計算 iPhone 狀態欄安全距離
 const getTopSafeAreaPadding = (isMainScreen = false) => {
   if (Platform.OS === 'ios') {
     const { height, width } = Dimensions.get('window');
-    // 主�?幕�圖標��圖標��?）使?�更小�圖標��?
+    // 主畫面（分類選擇階段）使用更小距離
     if (isMainScreen) {
-      if (height >= 926 || width >= 926) return 5; // ?��?島�圖標��?�?0減�圖標?
-      if (height >= 812 || width >= 812) return 3; // ?�海機�?：�?15減�圖標?
-      return 2; // ?��? iPhone：�?10減�圖標?
+      if (height >= 926 || width >= 926) return 5; // 靈動島機型：從50減少
+      if (height >= 812 || width >= 812) return 3; // 瀏海機型：從45減少
+      return 2; // 舊款 iPhone：從40減少
     }
-    // ?��圖標�面使用�?��?��?
+    // 次級頁面使用較大距離
     if (height >= 926 || width >= 926) return 35;
     if (height >= 812 || width >= 812) return 30;
     return 25;
@@ -30,7 +30,7 @@ const MaterialTopAppBar = ({
   actions = [], 
   variant = 'small',
   onBackPress,
-  isMainScreen = false // ?��圖標��圖標�否?�主屏�?（�?類選?��?段�?
+  isMainScreen = false // 標記是否為主屏幕（分類選擇階段）
 }) => {
   const router = useRouter();
 
@@ -54,7 +54,7 @@ const MaterialTopAppBar = ({
       }
     })();
     
-    // ?��?安全?��?（根?�是?�為主�?幕調?��?
+    // 加上安全距離（根據是否為主畫面調整）
     return baseHeight + getTopSafeAreaPadding(isMainScreen);
   };
 
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'transparent',
     paddingHorizontal: Spacing.sm,
-    paddingTop: Spacing.sm, // ?�裡?�被?��?覆�?
+    paddingTop: Spacing.sm, // 這裡會被動態覆蓋
     justifyContent: 'flex-end',
     elevation: 0,
     borderBottomWidth: 1,

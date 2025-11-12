@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   selectedCard: {
-    borderColor: "#2563EB", // ?�色?��?
+    borderColor: "#2563EB", // 藍色邊框
     transform: [{ scale: 1.02 }],
   },
   optionHeader: {

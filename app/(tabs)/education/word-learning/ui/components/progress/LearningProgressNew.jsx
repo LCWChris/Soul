@@ -24,8 +24,8 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
       const statsData = await getWordStats(filters);
       setStats(statsData);
     } catch (error) {
-      console.error('?��?統�圖標��?失�?:', error);
-      // 設置默�?統�?
+      console.error('獲取統計數據失敗:', error);
+      // 設置默認統計
       setStats({
         totalWords: 0,
         favoriteWords: 0,
@@ -50,7 +50,7 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={MaterialYouTheme.primary.primary40} />
-          <Text style={styles.loadingText}>載入統�圖標��?...</Text>
+          <Text style={styles.loadingText}>載入統計數據...</Text>
         </View>
       </View>
     );
@@ -62,10 +62,10 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
 
   return (
     <View style={styles.container}>
-      {/* 主�圖標�度?��? */}
+      {/* 主進度卡片 */}
       <View style={styles.mainCard}>
         <View style={styles.progressHeader}>
-          <Text style={styles.progressTitle}>學�圖標�度</Text>
+          <Text style={styles.progressTitle}>學習進度</Text>
           <Text style={styles.progressPercentage}>{progressRate}%</Text>
         </View>
         

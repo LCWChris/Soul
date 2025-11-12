@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 
 /**
- * Material You 風格?��?輸入�?
+ * Material You 風格文字輸入框
  */
 export const MaterialTextInput = ({
   label,
@@ -159,9 +159,9 @@ export const MaterialTextInput = ({
 
   return (
     <View style={[styles.container, style]}>
-      {/* 輸入框容圖標*/}
+      {/* 輸入框容器 */}
       <View style={[styles.inputContainer, getContainerStyles()]}>
-        {/* ?�置?��? */}
+        {/* 前置圖標 */}
         {leadingIcon && (
           <View style={styles.leadingIcon}>
             <Ionicons
@@ -182,7 +182,7 @@ export const MaterialTextInput = ({
           </Animated.Text>
         )}
 
-        {/* 輸入�?*/}
+        {/* 輸入欄 */}
         <TextInput
           ref={inputRef}
           style={[getInputStyles(), inputStyle]}
@@ -202,7 +202,7 @@ export const MaterialTextInput = ({
           {...props}
         />
 
-        {/* 後置?��? */}
+        {/* 後置圖標 */}
         {trailingIcon && (
           <TouchableOpacity
             style={styles.trailingIcon}
@@ -221,7 +221,7 @@ export const MaterialTextInput = ({
         )}
       </View>
 
-      {/* ?�誤訊息?�幫?��?�?*/}
+      {/* 錯誤訊息或幫助文字 */}
       {(error || helperText) && (
         <View style={styles.supportingText}>
           <Text
@@ -248,14 +248,14 @@ export const MaterialTextInput = ({
 };
 
 /**
- * ?��?輸入�?
+ * 搜尋輸入框
  */
 export const MaterialSearchInput = ({
   value,
   onChangeText,
   onSubmitEditing,
   onClear,
-  placeholder = '?��?...',
+  placeholder = '搜尋...',
   showFilter = false,
   onFilterPress,
   style,
@@ -408,7 +408,7 @@ export const MaterialSelector = ({
 };
 
 const styles = StyleSheet.create({
-  // ?��?輸入框樣�?
+  // 文字輸入框樣式
   container: {
     width: '100%',
   },
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     color: MaterialYouTheme.onSurfaceVariant.onSurfaceVariant,
   },
 
-  // ?��?輸入框樣�?
+  // 搜尋輸入框樣式
   searchContainer: {
     width: '100%',
   },
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
   },
 
-  // ?��圖標�樣�?
+  // 選擇器樣式
   selectorContainer: {
     width: '100%',
     marginVertical: Spacing.sm,

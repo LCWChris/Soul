@@ -14,8 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 
 /**
- * Material You 3.0 風格?��?組件
- * ?�援多種�圖標：filled, outlined, text, tonal
+ * Material You 3.0 風格按鈕組件
+ * 支援多種樣式：filled, outlined, text, tonal
  */
 const MaterialButton = ({ 
   title,
@@ -62,7 +62,7 @@ const MaterialButton = ({
       justifyContent: 'center',
     };
 
-    // 尺寸?�置
+    // 尺寸配置
     const sizeConfig = {
       small: {
         paddingVertical: Spacing.sm,
@@ -81,7 +81,7 @@ const MaterialButton = ({
       }
     };
 
-    // 變�?�圖標
+    // 變體樣式
     const variantStyles = {
       filled: {
         backgroundColor: disabled 
@@ -246,7 +246,7 @@ const MaterialButton = ({
 };
 
 /**
- * 浮�圖標��圖標��? (FAB)
+ * 浮動操作按鈕 (FAB)
  */
 export const MaterialFAB = ({ 
   icon = 'add',
@@ -357,7 +357,7 @@ export const MaterialFAB = ({
 };
 
 /**
- * ?��圖標��?
+ * 圖標按鈕
  */
 export const MaterialIconButton = ({ 
   icon,

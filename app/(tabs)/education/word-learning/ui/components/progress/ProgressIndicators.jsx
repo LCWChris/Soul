@@ -16,7 +16,7 @@ import { MaterialYouTheme, Typography, Spacing, BorderRadius, ColorUtils } from 
 const { width: screenWidth } = Dimensions.get('window');
 
 /**
- * 學�圖標�度?�形?�示圖標
+ * 學習進度圓形指示器
  */
 export const CircularProgressIndicator = ({ 
   progress = 0, // 0-100
@@ -51,7 +51,7 @@ export const CircularProgressIndicator = ({
   return (
     <View style={[styles.circularProgress, { width: size, height: size }, style]}>
       <Animated.View style={styles.progressContainer}>
-        {/* ?�景?��? */}
+        {/* 背景圓圈 */}
         <View
           style={[
             styles.progressCircle,
@@ -65,7 +65,7 @@ export const CircularProgressIndicator = ({
           ]}
         />
         
-        {/* ?�度?��? */}
+        {/* 進度圓圈 */}
         <Animated.View
           style={[
             styles.progressCircle,
@@ -75,13 +75,13 @@ export const CircularProgressIndicator = ({
               height: size,
               borderRadius: size / 2,
               borderWidth: strokeWidth,
-              borderColor: "#2563EB", // ?�色主�?
+              borderColor: "#2563EB", // 藍色主題
               transform: [{ rotate: '-90deg' }],
             }
           ]}
         >
           <LinearGradient
-            colors={["#3B82F6", "#2563EB"]} // ?�色漸層
+            colors={["#3B82F6", "#2563EB"]} // 藍色漸層
             style={[
               styles.gradientCircle,
               {
@@ -94,7 +94,7 @@ export const CircularProgressIndicator = ({
         </Animated.View>
       </Animated.View>
 
-      {/* 中�圖標�容 */}
+      {/* 中心內容 */}
       <View style={styles.centerContent}>
         {children || (showText && (
           <Text style={styles.progressText}>
@@ -107,7 +107,7 @@ export const CircularProgressIndicator = ({
 };
 
 /**
- * 學�圖標�度�?
+ * 學習進度條
  */
 export const LearningProgressBar = ({ 
   progress = 0, // 0-100
@@ -149,7 +149,7 @@ export const LearningProgressBar = ({
       <View style={[styles.progressBarTrack, { height }]}>
         <Animated.View style={[styles.progressBarFill, { height, width: progressWidth }]}>
           <LinearGradient
-            colors={["#3B82F6", "#2563EB"]} // ?�色漸層
+            colors={["#3B82F6", "#2563EB"]} // 藍色漸層
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.progressGradient}
@@ -161,7 +161,7 @@ export const LearningProgressBar = ({
 };
 
 /**
- * 學�圖標�?��顯示器
+ * 學習狀態顯示器
  */
 export const LearningStatusIndicator = ({ 
   status = 'new', // new, learning, reviewing, mastered, difficult
@@ -268,7 +268,7 @@ export const LearningStatusIndicator = ({
 };
 
 /**
- * 多步驟進度?�示圖標
+ * 多步驟進度指示器
  */
 export const StepProgressIndicator = ({ 
   steps = [],
@@ -286,7 +286,7 @@ export const StepProgressIndicator = ({
           
           return (
             <View key={index} style={styles.stepContainer}>
-              {/* 圖標���?*/}
+              {/* 連接線 */}
               {index > 0 && (
                 <View 
                   style={[
@@ -299,7 +299,7 @@ export const StepProgressIndicator = ({
                 />
               )}
               
-              {/* 步�圖標��? */}
+              {/* 步驟點 */}
               <View 
                 style={[
                   styles.stepDot,
@@ -321,7 +321,7 @@ export const StepProgressIndicator = ({
                 )}
               </View>
 
-              {/* 步�?標籤 */}
+              {/* 步驟標籤 */}
               <Text 
                 style={[
                   styles.stepLabel,
@@ -342,7 +342,7 @@ export const StepProgressIndicator = ({
 };
 
 const styles = StyleSheet.create({
-  // ?�形?�度條樣�?
+  // 圓形進度條樣式
   circularProgress: {
     position: 'relative',
     justifyContent: 'center',
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // ?�度條樣�?
+  // 進度條樣式
   progressBarContainer: {
     width: '100%',
   },
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // ?�?��顯示器�圖標
+  // 狀態顯示器樣式
   statusIndicator: {
     borderRadius: BorderRadius.lg,
     justifyContent: 'center',
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // 步�圖標�度?�樣�?
+  // 步驟進度條樣式
   stepProgressContainer: {
     paddingVertical: Spacing.lg,
   },

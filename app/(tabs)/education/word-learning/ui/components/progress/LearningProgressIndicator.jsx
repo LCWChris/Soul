@@ -28,8 +28,8 @@ const LearningProgressIndicator = ({ status, onPress, size = 'medium' }) => {
       case LEARNING_STATUS.MASTERED:
         return {
           icon: 'checkmark-circle',
-          color: "#2563EB", // ?�色主�?
-          bgColor: "#EFF6FF", // 淡�圖標��圖標?
+          color: "#2563EB", // 藍色主題
+          bgColor: "#EFF6FF", // 淡藍背景
         };
       default:
         return {

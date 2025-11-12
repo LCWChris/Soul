@@ -24,8 +24,8 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
       const statsData = await getWordStats(filters);
       setStats(statsData);
     } catch (error) {
-      console.error('?��?統�圖標��?失�?:', error);
-      // 設置默�?統�?
+      console.error('獲取統計數據失敗:', error);
+      // 設置默認統計
       setStats({
         totalWords: 0,
         favoriteWords: 0,
@@ -50,7 +50,7 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#2563EB" />
-          <Text style={styles.loadingText}>載入統�圖標��?...</Text>
+          <Text style={styles.loadingText}>載入統計數據...</Text>
         </View>
       </View>
     );
@@ -62,10 +62,10 @@ const LearningProgress = ({ selectedCategory, selectedLevel, selectedDifficultyL
 
   return (
     <View style={styles.container}>
-      {/* 主�圖標�度?��? */}
+      {/* 主進度卡片 */}
       <View style={styles.mainCard}>
         <View style={styles.progressHeader}>
-          <Text style={styles.progressTitle}>學�圖標�度</Text>
+          <Text style={styles.progressTitle}>學習進度</Text>
           <Text style={styles.progressPercentage}>{progressRate}%</Text>
         </View>
         
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     color: MaterialYouTheme.neutral.neutral50,
   },
   mainCard: {
-    backgroundColor: "#EFF6FF", // 淡�圖標��圖標?
+    backgroundColor: "#EFF6FF", // 淡藍背景
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     ...Elevation.level2,
@@ -180,12 +180,12 @@ const styles = StyleSheet.create({
   },
   progressTitle: {
     ...Typography.titleLarge,
-    color: "#1E40AF", // 深�圖標��?�?
+    color: "#1E40AF", // 深藍標題
     fontWeight: '600',
   },
   progressPercentage: {
     ...Typography.headlineSmall,
-    color: "#2563EB", // ?�色?��?�?
+    color: "#2563EB", // 藍色百分比
     fontWeight: 'bold',
   },
   progressBarContainer: {
@@ -193,13 +193,13 @@ const styles = StyleSheet.create({
   },
   progressBarBackground: {
     height: 8,
-    backgroundColor: "#DBEAFE", // 淡�圖標��圖標?
+    backgroundColor: "#DBEAFE", // 淡藍背景
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: "#2563EB", // ?�色?�度�?
+    backgroundColor: "#2563EB", // 藍色進度條
     borderRadius: 4,
   },
   statsRow: {
@@ -212,13 +212,13 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     ...Typography.titleMedium,
-    color: "#1E40AF", // 深�圖標�數�?
+    color: "#1E40AF", // 深藍數字
     fontWeight: 'bold',
     marginBottom: 2,
   },
   statLabel: {
     ...Typography.labelSmall,
-    color: "#2563EB", // ?�色標籤
+    color: "#2563EB", // 藍色標籤
   },
   detailCard: {
     backgroundColor: MaterialYouTheme.neutral.neutral99,
