@@ -14,7 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from './MaterialYouTheme';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../themes/MaterialYouTheme';
 import EnhancedVocabularyCard from './components/EnhancedVocabularyCard';
 import MaterialButton, { MaterialFAB, MaterialIconButton } from './components/MaterialButton';
 // import { useWordLearning } from './hooks/useWordLearning'; // 暫時註解掉
