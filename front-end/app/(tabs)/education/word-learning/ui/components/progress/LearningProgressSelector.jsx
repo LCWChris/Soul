@@ -1,53 +1,50 @@
-import { LEARNING_STATUS } from "@/utils/learning-progress";
-import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { MaterialYouTheme } from "../../themes/MaterialYouTheme";
+﻿import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { MaterialYouTheme } from '../../themes/MaterialYouTheme';
+import { LEARNING_STATUS } from '@/utils/learning-progress';
 
-const LearningProgressSelector = ({
-  onSelectProgress,
-  selectedProgress,
-  style,
-}) => {
+const LearningProgressSelector = ({ onSelectProgress, selectedProgress, style }) => {
   const progressOptions = [
     {
       status: LEARNING_STATUS.NOT_STARTED,
-      label: "未開始",
-      icon: "ellipse-outline",
+      label: '未開始',
+      icon: 'ellipse-outline',
       color: MaterialYouTheme.neutral.neutral50,
       bgColor: MaterialYouTheme.neutral.neutral95,
-      description: "還沒開始學習的單詞",
+      description: '尚未開始學習的單字'
     },
     {
       status: LEARNING_STATUS.LEARNING,
-      label: "學習中",
-      icon: "school-outline",
+      label: '學習中',
+      icon: 'school-outline',
       color: MaterialYouTheme.tertiary.tertiary40,
       bgColor: MaterialYouTheme.tertiary.tertiary90,
-      description: "正在學習但還不熟悉",
+      description: '正在學習但還不熟悉'
     },
     {
       status: LEARNING_STATUS.REVIEWING,
-      label: "複習中",
-      icon: "refresh-outline",
+      label: '複習中',
+      icon: 'refresh-outline',
       color: MaterialYouTheme.secondary.secondary40,
       bgColor: MaterialYouTheme.secondary.secondary90,
-      description: "基本掌握，需要複習鞏固",
+      description: '基本掌握，需要複習鞏固'
     },
     {
       status: LEARNING_STATUS.MASTERED,
-      label: "已掌握",
-      icon: "checkmark-circle-outline",
+      label: '已掌握',
+      icon: 'checkmark-circle-outline',
       color: "#2563EB", // 藍色主題
       bgColor: "#EFF6FF", // 淡藍色背景
-      description: "完全掌握的單詞",
-    },
+      description: '完全掌握該單字'
+    }
   ];
 
   return (
     <View style={[styles.container, style]}>
-      <Text style={styles.title}>按掌握程度學習</Text>
-      <Text style={styles.subtitle}>選擇您想要學習的單詞掌握程度</Text>
-
+      <Text style={styles.title}>選擇進度學習</Text>
+      <Text style={styles.subtitle}>選擇您想要學習的掌握程度</Text>
+      
       <View style={styles.optionsContainer}>
         {progressOptions.map((option) => (
           <TouchableOpacity
@@ -55,17 +52,12 @@ const LearningProgressSelector = ({
             style={[
               styles.optionCard,
               { backgroundColor: option.bgColor },
-              selectedProgress === option.status && styles.selectedCard,
+              selectedProgress === option.status && styles.selectedCard
             ]}
             onPress={() => onSelectProgress(option.status)}
           >
             <View style={styles.optionHeader}>
-              <View
-                style={[
-                  styles.iconContainer,
-                  { backgroundColor: option.color },
-                ]}
-              >
+              <View style={[styles.iconContainer, { backgroundColor: option.color }]}>
                 <Ionicons name={option.icon} size={24} color="white" />
               </View>
               <Text style={[styles.optionLabel, { color: option.color }]}>
@@ -86,15 +78,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: MaterialYouTheme.neutral.neutral10,
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
     color: MaterialYouTheme.neutral.neutral30,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 24,
   },
   optionsContainer: {
@@ -104,28 +96,28 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: "transparent",
+    borderColor: 'transparent',
   },
   selectedCard: {
     borderColor: "#2563EB", // 藍色邊框
     transform: [{ scale: 1.02 }],
   },
   optionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
   iconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
   },
   optionLabel: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   optionDescription: {
     fontSize: 14,

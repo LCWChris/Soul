@@ -1,47 +1,37 @@
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { useMemo, useState } from "react";
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
   Animated,
+  RefreshControl,
   Dimensions,
   Platform,
-  RefreshControl,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
-import EnhancedVocabularyCard from "../components/cards/EnhancedVocabularyCard";
-import MaterialButton, {
-  MaterialFAB,
-  MaterialIconButton,
-} from "../components/material/MaterialButton";
-import {
-  BorderRadius,
-  ColorUtils,
-  Elevation,
-  MaterialYouTheme,
-  Spacing,
-  Typography,
-} from "../themes/MaterialYouTheme";
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation, ColorUtils } from '../themes/MaterialYouTheme';
+import EnhancedVocabularyCard from '../components/cards/EnhancedVocabularyCard';
+import MaterialButton, { MaterialFAB, MaterialIconButton } from '../components/material/MaterialButton';
 // import { useWordLearning } from './hooks/useWordLearning'; // 暫時註解掉
 // import { useFavorites } from '../../../../utils/favorites.js'; // 暫時註解掉
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const EnhancedWordLearningScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState({
-    level: "all",
-    category: "all",
-    status: "all",
+    level: 'all',
+    category: 'all',
+    status: 'all',
     showFavorites: false,
   });
-  const [sortBy, setSortBy] = useState("alphabetical");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState('alphabetical');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showFilterPanel, setShowFilterPanel] = useState(false);
 
   // 暫時使用 mock data
@@ -49,7 +39,7 @@ const EnhancedWordLearningScreen = () => {
   const loading = false;
   const error = null;
   const refreshWords = () => {};
-
+  
   // 暫時 mock favorites
   const favorites = [];
   const toggleFavorite = () => {};
@@ -63,37 +53,25 @@ const EnhancedWordLearningScreen = () => {
   const filteredAndSortedWords = useMemo(() => {
     if (!words) return [];
 
-    let filtered = words.filter((word) => {
+    let filtered = words.filter(word => {
       // 搜尋過濾
-      if (
-        searchQuery &&
-        !word.word.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !word.definition.toLowerCase().includes(searchQuery.toLowerCase())
-      ) {
+      if (searchQuery && !word.word.toLowerCase().includes(searchQuery.toLowerCase()) && 
+          !word.definition.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
       }
 
       // 等級過濾
-      if (
-        selectedFilters.level !== "all" &&
-        word.level !== selectedFilters.level
-      ) {
+      if (selectedFilters.level !== 'all' && word.level !== selectedFilters.level) {
         return false;
       }
 
       // 分類過濾
-      if (
-        selectedFilters.category !== "all" &&
-        word.category !== selectedFilters.category
-      ) {
+      if (selectedFilters.category !== 'all' && word.category !== selectedFilters.category) {
         return false;
       }
 
       // 學習狀態過濾
-      if (
-        selectedFilters.status !== "all" &&
-        word.learningStatus !== selectedFilters.status
-      ) {
+      if (selectedFilters.status !== 'all' && word.learningStatus !== selectedFilters.status) {
         return false;
       }
 
@@ -107,30 +85,18 @@ const EnhancedWordLearningScreen = () => {
 
     // 排序
     switch (sortBy) {
-      case "alphabetical":
+      case 'alphabetical':
         filtered.sort((a, b) => a.word.localeCompare(b.word));
         break;
-      case "level":
-        const levelOrder = {
-          beginner: 1,
-          intermediate: 2,
-          advanced: 3,
-          expert: 4,
-        };
-        filtered.sort(
-          (a, b) => (levelOrder[a.level] || 5) - (levelOrder[b.level] || 5)
-        );
+      case 'level':
+        const levelOrder = { 'beginner': 1, 'intermediate': 2, 'advanced': 3, 'expert': 4 };
+        filtered.sort((a, b) => (levelOrder[a.level] || 5) - (levelOrder[b.level] || 5));
         break;
-      case "recent":
-        filtered.sort(
-          (a, b) =>
-            new Date(b.lastReviewed || 0) - new Date(a.lastReviewed || 0)
-        );
+      case 'recent':
+        filtered.sort((a, b) => new Date(b.lastReviewed || 0) - new Date(a.lastReviewed || 0));
         break;
-      case "difficulty":
-        filtered.sort(
-          (a, b) => (b.difficultyScore || 0) - (a.difficultyScore || 0)
-        );
+      case 'difficulty':
+        filtered.sort((a, b) => (b.difficultyScore || 0) - (a.difficultyScore || 0));
         break;
       default:
         break;
@@ -145,9 +111,9 @@ const EnhancedWordLearningScreen = () => {
 
     return {
       total: words.length,
-      mastered: words.filter((w) => w.learningStatus === "mastered").length,
-      learning: words.filter((w) => w.learningStatus === "learning").length,
-      favorites: words.filter((w) => favorites.includes(w.word)).length,
+      mastered: words.filter(w => w.learningStatus === 'mastered').length,
+      learning: words.filter(w => w.learningStatus === 'learning').length,
+      favorites: words.filter(w => favorites.includes(w.word)).length,
     };
   }, [words, favorites]);
 
@@ -165,7 +131,7 @@ const EnhancedWordLearningScreen = () => {
   const toggleFilterPanel = () => {
     const toValue = showFilterPanel ? 0 : 200;
     setShowFilterPanel(!showFilterPanel);
-
+    
     Animated.spring(filterPanelHeight, {
       toValue,
       useNativeDriver: false,
@@ -178,48 +144,32 @@ const EnhancedWordLearningScreen = () => {
   const renderStatisticsCards = () => (
     <View style={styles.statisticsContainer}>
       <LinearGradient
-        colors={ColorUtils.getGradientColors("primary")}
+        colors={ColorUtils.getGradientColors('primary')}
         style={styles.statisticsGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
         <View style={styles.statisticsGrid}>
           <View style={styles.statCard}>
-            <Ionicons
-              name="library-outline"
-              size={24}
-              color={MaterialYouTheme.primary.primary10}
-            />
+            <Ionicons name="library-outline" size={24} color={MaterialYouTheme.primary.primary10} />
             <Text style={styles.statNumber}>{statistics.total}</Text>
             <Text style={styles.statLabel}>總單詞</Text>
           </View>
 
           <View style={styles.statCard}>
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={24}
-              color={MaterialYouTheme.primary.primary10}
-            />
+            <Ionicons name="checkmark-circle-outline" size={24} color={MaterialYouTheme.primary.primary10} />
             <Text style={styles.statNumber}>{statistics.mastered}</Text>
             <Text style={styles.statLabel}>已掌握</Text>
           </View>
 
           <View style={styles.statCard}>
-            <Ionicons
-              name="school-outline"
-              size={24}
-              color={MaterialYouTheme.primary.primary10}
-            />
+            <Ionicons name="school-outline" size={24} color={MaterialYouTheme.primary.primary10} />
             <Text style={styles.statNumber}>{statistics.learning}</Text>
             <Text style={styles.statLabel}>學習中</Text>
           </View>
 
           <View style={styles.statCard}>
-            <Ionicons
-              name="heart-outline"
-              size={24}
-              color={MaterialYouTheme.primary.primary10}
-            />
+            <Ionicons name="heart-outline" size={24} color={MaterialYouTheme.primary.primary10} />
             <Text style={styles.statNumber}>{statistics.favorites}</Text>
             <Text style={styles.statLabel}>收藏</Text>
           </View>
@@ -231,25 +181,17 @@ const EnhancedWordLearningScreen = () => {
   // 渲染過濾器面板
   const renderFilterPanel = () => (
     <Animated.View style={[styles.filterPanel, { height: filterPanelHeight }]}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.filterScroll}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
         <View style={styles.filterGroup}>
           <Text style={styles.filterGroupTitle}>等級</Text>
           <View style={styles.filterButtons}>
-            {["all", "beginner", "intermediate", "advanced"].map((level) => (
+            {['all', 'beginner', 'intermediate', 'advanced'].map(level => (
               <MaterialButton
                 key={level}
-                title={level === "all" ? "全部" : level}
-                variant={
-                  selectedFilters.level === level ? "filled" : "outlined"
-                }
+                title={level === 'all' ? '全部' : level}
+                variant={selectedFilters.level === level ? 'filled' : 'outlined'}
                 size="small"
-                onPress={() =>
-                  setSelectedFilters((prev) => ({ ...prev, level }))
-                }
+                onPress={() => setSelectedFilters(prev => ({ ...prev, level }))}
                 style={styles.filterButton}
               />
             ))}
@@ -260,15 +202,15 @@ const EnhancedWordLearningScreen = () => {
           <Text style={styles.filterGroupTitle}>排序</Text>
           <View style={styles.filterButtons}>
             {[
-              { key: "alphabetical", label: "字母" },
-              { key: "level", label: "等級" },
-              { key: "recent", label: "最近" },
-              { key: "difficulty", label: "難度" },
-            ].map((sort) => (
+              { key: 'alphabetical', label: '字母' },
+              { key: 'level', label: '等級' },
+              { key: 'recent', label: '最近' },
+              { key: 'difficulty', label: '難度' }
+            ].map(sort => (
               <MaterialButton
                 key={sort.key}
                 title={sort.label}
-                variant={sortBy === sort.key ? "filled" : "outlined"}
+                variant={sortBy === sort.key ? 'filled' : 'outlined'}
                 size="small"
                 onPress={() => setSortBy(sort.key)}
                 style={styles.filterButton}
@@ -284,18 +226,14 @@ const EnhancedWordLearningScreen = () => {
   const renderHeader = () => (
     <Animated.View style={[styles.header, { opacity: headerOpacity }]}>
       <LinearGradient
-        colors={ColorUtils.getGradientColors("primary")}
+        colors={ColorUtils.getGradientColors('primary')}
         style={styles.headerGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
         <SafeAreaView>
-          <StatusBar
-            barStyle="light-content"
-            backgroundColor="transparent"
-            translucent
-          />
-
+          <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
+          
           <View style={styles.headerContent}>
             <View style={styles.headerTop}>
               <View>
@@ -304,14 +242,12 @@ const EnhancedWordLearningScreen = () => {
                   {filteredAndSortedWords.length} 個單詞
                 </Text>
               </View>
-
+              
               <View style={styles.headerActions}>
                 <MaterialIconButton
                   icon="search-outline"
                   variant="filled"
-                  onPress={() => {
-                    /* 搜尋功能 */
-                  }}
+                  onPress={() => {/* 搜尋功能 */}}
                   style={styles.headerButton}
                 />
                 <MaterialIconButton
@@ -345,16 +281,12 @@ const EnhancedWordLearningScreen = () => {
           learningStatus={word.learningStatus}
           isFavorite={favorites.includes(word.word)}
           onToggleFavorite={() => toggleFavorite(word.word)}
-          onPress={() => {
-            /* 單詞詳情 */
-          }}
-          onProgressChange={() => {
-            /* 進度更新 */
-          }}
+          onPress={() => {/* 單詞詳情 */}}
+          onProgressChange={() => {/* 進度更新 */}}
           style={[
             styles.wordCard,
             index === 0 && styles.firstCard,
-            index === filteredAndSortedWords.length - 1 && styles.lastCard,
+            index === filteredAndSortedWords.length - 1 && styles.lastCard
           ]}
         />
       ))}
@@ -385,7 +317,7 @@ const EnhancedWordLearningScreen = () => {
   return (
     <View style={styles.container}>
       {renderHeader()}
-
+      
       <Animated.ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -407,7 +339,7 @@ const EnhancedWordLearningScreen = () => {
         {renderStatisticsCards()}
         {renderFilterPanel()}
         {renderWordList()}
-
+        
         <View style={styles.bottomSpacing} />
       </Animated.ScrollView>
 
@@ -416,9 +348,7 @@ const EnhancedWordLearningScreen = () => {
         size="medium"
         variant="primary"
         style={styles.fab}
-        onPress={() => {
-          /* 添加單詞 */
-        }}
+        onPress={() => {/* 添加單詞 */}}
       />
     </View>
   );
@@ -439,15 +369,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   headerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: Platform.OS === "ios" ? 0 : StatusBar.currentHeight,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Platform.OS === 'ios' ? 0 : StatusBar.currentHeight,
   },
   headerTitle: {
     ...Typography.headlineMedium,
     color: MaterialYouTheme.primary.primary100,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   headerSubtitle: {
     ...Typography.bodyLarge,
@@ -455,7 +385,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   headerActions: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: Spacing.sm,
   },
   headerButton: {
@@ -476,19 +406,19 @@ const styles = StyleSheet.create({
     ...Elevation.level2,
   },
   statisticsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     padding: Spacing.lg,
   },
   statCard: {
-    width: "50%",
-    alignItems: "center",
+    width: '50%',
+    alignItems: 'center',
     paddingVertical: Spacing.md,
   },
   statNumber: {
     ...Typography.headlineSmall,
     color: MaterialYouTheme.primary.primary10,
-    fontWeight: "700",
+    fontWeight: '700',
     marginTop: Spacing.sm,
   },
   statLabel: {
@@ -501,7 +431,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.lg,
     borderRadius: BorderRadius.lg,
     marginBottom: Spacing.md,
-    overflow: "hidden",
+    overflow: 'hidden',
     ...Elevation.level1,
   },
   filterScroll: {
@@ -516,7 +446,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
   filterButtons: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: Spacing.sm,
   },
   filterButton: {
@@ -535,7 +465,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   fab: {
-    position: "absolute",
+    position: 'absolute',
     bottom: Spacing.xxl,
     right: Spacing.lg,
     ...Elevation.level4,
@@ -545,8 +475,8 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: MaterialYouTheme.surface.surface,
   },
   loadingText: {
@@ -555,8 +485,8 @@ const styles = StyleSheet.create({
   },
   errorContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: MaterialYouTheme.surface.surface,
     padding: Spacing.xl,
   },
@@ -564,7 +494,7 @@ const styles = StyleSheet.create({
     ...Typography.headlineSmall,
     color: MaterialYouTheme.error.error40,
     marginBottom: Spacing.lg,
-    textAlign: "center",
+    textAlign: 'center',
   },
   retryButton: {
     marginTop: Spacing.md,

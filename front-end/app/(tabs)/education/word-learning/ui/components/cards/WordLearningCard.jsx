@@ -1,14 +1,15 @@
-// SOUL/app/(tabs)/education/word-learning/components/WordLearningCard.jsx
-import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { useLearningTracking } from "../../../api";
+﻿// SOUL/app/(tabs)/education/word-learning/components/WordLearningCard.jsx
+import React, { useState, useEffect } from 'react';
 import {
-  BorderRadius,
-  MaterialYouTheme,
-  Spacing,
-  Typography,
-} from "../../themes/MaterialYouTheme";
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../../themes/MaterialYouTheme';
+import { useLearningTracking } from '../../../api/hooks/useLearningTracking';
 
 const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
   const {
@@ -23,7 +24,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
   const [isLearned, setIsLearned] = useState(false);
   const [isMastered, setIsMastered] = useState(false);
 
-  // 當組件掛載時記錄查看
+  // 組件加載時記錄查看
   useEffect(() => {
     if (word?._id) {
       setViewStartTime(Date.now());
@@ -42,43 +43,39 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
   const handleMarkAsLearned = async () => {
     if (!word?._id || isLearned) return;
 
-    const timeSpent = viewStartTime
-      ? Math.round((Date.now() - viewStartTime) / 1000)
-      : 0; // 轉換為秒
-    console.log("📚 標記為已學習:", { wordId: word._id, timeSpent });
-
-    const success = await recordWordLearned(word._id, timeSpent, "medium");
+    const timeSpent = viewStartTime ? Math.round((Date.now() - viewStartTime) / 1000) : 0; // 轉換為秒
+    console.log('📝 標記為已學會:', { wordId: word._id, timeSpent });
+    
+    const success = await recordWordLearned(word._id, timeSpent, 'medium');
 
     if (success) {
-      console.log("✅ 學習記錄成功");
+      console.log('✅ 學習記錄成功');
       setIsLearned(true);
       onWordLearned?.(word);
-      Alert.alert("太棒了！", "已記錄你學會了這個單詞");
+      Alert.alert('太棒了!', '已成功記錄學習了這個單字');
     } else {
-      console.log("❌ 學習記錄失敗");
+      console.log('❌ 學習記錄失敗');
     }
   };
 
   const handleMarkAsMastered = async () => {
     if (!word?._id || isMastered) return;
 
-    const timeSpent = viewStartTime
-      ? Math.round((Date.now() - viewStartTime) / 1000)
-      : 0; // 轉換為秒
+    const timeSpent = viewStartTime ? Math.round((Date.now() - viewStartTime) / 1000) : 0; // 轉換為秒
     const success = await recordWordMastered(word._id, timeSpent);
 
     if (success) {
       setIsMastered(true);
       onWordMastered?.(word);
-      Alert.alert("恭喜！", "你已經完全掌握了這個單詞");
+      Alert.alert('恭喜!', '你已經完全掌握這個單字');
     }
   };
 
   const handlePractice = async (isCorrect) => {
     if (!word?._id) return;
 
-    const timeSpent = 5; // 練習時間 5秒
-    await recordWordPractice(word._id, timeSpent, isCorrect, "medium");
+    const timeSpent = 5; // 練習假設 5秒
+    await recordWordPractice(word._id, timeSpent, isCorrect, 'medium');
   };
 
   if (!word) {
@@ -87,14 +84,14 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
 
   return (
     <View style={styles.container}>
-      {/* 單詞標題 */}
+      {/* 卡片標題 */}
       <View style={styles.header}>
         <Text style={styles.title}>{word.title}</Text>
         <View style={styles.statusBadges}>
           {isLearned && (
             <View style={[styles.badge, styles.learnedBadge]}>
               <Ionicons name="checkmark" size={12} color="white" />
-              <Text style={styles.badgeText}>已學習</Text>
+              <Text style={styles.badgeText}>已學會</Text>
             </View>
           )}
           {isMastered && (
@@ -106,7 +103,7 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
         </View>
       </View>
 
-      {/* 單詞內容 */}
+      {/* 卡片內容 */}
       <Text style={styles.content}>{word.content}</Text>
 
       {/* 分類標籤 */}
@@ -123,51 +120,32 @@ const WordLearningCard = ({ word, onWordLearned, onWordMastered }) => {
       {/* 操作按鈕 */}
       <View style={styles.actions}>
         <TouchableOpacity
-          style={[
-            styles.actionButton,
-            isLearned && styles.actionButtonDisabled,
-          ]}
+          style={[styles.actionButton, isLearned && styles.actionButtonDisabled]}
           onPress={handleMarkAsLearned}
           disabled={isLearned || recording}
         >
-          <Ionicons
-            name={isLearned ? "checkmark-circle" : "school"}
-            size={18}
-            color={
-              isLearned
-                ? MaterialYouTheme.neutral.neutral60
-                : MaterialYouTheme.primary.primary40
-            }
+          <Ionicons 
+            name={isLearned ? "checkmark-circle" : "school"} 
+            size={18} 
+            color={isLearned ? MaterialYouTheme.neutral.neutral60 : MaterialYouTheme.primary.primary40} 
           />
-          <Text
-            style={[styles.actionText, isLearned && styles.actionTextDisabled]}
-          >
-            {isLearned ? "已學習" : "標記為已學習"}
+          <Text style={[styles.actionText, isLearned && styles.actionTextDisabled]}>
+            {isLearned ? '已學會' : '標記為已學會'}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[
-            styles.actionButton,
-            styles.masteredButton,
-            isMastered && styles.actionButtonDisabled,
-          ]}
+          style={[styles.actionButton, styles.masteredButton, isMastered && styles.actionButtonDisabled]}
           onPress={handleMarkAsMastered}
           disabled={isMastered || recording || !isLearned}
         >
-          <Ionicons
-            name={isMastered ? "star" : "star-outline"}
-            size={18}
-            color={
-              isMastered
-                ? MaterialYouTheme.neutral.neutral60
-                : MaterialYouTheme.secondary.secondary40
-            }
+          <Ionicons 
+            name={isMastered ? "star" : "star-outline"} 
+            size={18} 
+            color={isMastered ? MaterialYouTheme.neutral.neutral60 : MaterialYouTheme.secondary.secondary40} 
           />
-          <Text
-            style={[styles.actionText, isMastered && styles.actionTextDisabled]}
-          >
-            {isMastered ? "已掌握" : "標記為掌握"}
+          <Text style={[styles.actionText, isMastered && styles.actionTextDisabled]}>
+            {isMastered ? '已掌握' : '標記為掌握'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -216,9 +194,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: Spacing.sm,
   },
   title: {
@@ -227,12 +205,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statusBadges: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: Spacing.xs,
   },
   badge: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: Spacing.xs,
     paddingVertical: 2,
     borderRadius: BorderRadius.sm,
@@ -246,7 +224,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     ...Typography.labelSmall,
-    color: "white",
+    color: 'white',
   },
   content: {
     ...Typography.bodyLarge,
@@ -254,8 +232,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   categories: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Spacing.xs,
     marginBottom: Spacing.md,
   },
@@ -270,15 +248,15 @@ const styles = StyleSheet.create({
     color: MaterialYouTheme.tertiary.tertiary20,
   },
   actions: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: Spacing.sm,
     marginBottom: Spacing.sm,
   },
   actionButton: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
     borderRadius: BorderRadius.md,
@@ -299,37 +277,37 @@ const styles = StyleSheet.create({
     color: MaterialYouTheme.neutral.neutral60,
   },
   practiceButtons: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: Spacing.sm,
   },
   practiceButton: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     gap: Spacing.xs,
   },
   correctButton: {
-    backgroundColor: MaterialYouTheme.success?.success40 || "#4CAF50",
+    backgroundColor: MaterialYouTheme.success?.success40 || '#4CAF50',
   },
   incorrectButton: {
     backgroundColor: MaterialYouTheme.error.error40,
   },
   practiceButtonText: {
     ...Typography.labelMedium,
-    color: "white",
+    color: 'white',
   },
   recordingIndicator: {
     marginTop: Spacing.sm,
     paddingVertical: Spacing.xs,
-    alignItems: "center",
+    alignItems: 'center',
   },
   recordingText: {
     ...Typography.labelSmall,
     color: MaterialYouTheme.primary.primary50,
-    fontStyle: "italic",
+    fontStyle: 'italic',
   },
 });
 

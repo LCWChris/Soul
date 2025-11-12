@@ -1,38 +1,33 @@
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { MaterialYouTheme, Typography } from "../../themes/MaterialYouTheme";
+﻿import React from 'react';
+import { TouchableOpacity, Text, StyleSheet, View, Platform } from 'react-native';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 
-const MaterialFAB = ({
-  onPress,
-  icon,
-  text,
-  variant = "primary",
-  size = "normal",
-  style,
+const MaterialFAB = ({ 
+  onPress, 
+  icon, 
+  text, 
+  variant = 'primary', 
+  size = 'normal',
+  style 
 }) => {
   const getVariantStyles = () => {
     switch (variant) {
-      case "primary":
+      case 'primary':
         return {
           backgroundColor: MaterialYouTheme.primary.primary50,
           color: MaterialYouTheme.primary.primary99,
         };
-      case "secondary":
+      case 'secondary':
         return {
           backgroundColor: MaterialYouTheme.secondary.secondary50,
           color: MaterialYouTheme.secondary.secondary99,
         };
-      case "tertiary":
+      case 'tertiary':
         return {
           backgroundColor: MaterialYouTheme.tertiary.tertiary50,
           color: MaterialYouTheme.tertiary.tertiary99,
         };
-      case "surface":
+      case 'surface':
         return {
           backgroundColor: MaterialYouTheme.neutral.neutral95,
           color: MaterialYouTheme.primary.primary30,
@@ -47,13 +42,13 @@ const MaterialFAB = ({
 
   const getSizeStyles = () => {
     switch (size) {
-      case "small":
+      case 'small':
         return {
           width: 40,
           height: 40,
           borderRadius: 12,
         };
-      case "large":
+      case 'large':
         return {
           width: 96,
           height: 96,
@@ -80,7 +75,7 @@ const MaterialFAB = ({
           ...sizeStyle,
         },
         style,
-        { bottom: Platform.OS === "ios" ? 80 : 60 }, // 修正底部距離
+        { bottom: Platform.OS === 'ios' ? 80 : 60 } // 修正底部距離
       ]}
       onPress={onPress}
       activeOpacity={0.8}
@@ -103,9 +98,9 @@ const MaterialFAB = ({
 
 const styles = StyleSheet.create({
   fab: {
-    position: "absolute",
-    justifyContent: "center",
-    alignItems: "center",
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
     elevation: 6,
     shadowColor: MaterialYouTheme.neutral.neutral30,
     shadowOffset: { width: 0, height: 3 },
@@ -113,9 +108,9 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
   },
   content: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   icon: {
     fontSize: 24,
@@ -123,7 +118,7 @@ const styles = StyleSheet.create({
   },
   text: {
     ...Typography.labelMedium,
-    fontWeight: "500",
+    fontWeight: '500',
   },
 });
 

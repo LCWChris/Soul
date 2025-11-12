@@ -1,40 +1,41 @@
-import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { MaterialYouTheme } from "../../themes/MaterialYouTheme";
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { MaterialYouTheme } from '../../themes/MaterialYouTheme';
 
 const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
   const levelOptions = [
     {
-      level: "初級",
-      label: "初級",
-      icon: "leaf-outline",
+      level: '初級',
+      label: '初級',
+      icon: 'leaf-outline',
       color: MaterialYouTheme.secondary.secondary40,
       bgColor: MaterialYouTheme.secondary.secondary90,
-      description: "基礎單詞，適合初學者",
+      description: '基礎詞彙，適合初學者'
     },
     {
-      level: "中級",
-      label: "中級",
-      icon: "school-outline",
+      level: '中級',
+      label: '中級',
+      icon: 'school-outline',
       color: MaterialYouTheme.tertiary.tertiary40,
       bgColor: MaterialYouTheme.tertiary.tertiary90,
-      description: "進階單詞，有一定基礎",
+      description: '常用詞彙，有一定基礎'
     },
     {
-      level: "高級",
-      label: "高級",
-      icon: "trophy-outline",
+      level: '高級',
+      label: '高級',
+      icon: 'trophy-outline',
       color: MaterialYouTheme.primary.primary40,
       bgColor: MaterialYouTheme.primary.primary90,
-      description: "複雜單詞，挑戰高難度",
-    },
+      description: '複雜詞彙，挑戰進階'
+    }
   ];
 
   return (
     <View style={[styles.container, style]}>
-      <Text style={styles.title}>按難度等級學習</Text>
-      <Text style={styles.subtitle}>選擇適合您的學習等級</Text>
-
+      <Text style={styles.title}>選擇難度分級學習</Text>
+      <Text style={styles.subtitle}>選擇最適合您的學習等級</Text>
+      
       <View style={styles.optionsContainer}>
         {levelOptions.map((option) => (
           <TouchableOpacity
@@ -42,17 +43,12 @@ const LevelSelector = ({ onSelectLevel, selectedLevel, style }) => {
             style={[
               styles.optionCard,
               { backgroundColor: option.bgColor },
-              selectedLevel === option.level && styles.selectedCard,
+              selectedLevel === option.level && styles.selectedCard
             ]}
             onPress={() => onSelectLevel(option.level)}
           >
             <View style={styles.optionHeader}>
-              <View
-                style={[
-                  styles.iconContainer,
-                  { backgroundColor: option.color },
-                ]}
-              >
+              <View style={[styles.iconContainer, { backgroundColor: option.color }]}>
                 <Ionicons name={option.icon} size={24} color="white" />
               </View>
               <Text style={[styles.optionLabel, { color: option.color }]}>
@@ -73,15 +69,15 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: MaterialYouTheme.neutral.neutral10,
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
     color: MaterialYouTheme.neutral.neutral30,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 24,
   },
   optionsContainer: {
@@ -91,28 +87,28 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 16,
     borderWidth: 2,
-    borderColor: "transparent",
+    borderColor: 'transparent',
   },
   selectedCard: {
     borderColor: MaterialYouTheme.primary.primary40,
     transform: [{ scale: 1.02 }],
   },
   optionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
   iconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
   },
   optionLabel: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   optionDescription: {
     fontSize: 14,

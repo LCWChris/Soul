@@ -1,33 +1,25 @@
-import React, { useEffect, useState } from "react";
-import {
-  Animated,
+﻿import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
   StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import {
-  BorderRadius,
-  Elevation,
-  MaterialYouTheme,
-  Spacing,
-  Typography,
-} from "../../themes/MaterialYouTheme";
+  Animated
+} from 'react-native';
+import { MaterialYouTheme, Typography, Spacing, BorderRadius, Elevation } from '../../themes/MaterialYouTheme';
 
-const MaterialSearchBar = ({
-  placeholder = "搜尋單詞...",
-  onSearchChange,
-  onFocus,
+const MaterialSearchBar = ({ 
+  placeholder = "搜尋單字...", 
+  onSearchChange, 
+  onFocus, 
   onBlur,
   value,
-  autoFocus = false,
+  autoFocus = false
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [searchValue, setSearchValue] = useState(value || "");
-  const animatedValue = React.useRef(
-    new Animated.Value(isFocused ? 1 : 0)
-  ).current;
+  const [searchValue, setSearchValue] = useState(value || '');
+  const animatedValue = React.useRef(new Animated.Value(isFocused ? 1 : 0)).current;
 
   useEffect(() => {
     Animated.timing(animatedValue, {
@@ -53,13 +45,13 @@ const MaterialSearchBar = ({
   };
 
   const clearSearch = () => {
-    setSearchValue("");
-    onSearchChange && onSearchChange("");
+    setSearchValue('');
+    onSearchChange && onSearchChange('');
   };
 
   const animatedBorderColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [MaterialYouTheme.neutral.neutral80, "#2563EB"], // 藍色邊框
+    outputRange: [MaterialYouTheme.neutral.neutral80, "#2563EB"], // 藍色主題
   });
 
   const animatedBackgroundColor = animatedValue.interpolate({
@@ -68,19 +60,17 @@ const MaterialSearchBar = ({
   });
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          borderColor: animatedBorderColor,
-          backgroundColor: animatedBackgroundColor,
-        },
-      ]}
-    >
+    <Animated.View style={[
+      styles.container,
+      {
+        borderColor: animatedBorderColor,
+        backgroundColor: animatedBackgroundColor,
+      }
+    ]}>
       <View style={styles.searchIcon}>
         <Text style={styles.searchIconText}>🔍</Text>
       </View>
-
+      
       <TextInput
         style={styles.input}
         placeholder={placeholder}
@@ -92,7 +82,7 @@ const MaterialSearchBar = ({
         autoFocus={autoFocus}
         selectionColor="#2563EB" // 藍色選取
       />
-
+      
       {searchValue.length > 0 && (
         <TouchableOpacity onPress={clearSearch} style={styles.clearButton}>
           <Text style={styles.clearButtonText}>✕</Text>
@@ -104,8 +94,8 @@ const MaterialSearchBar = ({
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     borderRadius: BorderRadius.full,
     borderWidth: 1,
     marginHorizontal: Spacing.md,
@@ -134,7 +124,7 @@ const styles = StyleSheet.create({
   clearButtonText: {
     fontSize: 16,
     color: MaterialYouTheme.neutral.neutral50,
-    fontWeight: "500",
+    fontWeight: '500',
   },
 });
 
