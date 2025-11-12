@@ -1,9 +1,14 @@
 // LearningStatusSelector.jsx
 // 小型狀態選擇器：顯示目前學習狀態並允許使用者循環切換。
-import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { MaterialYouTheme, Typography, Spacing, BorderRadius } from '../../themes/MaterialYouTheme';
-import { LEARNING_STATUS } from '@/utils/learning-progress';
+import { LEARNING_STATUS } from "@/utils/learning-progress";
+import { useCallback } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  BorderRadius,
+  MaterialYouTheme,
+  Spacing,
+  Typography,
+} from "../../themes/MaterialYouTheme";
 
 const STATUS_ORDER = [
   LEARNING_STATUS.NOT_STARTED,
@@ -13,10 +18,10 @@ const STATUS_ORDER = [
 ];
 
 const STATUS_LABELS = {
-  [LEARNING_STATUS.NOT_STARTED]: '未開始',
-  [LEARNING_STATUS.LEARNING]: '學習中',
-  [LEARNING_STATUS.REVIEWING]: '複習中',
-  [LEARNING_STATUS.MASTERED]: '已掌握',
+  [LEARNING_STATUS.NOT_STARTED]: "未開始",
+  [LEARNING_STATUS.LEARNING]: "學習中",
+  [LEARNING_STATUS.REVIEWING]: "複習中",
+  [LEARNING_STATUS.MASTERED]: "已掌握",
 };
 
 const getStatusColor = (status) => {
@@ -34,7 +39,11 @@ const getStatusColor = (status) => {
   }
 };
 
-const LearningStatusSelector = ({ currentStatus = LEARNING_STATUS.NOT_STARTED, onStatusChange, style }) => {
+const LearningStatusSelector = ({
+  currentStatus = LEARNING_STATUS.NOT_STARTED,
+  onStatusChange,
+  style,
+}) => {
   const handleNext = useCallback(() => {
     const idx = STATUS_ORDER.indexOf(currentStatus);
     const nextStatus = STATUS_ORDER[(idx + 1) % STATUS_ORDER.length];
@@ -43,7 +52,14 @@ const LearningStatusSelector = ({ currentStatus = LEARNING_STATUS.NOT_STARTED, o
 
   return (
     <View style={[styles.container, style]}>
-      <TouchableOpacity style={[styles.statusButton, { backgroundColor: getStatusColor(currentStatus) }]} onPress={handleNext} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={[
+          styles.statusButton,
+          { backgroundColor: getStatusColor(currentStatus) },
+        ]}
+        onPress={handleNext}
+        activeOpacity={0.8}
+      >
         <Text style={styles.statusText}>{STATUS_LABELS[currentStatus]}</Text>
         <Text style={styles.hintText}>點擊切換 →</Text>
       </TouchableOpacity>
@@ -53,26 +69,26 @@ const LearningStatusSelector = ({ currentStatus = LEARNING_STATUS.NOT_STARTED, o
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   statusButton: {
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: Spacing.md,
     elevation: 1,
   },
   statusText: {
     ...Typography.labelLarge,
-    color: 'white',
-    fontWeight: '600',
+    color: "white",
+    fontWeight: "600",
   },
   hintText: {
     ...Typography.labelSmall,
-    color: 'rgba(255,255,255,0.8)',
+    color: "rgba(255,255,255,0.8)",
   },
 });
 

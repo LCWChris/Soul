@@ -1,7 +1,10 @@
-# 忽略組件文件，防止被視為路由
-components/**
-hooks/**
-services/**
-MaterialYouTheme.js
-*.styles.js
-utils/**
+# 只忽略純 UI 或邏輯層，不忽略 screens 需要的 components 路徑
+api/**
+ui/components/**
+ui/themes/**
+ui/screens/EnhancedWordLearningScreen.jsx
+ui/screens/SimpleEnhancedWordLearningScreen.jsx
+TestMaterialYou.jsx
+README.md
+REFACTORING_SUMMARY.md
+ARCHITECTURE.md
