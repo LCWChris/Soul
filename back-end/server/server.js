@@ -605,7 +605,7 @@ app.post("/api/vocabularies", async (req, res) => {
   try {
     console.log("✅ 收到請求內容：", req.body);
 
-    const newVocab = new Vocabulary(req.body);
+    const newVocab = new BookWord(req.body);
     await newVocab.save();
 
     console.log("✅ 寫入成功：", newVocab);
@@ -637,6 +637,7 @@ let QuizWord;
 const QUIZ_IMG_COLLECTION_NAME = "Quiz_img";
 
 // 解決 Model 衝突：克隆 VocabSchema
+const VocabSchema = require("./models/Vocabulary").schema;
 const QuizWordSchema = VocabSchema.clone();
 
 // 嚴謹地定義 Model
