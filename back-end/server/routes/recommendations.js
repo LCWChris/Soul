@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const UserPreference = require("../models/UserPreference");
 const LearningProgress = require("../models/LearningProgress");
-const Vocabulary = require("../models/Vocabulary"); // Assuming you have a Vocabulary model
+const BookWord = require("../models/Vocabulary");
 
 // A simple list of all available learning materials/categories for fallback
 const allMaterials = [
@@ -65,7 +65,7 @@ router.get("/personalized/:userId", async (req, res) => {
 
       // Strategy 1: Recommend based on user's stated interests
       if (interestCategory) {
-        const interestedVocab = await Vocabulary.find({
+        const interestedVocab = await BookWord.find({
           category: interestCategory,
         }).limit(limit);
         if (interestedVocab.length > 0) {
@@ -87,7 +87,7 @@ router.get("/personalized/:userId", async (req, res) => {
 
       // Strategy 2: If no items from interest, recommend based on level
       if (recommendations.length < limit && learningLevel) {
-        const levelBasedVocab = await Vocabulary.find({
+        const levelBasedVocab = await BookWord.find({
           level: learningLevel,
           category: { $ne: interestCategory },
         }).limit(limit - recommendations.length);

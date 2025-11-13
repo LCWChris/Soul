@@ -6,6 +6,7 @@ const cloudinary = require("cloudinary").v2;
 const { Webhook } = require("svix"); // 新增
 require("dotenv").config({ path: "../.env" });
 const User = require("./models/User"); // 引入 User 模型 (修正大小寫)
+const BookWord = require("./models/Vocabulary"); // 引入 BookWord 模型
 // 匯入問卷路由
 const preferencesRouter = require("./routes/preferences");
 // 匯入學習統計路由
@@ -181,35 +182,6 @@ mongoose
   .then(() => console.log("✅ MongoDB connected successfully"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-const VocabSchema = new mongoose.Schema({
-  title: String,
-  content: String,
-  level: String,
-  theme: String,
-  image_url: String,
-  video_url: String,
-  created_by: String,
-  created_at: Date,
-  // 新增的分類欄位
-  category: String, // 主分類
-  categories: [String], // 主題分類陣列
-  learning_level: String, // 學習難度 (beginner/intermediate/advanced)
-  context: String, // 使用情境
-  frequency: String, // 使用頻率 (high/medium/low)
-  searchable_text: String, // 搜尋文字
-  volume: Number, // 冊數
-  lesson: Number, // 課數
-  page: Number, // 頁數
-});
-
-// 使用 book_words collection (安全的模型定義)
-let BookWord;
-try {
-  BookWord = mongoose.model("BookWord");
-} catch (error) {
-  BookWord = mongoose.model("BookWord", VocabSchema, "book_words");
-}
-
 // === 根路由 ===
 app.get("/", (req, res) => {
   res.json({
@@ -363,7 +335,7 @@ app.get("/api/book_words", async (req, res) => {
 });
 
 // 保留原本的 vocabularies API 以避免其他地方使用
-const Vocabulary = mongoose.model("Vocabulary", VocabSchema);
+const Vocabulary = mongoose.model("Vocabulary");
 
 app.get("/api/vocabularies", async (req, res) => {
   try {
