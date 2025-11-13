@@ -10,6 +10,8 @@ const User = require("./models/User"); // 引入 User 模型 (修正大小寫)
 const preferencesRouter = require("./routes/preferences");
 // 匯入學習統計路由
 const learningStatsRouter = require("./routes/learningStats");
+// 匯入推薦路由
+const recommendationsRouter = require("./routes/recommendations");
 
 // 環境變數配置
 const PORT = process.env.PORT || 3001;
@@ -238,6 +240,9 @@ app.use("/api/preferences", preferencesRouter);
 
 // === 掛載學習統計相關 API ===
 app.use("/api/learning-stats", learningStatsRouter);
+
+// === 掛載推薦相關 API ===
+app.use("/api/recommendations", recommendationsRouter);
 
 // === 詞彙相關 API ===
 
@@ -488,272 +493,6 @@ app.get("/api/categories", async (req, res) => {
   }
 });
 
-// 新增：獲取推薦詞彙
-app.get("/api/recommendations", async (req, res) => {
-  try {
-    const { learning_level = "beginner", limit = 10 } = req.query;
-
-    // 獲取高頻詞彙
-    const highFrequencyWords = await BookWord.find({
-      learning_level,
-      frequency: "high",
-    }).limit(parseInt(limit));
-
-    // 如果高頻詞彙不足，補充中頻詞彙
-    if (highFrequencyWords.length < limit) {
-      const remaining = parseInt(limit) - highFrequencyWords.length;
-      const mediumFrequencyWords = await BookWord.find({
-        learning_level,
-        frequency: "medium",
-      }).limit(remaining);
-
-      res.json([...highFrequencyWords, ...mediumFrequencyWords]);
-    } else {
-      res.json(highFrequencyWords);
-    }
-  } catch (err) {
-    console.error("獲取推薦詞彙失敗:", err);
-    res.status(500).json({ error: "獲取推薦詞彙失敗" });
-  }
-});
-
-// 新增：個人化推薦 API
-app.get("/api/recommendations/personalized/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { limit = 5 } = req.query;
-
-    console.log(`🎯 開始為用戶 ${userId} 生成個人化推薦...`);
-
-    // 1. 獲取用戶偏好
-    const UserPreference = require("./models/UserPreference");
-    const userPreference = await UserPreference.findOne({ userId });
-
-    if (!userPreference) {
-      console.log(`⚠️ 用戶 ${userId} 尚未填寫問卷，返回預設推薦`);
-      return res.json({ recommendations: [] });
-    }
-
-    // 2. 基於偏好生成推薦
-    const recommendations = await generatePersonalizedRecommendations(
-      userPreference.answers,
-      parseInt(limit)
-    );
-
-    console.log(`✅ 為用戶 ${userId} 生成 ${recommendations.length} 個推薦`);
-    res.json({ recommendations });
-  } catch (error) {
-    console.error("❌ 獲取個人化推薦失敗:", error);
-    res.status(500).json({ error: "推薦系統暫時無法使用" });
-  }
-});
-
-// 推薦演算法核心函數
-async function generatePersonalizedRecommendations(preferences, limit) {
-  const recommendations = [];
-
-  try {
-    console.log("🔍 用戶偏好:", preferences);
-
-    // 將 Map 轉換為普通物件
-    const prefs = {};
-    if (preferences instanceof Map) {
-      preferences.forEach((value, key) => {
-        prefs[key] = value;
-      });
-    } else {
-      Object.assign(prefs, preferences);
-    }
-
-    // 1. 詞彙推薦 (基於興趣主題和學習程度)
-    if (prefs.interestCategory && prefs.learningLevel) {
-      console.log(
-        `🎯 基於興趣主題: ${prefs.interestCategory}, 學習程度: ${prefs.learningLevel}`
-      );
-
-      const vocabularyRecs = await BookWord.find({
-        $or: [
-          { category: prefs.interestCategory },
-          { theme: prefs.interestCategory },
-        ],
-        learning_level: prefs.learningLevel,
-        $or: [{ frequency: "high" }, { frequency: "medium" }],
-      })
-        .limit(2)
-        .lean();
-
-      console.log(`📚 找到 ${vocabularyRecs.length} 個詞彙推薦`);
-
-      vocabularyRecs.forEach((word) => {
-        recommendations.push({
-          type: "vocabulary",
-          title: `學習「${word.title}」`,
-          subtitle: `${word.category || word.theme || "詞彙學習"} • ${
-            word.learning_level || "初級"
-          }`,
-          description:
-            word.content || `學習手語詞彙「${word.title}」，提升你的表達能力`,
-          image: word.image_url,
-          action: {
-            type: "navigate",
-            route: "/education/word-learning",
-            params: {
-              category: word.category || word.theme,
-              level: word.learning_level,
-              word: word.title,
-            },
-          },
-          priority: calculatePriority(word, prefs),
-        });
-      });
-    }
-
-    // 2. 教材單元推薦 (基於學習程度和使用情境)
-    try {
-      const materialRecs = await Material.find({}).limit(2).lean();
-      console.log(`📖 找到 ${materialRecs.length} 個教材推薦`);
-
-      materialRecs.forEach((material) => {
-        recommendations.push({
-          type: "material",
-          title: material.unitname || `第${material.lesson}課`,
-          subtitle: `第${material.volume}冊 第${material.lesson}課`,
-          description: `繼續學習「${
-            material.unitname || "手語基礎"
-          }」，掌握更多實用技能`,
-          image: material.image,
-          action: {
-            type: "navigate",
-            route: `/education/teach/${material.volume}/${material.lesson}`,
-            params: {},
-          },
-          priority: calculateMaterialPriority(material, prefs),
-        });
-      });
-    } catch (materialError) {
-      console.warn("⚠️ 載入教材推薦時發生錯誤:", materialError.message);
-    }
-
-    // 3. 基於使用目的的推薦
-    if (prefs.purpose) {
-      if (prefs.purpose.includes("翻譯")) {
-        recommendations.push({
-          type: "feature",
-          title: "即時手語翻譯",
-          subtitle: "根據你的使用目的推薦",
-          description: "體驗即時手語翻譯功能，讓溝通更順暢",
-          image: null,
-          action: {
-            type: "navigate",
-            route: "/translation",
-            params: {},
-          },
-          priority: 80,
-        });
-      }
-
-      if (prefs.purpose.includes("學習")) {
-        recommendations.push({
-          type: "feature",
-          title: "開始學習之旅",
-          subtitle: "根據你的學習需求推薦",
-          description: "從基礎開始，循序漸進學習手語",
-          image: null,
-          action: {
-            type: "navigate",
-            route: "/education",
-            params: {},
-          },
-          priority: 75,
-        });
-      }
-    }
-
-    // 4. 依據優先級排序並限制數量
-    const finalRecommendations = recommendations
-      .sort((a, b) => b.priority - a.priority)
-      .slice(0, limit);
-
-    console.log(
-      `🎯 最終推薦 ${finalRecommendations.length} 項，優先級排序完成`
-    );
-    return finalRecommendations;
-  } catch (error) {
-    console.error("❌ 生成推薦時發生錯誤:", error);
-    return [];
-  }
-}
-
-function calculatePriority(item, preferences) {
-  let priority = 50; // 基礎分數
-
-  try {
-    // 根據興趣主題加分
-    if (
-      item.category === preferences.interestCategory ||
-      item.theme === preferences.interestCategory
-    ) {
-      priority += 30;
-    }
-
-    // 根據學習程度匹配度加分
-    if (item.learning_level === preferences.learningLevel) {
-      priority += 25;
-    }
-
-    // 根據使用情境加分
-    if (item.context === preferences.useContext) {
-      priority += 20;
-    }
-
-    // 根據頻率加分
-    if (item.frequency === "high") {
-      priority += 15;
-    } else if (item.frequency === "medium") {
-      priority += 10;
-    }
-
-    return priority;
-  } catch (error) {
-    console.warn("⚠️ 計算優先級時發生錯誤:", error);
-    return priority;
-  }
-}
-
-function calculateMaterialPriority(material, preferences) {
-  let priority = 60; // 教材基礎分數稍高
-
-  try {
-    // 根據學習程度調整 (初級用戶優先推薦低冊數)
-    if (preferences.learningLevel === "beginner" && material.volume <= 2) {
-      priority += 20;
-    } else if (
-      preferences.learningLevel === "intermediate" &&
-      material.volume >= 2 &&
-      material.volume <= 4
-    ) {
-      priority += 20;
-    } else if (
-      preferences.learningLevel === "advanced" &&
-      material.volume >= 3
-    ) {
-      priority += 20;
-    }
-
-    // 根據學習時間偏好調整
-    if (preferences.studyTime) {
-      if (preferences.studyTime.includes("20") && material.lesson > 5) {
-        priority += 10; // 願意學習較長時間的用戶推薦較複雜內容
-      }
-    }
-
-    return priority;
-  } catch (error) {
-    console.warn("⚠️ 計算教材優先級時發生錯誤:", error);
-    return priority;
-  }
-}
-
 // 新增：每日一句 API
 app.get("/api/daily-sign", async (req, res) => {
   try {
@@ -956,11 +695,9 @@ app.get("/api/quiz/:volume/:lesson", async (req, res) => {
     }).lean();
 
     if (quizItems.length === 0) {
-      return res
-        .status(404)
-        .json({
-          error: `找不到第 ${volNum} 冊 第 ${lessonNum} 課的測驗詞彙。`,
-        });
+      return res.status(404).json({
+        error: `找不到第 ${volNum} 冊 第 ${lessonNum} 課的測驗詞彙。`,
+      });
     }
 
     // 2. 獲取所有 QuizWord 詞彙的中文意思 (使用 distinct 查詢，效率高且安全)
