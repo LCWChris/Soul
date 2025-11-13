@@ -335,8 +335,6 @@ app.get("/api/book_words", async (req, res) => {
 });
 
 // 保留原本的 vocabularies API 以避免其他地方使用
-const Vocabulary = mongoose.model("Vocabulary");
-
 app.get("/api/vocabularies", async (req, res) => {
   try {
     const { level, category, search } = req.query;
