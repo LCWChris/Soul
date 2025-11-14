@@ -1,23 +1,27 @@
 import { API_CONFIG } from "@/constants/api";
 import { getTranslationApiUrl, saveTranslationApiUrl } from "@/utils/settings";
 import { useAuth, useUser } from "@clerk/clerk-expo";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet } from "react-native";
 import {
-  Button,
-  Card,
-  Divider,
-  Snackbar,
+  Alert,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
-} from "react-native-paper";
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function UserScreen() {
   const { user } = useUser();
   const router = useRouter();
   const { signOut } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -41,6 +45,7 @@ export default function UserScreen() {
     await saveTranslationApiUrl(translationApiUrl);
     setSnackbarMessage("✅ 翻譯 API URL 已儲存");
     setSnackbarVisible(true);
+    setTimeout(() => setSnackbarVisible(false), 2000);
   };
 
   // ✅ 共用 API fetch 工具
@@ -97,11 +102,13 @@ export default function UserScreen() {
       await signOut();
       setSnackbarMessage("✅ 已登出");
       setSnackbarVisible(true);
+      setTimeout(() => setSnackbarVisible(false), 2000);
       router.replace("/(auth)/sign-in");
     } catch (e) {
       console.error("登出失敗:", e);
       setSnackbarMessage("❌ 登出失敗，請稍後再試");
       setSnackbarVisible(true);
+      setTimeout(() => setSnackbarVisible(false), 2000);
     }
   };
 
@@ -117,11 +124,13 @@ export default function UserScreen() {
       await user.delete();
       setSnackbarMessage("✅ 帳號與偏好資料已刪除");
       setSnackbarVisible(true);
+      setTimeout(() => setSnackbarVisible(false), 2000);
       router.replace("/(auth)/sign-up");
     } catch (e) {
       console.error("註銷失敗:", e);
       setSnackbarMessage("❌ 註銷失敗，請稍後再試");
       setSnackbarVisible(true);
+      setTimeout(() => setSnackbarVisible(false), 2000);
     }
   };
 
@@ -157,21 +166,25 @@ export default function UserScreen() {
         setPreferences(null);
         setSnackbarMessage(`❌ 取得問卷失敗（${res.status}）`);
         setSnackbarVisible(true);
+        setTimeout(() => setSnackbarVisible(false), 2000);
         return;
       }
       if (data?.success && data.data) {
         setPreferences(data.data.answers);
         setSnackbarMessage("✅ 已載入問卷答案");
         setSnackbarVisible(true);
+        setTimeout(() => setSnackbarVisible(false), 2000);
       } else {
         setPreferences(null);
         setSnackbarMessage("ℹ️ 尚未填寫問卷");
         setSnackbarVisible(true);
+        setTimeout(() => setSnackbarVisible(false), 2000);
       }
     } catch (err) {
       console.error("❌ 取得問卷失敗（網路/解析）:", err, { url });
       setSnackbarMessage("❌ 取得問卷失敗，請稍後再試");
       setSnackbarVisible(true);
+      setTimeout(() => setSnackbarVisible(false), 2000);
     } finally {
       setLoading(false);
     }
@@ -190,156 +203,367 @@ export default function UserScreen() {
         await AsyncStorage.removeItem(`questionnaireFilled_${user.id}`);
         setSnackbarMessage("✅ 問卷資料已清除");
         setSnackbarVisible(true);
+        setTimeout(() => setSnackbarVisible(false), 2000);
         router.replace("/onboarding/preference");
       } else {
         setSnackbarMessage("❌ 清除問卷失敗");
         setSnackbarVisible(true);
+        setTimeout(() => setSnackbarVisible(false), 2000);
       }
     } catch (err) {
       console.error("❌ 刪除問卷失敗:", err);
       setSnackbarMessage("❌ 刪除問卷失敗，請稍後再試");
       setSnackbarVisible(true);
+      setTimeout(() => setSnackbarVisible(false), 2000);
     }
   };
 
   return (
-    <>
+    <LinearGradient colors={["#F0F9FF", "#E0F2FE"]} style={styles.container}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <Text style={styles.headerTitle}>使用者設定</Text>
+      </View>
+
       <ScrollView
-        style={{ flex: 1, padding: 16 }}
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
+        showsVerticalScrollIndicator={false}
       >
-        <Text variant="headlineMedium" style={{ marginBottom: 16 }}>
-          使用者設定
-        </Text>
 
         {/* 區塊：帳號設定 */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="titleLarge">👤 帳號設定</Text>
-            <Text variant="bodyMedium">
-              帳號：{user?.primaryEmailAddress?.emailAddress}
-            </Text>
-            <Text variant="bodyMedium">
-              使用者名稱：{user?.username || "未設定"}
-            </Text>
-            <Divider style={{ marginVertical: 8 }} />
-            <Button
-              mode="contained-tonal"
-              onPress={() => router.push("/user/update-username")}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="person" size={24} color="#3B82F6" />
+            </View>
+            <Text style={styles.cardTitle}>帳號設定</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>帳號：</Text>
+            <Text style={styles.infoValue}>{user?.primaryEmailAddress?.emailAddress}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>使用者名稱：</Text>
+            <Text style={styles.infoValue}>{user?.username || "未設定"}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push("/user/update-username")}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={["#A78BFA", "#8B5CF6"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buttonGradient}
             >
-              修改使用者名稱
-            </Button>
-          </Card.Content>
-        </Card>
+              <Text style={styles.buttonText}>修改使用者名稱</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
 
         {/* 區塊：問卷偏好 */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="titleLarge">📝 問卷偏好</Text>
-            <Button
-              mode="contained-tonal"
-              style={{ marginTop: 8 }}
-              onPress={() => router.push("/onboarding/preference")}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="clipboard" size={24} color="#8B5CF6" />
+            </View>
+            <Text style={styles.cardTitle}>問卷偏好</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.push("/onboarding/preference")}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={["#60A5FA", "#3B82F6"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buttonGradient}
             >
-              修改偏好問卷
-            </Button>
-            <Button
-              mode="contained-tonal"
-              style={{ marginTop: 8 }}
-              onPress={fetchPreferences}
-              loading={loading}
-            >
-              查看已儲存的問卷
-            </Button>
-            <Button
-              mode="contained-tonal"
-              buttonColor="#dc2626"
-              textColor="white"
-              style={{ marginTop: 8 }}
-              onPress={clearPreferences}
-            >
-              清除問卷答案
-            </Button>
+              <Text style={styles.buttonText}>修改偏好問卷</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonSecondary]}
+            onPress={fetchPreferences}
+            disabled={loading}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.buttonSecondaryText}>{loading ? "載入中..." : "查看已儲存的問卷"}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonDanger]}
+            onPress={clearPreferences}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.buttonText}>清除問卷答案</Text>
+          </TouchableOpacity>
 
-            {preferences && (
-              <Card style={{ marginTop: 12, backgroundColor: "#f3f4f6" }}>
-                <Card.Content>
-                  <Text variant="titleLarge">📋 問卷答案</Text>
-                  {Object.entries(preferences).map(([key, value], index) => {
-                    const label = labels[key] || key;
-                    const displayValue = valueLabels[key]?.[value] ?? value;
+          {preferences && (
+            <View style={styles.answersContainer}>
+              <Text style={styles.answersTitle}>📋 問卷答案</Text>
+              {Object.entries(preferences).map(([key, value], index) => {
+                const label = labels[key] || key;
+                const displayValue = valueLabels[key]?.[value] ?? value;
 
-                    return (
-                      <Text variant="bodyMedium" key={key}>
-                        {index + 1}. {label}：{displayValue}
-                      </Text>
-                    );
-                  })}
-                </Card.Content>
-              </Card>
-            )}
-          </Card.Content>
-        </Card>
+                return (
+                  <View key={key} style={styles.answerItem}>
+                    <View style={styles.answerDot} />
+                    <Text style={styles.answerText}>
+                      {label}：<Text style={styles.answerValue}>{displayValue}</Text>
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
+        </View>
 
         {/* 區塊：安全性 */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="titleLarge">🔐 安全性</Text>
-            <Button
-              mode="contained"
-              style={{ marginTop: 8 }}
-              onPress={handleSignOut}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="lock-closed" size={24} color="#6366F1" />
+            </View>
+            <Text style={styles.cardTitle}>安全性</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleSignOut}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={["#818CF8", "#6366F1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buttonGradient}
             >
-              登出
-            </Button>
-            <Button
-              mode="contained"
-              buttonColor="#b91c1c"
-              style={{ marginTop: 8 }}
-              onPress={showDeleteConfirmation}
-            >
-              註銷帳號
-            </Button>
-          </Card.Content>
-        </Card>
+              <Text style={styles.buttonText}>登出</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.buttonDanger]}
+            onPress={showDeleteConfirmation}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.buttonText}>註銷帳號</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* 區塊：開發者設定 */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="titleLarge">⚙️ 開發者設定</Text>
-            <Text variant="bodyMedium">手動設定翻譯模型的 API 位址</Text>
-            <TextInput
-              label="翻譯 API URL"
-              value={translationApiUrl}
-              onChangeText={setTranslationApiUrl}
-              mode="outlined"
-              style={{ marginTop: 8 }}
-              autoCapitalize="none"
-            />
-            <Button
-              mode="contained"
-              style={{ marginTop: 8 }}
-              onPress={handleSaveApiUrl}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="code-slash" size={24} color="#10B981" />
+            </View>
+            <Text style={styles.cardTitle}>開發者設定</Text>
+          </View>
+          <Text style={styles.cardSubtitle}>手動設定翻譯模型的 API 位址</Text>
+          <TextInput
+            placeholder="翻譯 API URL"
+            value={translationApiUrl}
+            onChangeText={setTranslationApiUrl}
+            style={styles.textInput}
+            autoCapitalize="none"
+            placeholderTextColor="#94A3B8"
+          />
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleSaveApiUrl}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={["#34D399", "#10B981"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buttonGradient}
             >
-              儲存 API 位址
-            </Button>
-          </Card.Content>
-        </Card>
+              <Text style={styles.buttonText}>儲存 API 位址</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Snackbar 提示*/}
-      <Snackbar
-        visible={snackbarVisible}
-        onDismiss={() => setSnackbarVisible(false)}
-        duration={2000}
-        style={{ backgroundColor: "#333" }}
-      >
-        {snackbarMessage}
-      </Snackbar>
-    </>
+      {snackbarVisible && (
+        <View style={[styles.snackbar, { bottom: insets.bottom + 80 }]}>
+          <Text style={styles.snackbarText}>{snackbarMessage}</Text>
+        </View>
+      )}
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: 16 },
+  container: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1E293B",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingTop: 0,
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    gap: 12,
+  },
+  iconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#F0F9FF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#1E293B",
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: "#64748B",
+    marginBottom: 12,
+  },
+  infoRow: {
+    flexDirection: "row",
+    marginBottom: 8,
+  },
+  infoLabel: {
+    fontSize: 15,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  infoValue: {
+    fontSize: 15,
+    color: "#1E293B",
+    flex: 1,
+  },
+  button: {
+    marginTop: 12,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  buttonGradient: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  buttonSecondary: {
+    backgroundColor: "#F1F5F9",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonSecondaryText: {
+    color: "#475569",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  buttonDanger: {
+    backgroundColor: "#EF4444",
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  textInput: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 15,
+    color: "#1E293B",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    marginBottom: 12,
+  },
+  answersContainer: {
+    marginTop: 16,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 16,
+  },
+  answersTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1E293B",
+    marginBottom: 12,
+  },
+  answerItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 8,
+    gap: 8,
+  },
+  answerDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#8B5CF6",
+    marginTop: 6,
+  },
+  answerText: {
+    fontSize: 15,
+    color: "#475569",
+    flex: 1,
+    lineHeight: 22,
+  },
+  answerValue: {
+    fontWeight: "600",
+    color: "#1E293B",
+  },
+  snackbar: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(30, 41, 59, 0.95)",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  snackbarText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "500",
+    textAlign: "center",
+  },
 });

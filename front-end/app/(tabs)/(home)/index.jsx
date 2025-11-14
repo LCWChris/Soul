@@ -547,7 +547,7 @@ export default function HomeScreen() {
               </View>
             )}
           </View>
-          <Text style={styles.subtitle}>今天再學一點點，就更接近目標</Text>
+          <Text style={styles.subtitle}>一手學手語、雙手說世界。</Text>
         </View>
 
         {/* 今日任務 - 簡化版 */}

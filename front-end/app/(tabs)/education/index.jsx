@@ -171,10 +171,8 @@ export default function Education() {
             <View style={styles.iconCircle}>
               <Ionicons name="school" size={36} color="#6366F1" />
             </View>
-            <Text style={styles.title}>教育專區</Text>
-            <Text style={styles.subTitle}>
-              一手學手語、雙手說世界。開始你的學習旅程吧！
-            </Text>
+            <Text style={styles.title}>學習專區</Text>
+            <Text style={styles.subTitle}>今天再學一點點，就更接近目標。</Text>
           </View>
 
           {/* 主要學習路徑 */}
