@@ -5,8 +5,8 @@ import { useUser } from "@clerk/clerk-expo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -80,16 +80,25 @@ export default function HomeScreen() {
     streakDays: 5, // 連續學習天數
   };
 
-  // 載入數據
+  // 載入數據 - 初次載入
   useEffect(() => {
     if (user) {
-      loadPersonalizedRecommendations();
       loadDailySign();
       loadTodayTasks();
       loadUserProgress();
       loadStreakDays();
     }
   }, [user]);
+
+  // 每次進入主頁都重新載入推薦內容
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        console.log("🔄 進入主頁，重新載入推薦內容");
+        loadPersonalizedRecommendations();
+      }
+    }, [user])
+  );
 
   const loadUserProgress = async () => {
     if (!user?.id) {
@@ -191,7 +200,7 @@ export default function HomeScreen() {
       );
 
       const response = await fetch(
-        `${API_CONFIG.BASE_URL}/api/recommendations/personalized/${user.id}?limit=4`,
+        `${API_CONFIG.BASE_URL}/api/recommendations/personalized/${user.id}?limit=8`,
         {
           headers: {
             "ngrok-skip-browser-warning": "true",
@@ -459,31 +468,44 @@ export default function HomeScreen() {
 
   const handleRecommendationPress = (recommendation) => {
     console.log("🔘 點擊推薦:", recommendation);
-    const { action } = recommendation;
+    const { action, id } = recommendation;
 
+    // 優先處理 action 導航
     if (action && action.type === "navigate") {
+      console.log("📍 使用 action 導航:", action.route, action.params);
       if (action.params) {
-        router.push({
+        router.navigate({
           pathname: action.route,
           params: action.params,
         });
       } else {
-        router.push(action.route);
+        router.navigate(action.route);
       }
-    } else if (recommendation.category) {
-      router.push({
+    }
+    // 處理主題分類推薦（例如：日常對話、餐廳用語等）
+    else if (recommendation.category) {
+      console.log("📚 跳轉到單字學習 - 分類:", recommendation.category);
+      router.navigate({
         pathname: "/(tabs)/education/word-learning",
         params: { category: recommendation.category },
       });
-    } else {
-      console.log("⚠️ 未知的推薦格式", recommendation);
     }
-  }; // 模擬推薦課程資料 - 添加 category 字段以支援正確跳轉
+    // 處理 ID 為純數字的預設推薦（fallback）
+    else if (id && typeof id === "number") {
+      console.log("📖 預設推薦，跳轉到單字學習");
+      router.navigate("/(tabs)/education/word-learning");
+    } else {
+      console.log("⚠️ 未知的推薦格式，預設跳轉到教育頁面", recommendation);
+      router.navigate("/(tabs)/education");
+    }
+  };
+
+  // 模擬推薦課程資料 - category 必須與資料庫中的分類名稱一致
   const recommendedList = [
     {
       id: 1,
-      title: "日常對話",
-      category: "日常用語",
+      title: "日常用語",
+      category: "日常用語", // 與資料庫分類一致
       image:
         "https://www.shutterstock.com/image-vector/students-sitting-having-conversation-600nw-2584238303.jpg",
       description: "學習常見日常手勢，提升表達流暢度",
@@ -491,7 +513,7 @@ export default function HomeScreen() {
     {
       id: 2,
       title: "餐廳用語",
-      category: "餐廳",
+      category: "餐廳", // 與資料庫分類一致
       image:
         "https://static.vecteezy.com/system/resources/previews/047/553/671/non_2x/a-yellow-and-red-building-with-a-red-awning-and-a-black-door-vector.jpg",
       description: "掌握餐廳常用手語，點餐更方便",
@@ -499,7 +521,7 @@ export default function HomeScreen() {
     {
       id: 3,
       title: "交通出行",
-      category: "交通",
+      category: "交通", // 與資料庫分類一致
       image:
         "https://goldcard.nat.gov.tw/cms-uploads/public-transportation-getting-around-taiwan.jpg",
       description: "學會出行相關手語，問路搭車更輕鬆",
@@ -630,13 +652,13 @@ export default function HomeScreen() {
                   style={styles.continueButton}
                   onPress={() => {
                     if (userProgress.isNewUser) {
-                      router.push({
+                      router.navigate({
                         pathname:
                           "/(tabs)/education/teach/[volumeId]/[lessonId]",
                         params: { volumeId: "1", lessonId: "1" },
                       });
                     } else {
-                      router.push({
+                      router.navigate({
                         pathname:
                           "/(tabs)/education/teach/[volumeId]/[lessonId]",
                         params: {
@@ -761,7 +783,7 @@ export default function HomeScreen() {
                       dailySign?.word ||
                       dailySign?.chinese ||
                       defaultDailySign.word;
-                    router.push({
+                    router.navigate({
                       pathname: "/(tabs)/education/word-learning",
                       params: { word: wordToLearn },
                     });
@@ -783,7 +805,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             activeOpacity={0.7}
             style={[styles.quickCard, styles.quickPrimary]}
-            onPress={() => router.push("/(tabs)/translation")}
+            onPress={() => router.navigate("/(tabs)/translation")}
           >
             <View style={styles.quickIconWrapper}>
               <LinearGradient
@@ -944,7 +966,7 @@ export default function HomeScreen() {
               style={styles.progressActionBtn}
               labelStyle={{ fontSize: 13, fontWeight: "600" }}
               onPress={() =>
-                router.push("/(tabs)/education/word-learning/progress")
+                router.navigate("/(tabs)/education/word-learning/progress")
               }
             >
               查看詳細統計

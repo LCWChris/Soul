@@ -25,7 +25,7 @@ const allMaterials = [
  */
 router.get("/personalized/:userId", async (req, res) => {
   const { userId } = req.params;
-  const { limit = 4 } = req.query;
+  const { limit = 8 } = req.query;
   let recommendations = [];
   let recommendationReason = "";
 
@@ -44,41 +44,132 @@ router.get("/personalized/:userId", async (req, res) => {
     });
     const studiedWords = Array.from(studiedWordsSet);
 
-    // --- Strategy 1: Continue Learning ---
-    if (recommendations.length < limit) {
-      const lastLesson = await LearningProgress.getLastLesson(userId);
-      if (lastLesson && !lastLesson.isNewUser && lastLesson.progress < 1) {
-        recommendations.push({
-          id: `continue-${lastLesson.lastLesson.volume}-${lastLesson.lastLesson.lesson}`,
-          title: `繼續學習: ${lastLesson.lastLesson.title}`,
-          description: `第 ${lastLesson.lastLesson.volume} 冊 · 第 ${lastLesson.lastLesson.lesson} 單元`,
-          type: "material",
-          image_url:
-            "https://images.unsplash.com/photo-1517842645767-c6f90405774b?q=80&w=2070",
-          action: {
-            type: "navigate",
-            route: "/(tabs)/education/teach/[volumeId]/[lessonId]",
-            params: {
-              volumeId: lastLesson.lastLesson.volume.toString(),
-              lessonId: lastLesson.lastLesson.lesson.toString(),
+    // Calculate time-based recommendations
+    const now = new Date();
+    const recentProgress = progress.filter((p) => {
+      if (!p.lastStudied) return false;
+      const daysSince = (now - new Date(p.lastStudied)) / (1000 * 60 * 60 * 24);
+      return daysSince >= 1 && daysSince <= 7; // 1-7 days ago
+    });
+
+    // --- Strategy 1: Quick Review (時間導向複習) ---
+    if (recommendations.length < limit && recentProgress.length > 0) {
+      const reviewItem =
+        recentProgress[Math.floor(Math.random() * recentProgress.length)];
+      if (reviewItem.completedWords && reviewItem.completedWords.length > 0) {
+        const wordToReview =
+          reviewItem.completedWords[
+            Math.floor(Math.random() * reviewItem.completedWords.length)
+          ];
+        const vocab = await BookWord.findOne({ content: wordToReview });
+        if (vocab) {
+          recommendations.push({
+            id: `quick-review-${vocab._id}`,
+            title: `快速複習：${vocab.content}`,
+            description: `記憶黃金期！複習效果最佳`,
+            image_url:
+              vocab.image_url ||
+              "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070",
+            type: "vocabulary",
+            action: {
+              type: "navigate",
+              route: "/(tabs)/education/word-learning",
+              params: { word: vocab.content },
             },
-          },
-        });
-        recommendationReason += "Added 'Continue Learning' card. ";
+          });
+          recommendationReason += "Added 'Quick Review' card. ";
+        }
       }
     }
 
-    // --- Strategy 2: Review a Studied Word ---
+    // --- Strategy 2: Hot Topics (熱門主題) ---
+    if (recommendations.length < limit) {
+      const preferredCategories =
+        preferences?.answers?.preferredCategories || [];
+      let hotCategory = null;
+
+      if (preferredCategories.length > 0) {
+        hotCategory =
+          preferredCategories[
+            Math.floor(Math.random() * preferredCategories.length)
+          ];
+      } else {
+        // Fallback to popular categories
+        const popularCategories = ["日常用語", "情感表達", "家庭生活"];
+        hotCategory =
+          popularCategories[
+            Math.floor(Math.random() * popularCategories.length)
+          ];
+      }
+
+      const hotWords = await BookWord.find({
+        category: hotCategory,
+        content: { $nin: studiedWords },
+      }).limit(5);
+
+      if (hotWords.length > 0) {
+        const hotWord = hotWords[Math.floor(Math.random() * hotWords.length)];
+        recommendations.push({
+          id: `hot-topic-${hotWord._id}`,
+          title: `熱門主題：${hotCategory}`,
+          description: `探索「${hotWord.content}」等熱門手語`,
+          image_url:
+            hotWord.image_url ||
+            "https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=2070",
+          type: "vocabulary",
+          action: {
+            type: "navigate",
+            route: "/(tabs)/education/word-learning",
+            params: { category: hotCategory },
+          },
+        });
+        recommendationReason += "Added 'Hot Topic' card. ";
+      }
+    }
+
+    // --- Strategy 3: 5-Min Challenge (挑戰新詞) ---
+    if (recommendations.length < limit) {
+      const learningLevel = preferences?.answers?.learningLevel || "初級";
+      const challengeWords = await BookWord.find({
+        content: { $nin: studiedWords },
+        level: learningLevel,
+      }).limit(10);
+
+      if (challengeWords.length > 0) {
+        const challengeWord =
+          challengeWords[Math.floor(Math.random() * challengeWords.length)];
+        recommendations.push({
+          id: `challenge-${challengeWord._id}`,
+          title: `5分鐘挑戰：${challengeWord.content}`,
+          description: `${learningLevel}難度，來挑戰新單字！`,
+          image_url:
+            challengeWord.image_url ||
+            "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070",
+          type: "vocabulary",
+          action: {
+            type: "navigate",
+            route: "/(tabs)/education/word-learning",
+            params: { word: challengeWord.content },
+          },
+        });
+        recommendationReason += "Added '5-Min Challenge' card. ";
+      }
+    }
+
+    // --- Strategy 4: Favorites Reminder (收藏複習) ---
     if (recommendations.length < limit && studiedWords.length > 0) {
-      const wordToReview =
+      // Pick a random studied word as "favorite"
+      const favoriteWord =
         studiedWords[Math.floor(Math.random() * studiedWords.length)];
-      const vocab = await BookWord.findOne({ content: wordToReview });
+      const vocab = await BookWord.findOne({ content: favoriteWord });
       if (vocab) {
         recommendations.push({
-          id: `review-${vocab._id}`,
-          title: `複習單字: ${vocab.content}`,
-          description: `分類: ${vocab.category}`,
-          image_url: vocab.image_url,
+          id: `favorite-${vocab._id}`,
+          title: `溫故知新：${vocab.content}`,
+          description: `複習你學過的「${vocab.category}」`,
+          image_url:
+            vocab.image_url ||
+            "https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=2070",
           type: "vocabulary",
           action: {
             type: "navigate",
@@ -86,38 +177,63 @@ router.get("/personalized/:userId", async (req, res) => {
             params: { word: vocab.content },
           },
         });
-        recommendationReason += "Added 'Review Word' card. ";
+        recommendationReason += "Added 'Favorites Reminder' card. ";
       }
     }
 
-    // --- Strategy 3: Learn a New Word ---
+    // --- Strategy 5: Scenario Learning (情境學習) ---
     if (recommendations.length < limit) {
-      const learningLevel = preferences?.answers?.learningLevel || "初級";
-      const newWords = await BookWord.find({
-        content: { $nin: studiedWords },
-        level: learningLevel,
-      }).limit(10);
+      const scenarioCategories = [
+        {
+          category: "餐廳",
+          title: "餐廳點餐",
+          description: "學會在餐廳溝通的實用手語",
+        },
+        {
+          category: "交通",
+          title: "交通出行",
+          description: "掌握搭車問路的必備手語",
+        },
+        {
+          category: "購物",
+          title: "購物消費",
+          description: "輕鬆應對購物場景",
+        },
+        {
+          category: "醫療",
+          title: "醫療就診",
+          description: "醫院看病不再煩惱",
+        },
+      ];
 
-      if (newWords.length > 0) {
-        const wordToLearn =
-          newWords[Math.floor(Math.random() * newWords.length)];
+      const scenario =
+        scenarioCategories[
+          Math.floor(Math.random() * scenarioCategories.length)
+        ];
+      const scenarioWords = await BookWord.find({
+        category: scenario.category,
+      }).limit(1);
+
+      if (scenarioWords.length > 0) {
         recommendations.push({
-          id: `learn-${wordToLearn._id}`,
-          title: `挑戰新單字: ${wordToLearn.content}`,
-          description: `來自 '${wordToLearn.category}' 分類`,
-          image_url: wordToLearn.image_url,
-          type: "vocabulary",
+          id: `scenario-${scenario.category}`,
+          title: `情境學習：${scenario.title}`,
+          description: scenario.description,
+          image_url:
+            scenarioWords[0].image_url ||
+            "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070",
+          type: "material",
           action: {
             type: "navigate",
             route: "/(tabs)/education/word-learning",
-            params: { word: wordToLearn.content },
+            params: { category: scenario.category },
           },
         });
-        recommendationReason += "Added 'Learn New Word' card. ";
+        recommendationReason += "Added 'Scenario Learning' card. ";
       }
     }
 
-    // --- Strategy 4: Fill with unstudied categories ---
+    // --- Strategy 6: Category Exploration (分類探索) ---
     if (recommendations.length < limit) {
       const studiedCategories = new Set(
         progress.map((p) => p.category).filter(Boolean)
@@ -127,10 +243,43 @@ router.get("/personalized/:userId", async (req, res) => {
       );
 
       if (unstudied.length > 0) {
+        const exploreCategory =
+          unstudied[Math.floor(Math.random() * unstudied.length)];
+        recommendations.push({
+          id: `explore-${exploreCategory.id}`,
+          title: `探索新領域：${exploreCategory.title}`,
+          description: `發現「${exploreCategory.category}」的手語世界`,
+          image_url:
+            "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?q=80&w=2070",
+          type: "material",
+          action: {
+            type: "navigate",
+            route: "/(tabs)/education/word-learning",
+            params: { category: exploreCategory.category },
+          },
+        });
+        recommendationReason += "Added 'Category Exploration' card. ";
+      }
+    }
+
+    // --- Fill remaining slots with categories ---
+    if (recommendations.length < limit) {
+      const studiedCategories = new Set(
+        progress.map((p) => p.category).filter(Boolean)
+      );
+      const remaining = allMaterials.filter(
+        (m) => !studiedCategories.has(m.category)
+      );
+
+      if (remaining.length > 0) {
         recommendations.push(
-          ...unstudied.slice(0, limit - recommendations.length).map((m) => ({
-            ...m,
-            description: `探索 '${m.title}' 主題`,
+          ...remaining.slice(0, limit - recommendations.length).map((m) => ({
+            id: `category-${m.id}`,
+            title: m.title,
+            description: `探索「${m.title}」主題`,
+            image_url:
+              "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2070",
+            type: "material",
             action: {
               type: "navigate",
               route: "/(tabs)/education/word-learning",
@@ -138,7 +287,7 @@ router.get("/personalized/:userId", async (req, res) => {
             },
           }))
         );
-        recommendationReason += "Filled with new categories. ";
+        recommendationReason += "Filled with additional categories. ";
       }
     }
 
