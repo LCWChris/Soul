@@ -4,16 +4,45 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // 動態獲取 API Key
 let customApiKey = null;
-(async () => {
-  customApiKey = await getGeminiApiKey();
-})();
+let isLoadingCustomKey = false;
+let hasLoadedOnce = false;
+
+/**
+ * 非同步載入自訂的 API Key
+ */
+const loadCustomApiKey = async () => {
+  if (isLoadingCustomKey || hasLoadedOnce) return;
+  isLoadingCustomKey = true;
+  try {
+    const key = await getGeminiApiKey();
+    // 只有在有有效值時才設定，否則保持 null 以使用 .env 預設值
+    customApiKey = key && key.trim() !== '' ? key : null;
+    hasLoadedOnce = true;
+  } catch (error) {
+    console.error('❌ 載入自訂 Gemini API Key 失敗:', error);
+  } finally {
+    isLoadingCustomKey = false;
+  }
+};
+
+// 立即開始載入（但不會阻塞）
+loadCustomApiKey();
 
 /**
  * 獲取 Gemini API Key
- * 優先使用用戶自訂的 Key，否則使用環境變數
+ * 優先使用用戶自訂的 Key（如果有且不為空），否則使用環境變數
  */
 const getApiKey = () => {
+  // 如果 customApiKey 是 null 或空字串，使用 .env 預設值
   return customApiKey || process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+};
+
+/**
+ * 重新載入自訂 API Key（當用戶在設定中更新後調用）
+ */
+export const reloadApiKey = async () => {
+  hasLoadedOnce = false;
+  await loadCustomApiKey();
 };
 
 /**
@@ -30,7 +59,7 @@ class GeminiService {
    */
   initializeModel() {
     const apiKey = getApiKey();
-    if (!apiKey) {
+    if (!apiKey || apiKey.trim() === '') {
       console.warn("⚠️ Gemini API Key 未設定");
       this.model = null;
       return;
@@ -40,7 +69,8 @@ class GeminiService {
     this.model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
     });
-    console.log("✅ Gemini Service 初始化成功 - 使用 gemini-2.5-flash");
+    const keySource = customApiKey ? '自訂 API Key' : '.env 預設值';
+    console.log(`✅ Gemini Service 初始化成功 - 使用 gemini-2.5-flash (${keySource})`);
   }
 
   /**

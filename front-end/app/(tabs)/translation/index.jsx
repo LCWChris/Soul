@@ -1,10 +1,11 @@
+import { getBackendApiUrl, getTranslationApiUrl } from "@/utils/settings";
 import { Ionicons } from "@expo/vector-icons";
 import { Audio, Video } from "expo-av";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Dimensions,
@@ -55,32 +56,44 @@ function TranslateScreen() {
   const recordingScale = useSharedValue(1);
   const uploadProgress = useSharedValue(0);
 
-  // 動態獲取 API URLs
+  // 動態獲取 API URLs - 預設使用 .env，可被自訂值覆蓋
   const [BACKEND_URL, setBackendUrl] = useState(
     process.env.EXPO_PUBLIC_TRANSLATE_API_BACKEND_URL
   );
   const [NODE_API, setNodeApi] = useState(process.env.EXPO_PUBLIC_IP);
 
-  // 載入自訂的 API URLs
-  useEffect(() => {
-    const loadCustomUrls = async () => {
-      const { getTranslationApiUrl, getBackendApiUrl } = await import(
-        "@/utils/settings"
-      );
-      const customTranslationUrl = await getTranslationApiUrl();
-      const customBackendUrl = await getBackendApiUrl();
+  // 載入自訂的 API URLs（只有在有設定時才覆蓋預設值）
+  // 使用 useFocusEffect 確保每次進入頁面時都會重新載入
+  useFocusEffect(
+    useCallback(() => {
+      const loadCustomUrls = async () => {
+        const customTranslationUrl = await getTranslationApiUrl();
+        const customBackendUrl = await getBackendApiUrl();
 
-      if (customTranslationUrl) {
-        setBackendUrl(customTranslationUrl);
-        console.log("✅ 使用自訂翻譯 API:", customTranslationUrl);
-      }
-      if (customBackendUrl) {
-        setNodeApi(customBackendUrl);
-        console.log("✅ 使用自訂後端 API:", customBackendUrl);
-      }
-    };
-    loadCustomUrls();
-  }, []);
+        // 只有當自訂 URL 存在且不為空時才覆蓋預設值
+        if (customTranslationUrl && customTranslationUrl.trim() !== '') {
+          setBackendUrl(customTranslationUrl);
+          console.log("✅ 使用自訂翻譯 API:", customTranslationUrl);
+        } else {
+          // 如果沒有自訂值或為空，確保使用 .env 預設值
+          const envUrl = process.env.EXPO_PUBLIC_TRANSLATE_API_BACKEND_URL;
+          setBackendUrl(envUrl);
+          console.log("📋 使用預設翻譯 API (.env):", envUrl);
+        }
+        
+        if (customBackendUrl && customBackendUrl.trim() !== '') {
+          setNodeApi(customBackendUrl);
+          console.log("✅ 使用自訂後端 API:", customBackendUrl);
+        } else {
+          // 如果沒有自訂值或為空，確保使用 .env 預設值
+          const envUrl = process.env.EXPO_PUBLIC_IP;
+          setNodeApi(envUrl);
+          console.log("📋 使用預設後端 API (.env):", envUrl);
+        }
+      };
+      loadCustomUrls();
+    }, [])
+  );
 
   // 請求麥克風權限
   useEffect(() => {
@@ -471,15 +484,16 @@ function TranslateScreen() {
       return;
     }
 
-    // 1. 獲取 API URL
-    const apiUrl = await getTranslationApiUrl();
-    if (!apiUrl) {
+    // 使用 state 中的 BACKEND_URL（已經包含 .env 預設值和自訂值的邏輯）
+    if (!BACKEND_URL) {
       Alert.alert(
         "錯誤：未設定 API 位址",
-        "請先至「使用者設定」頁面的「開發者設定」中，輸入並儲存您的翻譯模型 API 位址。"
+        "請先至「使用者設定」頁面的「開發者設定」中，輸入並儲存您的翻譯模型 API 位址，或確認 .env 檔案中的 EXPO_PUBLIC_TRANSLATE_API_BACKEND_URL 已正確設定。"
       );
       return;
     }
+
+    console.log("🚀 使用翻譯 API:", BACKEND_URL);
 
     setIsUploading(true);
     setTranslationResult(null);
@@ -516,7 +530,7 @@ function TranslateScreen() {
       uploadProgress.value = withTiming(0.8, { duration: 500 });
 
       // ③ 傳 Cloudinary 連結給 FastAPI 翻譯（by-url 模式）
-      const translationUrl = `${apiUrl}/translate-by-url`;
+      const translationUrl = `${BACKEND_URL}/translate-by-url`;
       console.log("🌍 發送到翻譯 API：", translationUrl);
       const res = await fetch(translationUrl, {
         method: "POST",
