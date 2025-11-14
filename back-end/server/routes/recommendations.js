@@ -4,19 +4,99 @@ const UserPreference = require("../models/UserPreference");
 const LearningProgress = require("../models/LearningProgress");
 const BookWord = require("../models/Vocabulary");
 
+/**
+ * Helper function: Get a random image from a category
+ * @param {string} category - Category name
+ * @returns {Promise<string|null>} - Image URL or null
+ */
+async function getCategoryImage(category) {
+  try {
+    const words = await BookWord.find({ category }).limit(10);
+    if (words.length === 0) return null;
+
+    // Try to find a word with an image
+    const wordsWithImages = words.filter((w) => w.image_url || w.gif);
+    if (wordsWithImages.length > 0) {
+      const randomWord =
+        wordsWithImages[Math.floor(Math.random() * wordsWithImages.length)];
+      return randomWord.image_url || randomWord.gif;
+    }
+
+    return null;
+  } catch (error) {
+    console.error(`Failed to get category image for ${category}:`, error);
+    return null;
+  }
+}
+
 // A simple list of all available learning materials/categories for fallback
 const allMaterials = [
-  { id: "cat-1", title: "人物關係", category: "人物關係", type: "material" },
-  { id: "cat-2", title: "動物自然", category: "動物自然", type: "material" },
-  { id: "cat-3", title: "地點場所", category: "地點場所", type: "material" },
-  { id: "cat-4", title: "家庭生活", category: "家庭生活", type: "material" },
-  { id: "cat-5", title: "情感表達", category: "情感表達", type: "material" },
-  { id: "cat-6", title: "數字時間", category: "數字時間", type: "material" },
-  { id: "cat-7", title: "日常動作", category: "日常動作", type: "material" },
-  { id: "cat-8", title: "物品工具", category: "物品工具", type: "material" },
-  { id: "cat-9", title: "身體健康", category: "身體健康", type: "material" },
-  { id: "cat-10", title: "食物飲品", category: "食物飲品", type: "material" },
-  { id: "cat-11", title: "其他", category: "其他", type: "material" },
+  {
+    id: "cat-1",
+    title: "人物關係",
+    category: "人物關係",
+    type: "material",
+  },
+  {
+    id: "cat-2",
+    title: "動物自然",
+    category: "動物自然",
+    type: "material",
+  },
+  {
+    id: "cat-3",
+    title: "地點場所",
+    category: "地點場所",
+    type: "material",
+  },
+  {
+    id: "cat-4",
+    title: "家庭生活",
+    category: "家庭生活",
+    type: "material",
+  },
+  {
+    id: "cat-5",
+    title: "情感表達",
+    category: "情感表達",
+    type: "material",
+  },
+  {
+    id: "cat-6",
+    title: "數字時間",
+    category: "數字時間",
+    type: "material",
+  },
+  {
+    id: "cat-7",
+    title: "日常動作",
+    category: "日常動作",
+    type: "material",
+  },
+  {
+    id: "cat-8",
+    title: "物品工具",
+    category: "物品工具",
+    type: "material",
+  },
+  {
+    id: "cat-9",
+    title: "身體健康",
+    category: "身體健康",
+    type: "material",
+  },
+  {
+    id: "cat-10",
+    title: "食物飲品",
+    category: "食物飲品",
+    type: "material",
+  },
+  {
+    id: "cat-11",
+    title: "其他",
+    category: "其他",
+    type: "material",
+  },
 ];
 
 /**
@@ -63,13 +143,12 @@ router.get("/personalized/:userId", async (req, res) => {
           ];
         const vocab = await BookWord.findOne({ content: wordToReview });
         if (vocab) {
+          const categoryImg = await getCategoryImage(vocab.category);
           recommendations.push({
             id: `quick-review-${vocab._id}`,
             title: `快速複習：${vocab.content}`,
             description: `記憶黃金期！複習效果最佳`,
-            image_url:
-              vocab.image_url ||
-              "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070",
+            image_url: vocab.image_url || vocab.gif || categoryImg,
             type: "vocabulary",
             action: {
               type: "navigate",
@@ -109,13 +188,12 @@ router.get("/personalized/:userId", async (req, res) => {
 
       if (hotWords.length > 0) {
         const hotWord = hotWords[Math.floor(Math.random() * hotWords.length)];
+        const categoryImg = await getCategoryImage(hotCategory);
         recommendations.push({
           id: `hot-topic-${hotWord._id}`,
           title: `熱門主題：${hotCategory}`,
           description: `探索「${hotWord.content}」等熱門手語`,
-          image_url:
-            hotWord.image_url ||
-            "https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=2070",
+          image_url: hotWord.image_url || hotWord.gif || categoryImg,
           type: "vocabulary",
           action: {
             type: "navigate",
@@ -138,13 +216,13 @@ router.get("/personalized/:userId", async (req, res) => {
       if (challengeWords.length > 0) {
         const challengeWord =
           challengeWords[Math.floor(Math.random() * challengeWords.length)];
+        const categoryImg = await getCategoryImage(challengeWord.category);
         recommendations.push({
           id: `challenge-${challengeWord._id}`,
           title: `5分鐘挑戰：${challengeWord.content}`,
           description: `${learningLevel}難度，來挑戰新單字！`,
           image_url:
-            challengeWord.image_url ||
-            "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070",
+            challengeWord.image_url || challengeWord.gif || categoryImg,
           type: "vocabulary",
           action: {
             type: "navigate",
@@ -163,13 +241,12 @@ router.get("/personalized/:userId", async (req, res) => {
         studiedWords[Math.floor(Math.random() * studiedWords.length)];
       const vocab = await BookWord.findOne({ content: favoriteWord });
       if (vocab) {
+        const categoryImg = await getCategoryImage(vocab.category);
         recommendations.push({
           id: `favorite-${vocab._id}`,
           title: `溫故知新：${vocab.content}`,
           description: `複習你學過的「${vocab.category}」`,
-          image_url:
-            vocab.image_url ||
-            "https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=2070",
+          image_url: vocab.image_url || vocab.gif || categoryImg,
           type: "vocabulary",
           action: {
             type: "navigate",
@@ -215,13 +292,13 @@ router.get("/personalized/:userId", async (req, res) => {
       }).limit(1);
 
       if (scenarioWords.length > 0) {
+        const categoryImg = await getCategoryImage(scenario.category);
         recommendations.push({
           id: `scenario-${scenario.category}`,
           title: `情境學習：${scenario.title}`,
           description: scenario.description,
           image_url:
-            scenarioWords[0].image_url ||
-            "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070",
+            scenarioWords[0].image_url || scenarioWords[0].gif || categoryImg,
           type: "material",
           action: {
             type: "navigate",
@@ -245,12 +322,12 @@ router.get("/personalized/:userId", async (req, res) => {
       if (unstudied.length > 0) {
         const exploreCategory =
           unstudied[Math.floor(Math.random() * unstudied.length)];
+        const categoryImg = await getCategoryImage(exploreCategory.category);
         recommendations.push({
           id: `explore-${exploreCategory.id}`,
           title: `探索新領域：${exploreCategory.title}`,
           description: `發現「${exploreCategory.category}」的手語世界`,
-          image_url:
-            "https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?q=80&w=2070",
+          image_url: exploreCategory.image_url || categoryImg,
           type: "material",
           action: {
             type: "navigate",
@@ -272,21 +349,24 @@ router.get("/personalized/:userId", async (req, res) => {
       );
 
       if (remaining.length > 0) {
-        recommendations.push(
-          ...remaining.slice(0, limit - recommendations.length).map((m) => ({
-            id: `category-${m.id}`,
-            title: m.title,
-            description: `探索「${m.title}」主題`,
-            image_url:
-              "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2070",
-            type: "material",
-            action: {
-              type: "navigate",
-              route: "/(tabs)/education/word-learning",
-              params: { category: m.category },
-            },
-          }))
+        const categoriesWithImages = await Promise.all(
+          remaining.slice(0, limit - recommendations.length).map(async (m) => {
+            const categoryImg = await getCategoryImage(m.category);
+            return {
+              id: `category-${m.id}`,
+              title: m.title,
+              description: `探索「${m.title}」主題`,
+              image_url: m.image_url || categoryImg,
+              type: "material",
+              action: {
+                type: "navigate",
+                route: "/(tabs)/education/word-learning",
+                params: { category: m.category },
+              },
+            };
+          })
         );
+        recommendations.push(...categoriesWithImages);
         recommendationReason += "Filled with additional categories. ";
       }
     }
