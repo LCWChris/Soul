@@ -4,7 +4,7 @@ import { useAuth, useUser } from "@clerk/clerk-expo";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, ScrollView, StyleSheet } from "react-native";
+import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import {
   Button,
   Card,
@@ -22,6 +22,7 @@ export default function UserScreen() {
   const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(false);
   const [translationApiUrl, setTranslationApiUrl] = useState("");
+  const [isApiSectionExpanded, setIsApiSectionExpanded] = useState(false);
 
   // === Snackbar 狀態 ===
   const [snackbarVisible, setSnackbarVisible] = useState(false);
@@ -205,27 +206,52 @@ export default function UserScreen() {
   return (
     <>
       <ScrollView
-        style={{ flex: 1, padding: 16 }}
+        style={{ flex: 1, padding: 16, backgroundColor: "#F8FAFC" }}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
       >
-        <Text variant="headlineMedium" style={{ marginBottom: 16 }}>
+        <Text variant="headlineLarge" style={styles.pageTitle}>
           使用者設定
+        </Text>
+        <Text variant="bodyMedium" style={styles.pageSubtitle}>
+          管理您的帳號、偏好設定與安全性選項
         </Text>
 
         {/* 區塊：帳號設定 */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="titleLarge">👤 帳號設定</Text>
-            <Text variant="bodyMedium">
-              帳號：{user?.primaryEmailAddress?.emailAddress}
+        <Card style={styles.card} elevation={2}>
+          <Card.Content style={styles.cardContent}>
+            <Text variant="titleLarge" style={styles.sectionTitle}>
+              👤 帳號設定
             </Text>
-            <Text variant="bodyMedium">
-              使用者名稱：{user?.username || "未設定"}
+            <Text variant="bodySmall" style={styles.sectionSubtitle}>
+              查看和管理您的帳號資訊
             </Text>
-            <Divider style={{ marginVertical: 8 }} />
+            
+            <View style={styles.infoRow}>
+              <Text variant="labelLarge" style={styles.infoLabel}>
+                帳號
+              </Text>
+              <Text variant="bodyMedium" style={styles.infoValue}>
+                {user?.primaryEmailAddress?.emailAddress}
+              </Text>
+            </View>
+            
+            <View style={styles.infoRow}>
+              <Text variant="labelLarge" style={styles.infoLabel}>
+                使用者名稱
+              </Text>
+              <Text variant="bodyMedium" style={styles.infoValue}>
+                {user?.username || "未設定"}
+              </Text>
+            </View>
+            
+            <Divider style={styles.divider} />
+            
             <Button
-              mode="contained-tonal"
+              mode="contained"
+              icon="pencil"
               onPress={() => router.push("/user/update-username")}
+              style={styles.primaryButton}
+              labelStyle={styles.buttonLabel}
             >
               修改使用者名稱
             </Button>
@@ -233,48 +259,71 @@ export default function UserScreen() {
         </Card>
 
         {/* 區塊：問卷偏好 */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="titleLarge">📝 問卷偏好</Text>
-            <Button
-              mode="contained-tonal"
-              style={{ marginTop: 8 }}
-              onPress={() => router.push("/onboarding/preference")}
-            >
-              修改偏好問卷
-            </Button>
-            <Button
-              mode="contained-tonal"
-              style={{ marginTop: 8 }}
-              onPress={fetchPreferences}
-              loading={loading}
-            >
-              查看已儲存的問卷
-            </Button>
-            <Button
-              mode="contained-tonal"
-              buttonColor="#dc2626"
-              textColor="white"
-              style={{ marginTop: 8 }}
-              onPress={clearPreferences}
-            >
-              清除問卷答案
-            </Button>
+        <Card style={styles.card} elevation={2}>
+          <Card.Content style={styles.cardContent}>
+            <Text variant="titleLarge" style={styles.sectionTitle}>
+              📝 問卷偏好
+            </Text>
+            <Text variant="bodySmall" style={styles.sectionSubtitle}>
+              個性化您的學習體驗
+            </Text>
+            
+            <View style={styles.buttonGroup}>
+              <Button
+                mode="contained"
+                icon="file-edit"
+                style={styles.primaryButton}
+                labelStyle={styles.buttonLabel}
+                onPress={() => router.push("/onboarding/preference")}
+              >
+                修改偏好問卷
+              </Button>
+              
+              <Button
+                mode="outlined"
+                icon="eye"
+                style={styles.outlinedButton}
+                labelStyle={styles.outlinedButtonLabel}
+                onPress={fetchPreferences}
+                loading={loading}
+              >
+                查看已儲存的問卷
+              </Button>
+              
+              <Button
+                mode="text"
+                icon="delete"
+                style={styles.dangerButton}
+                labelStyle={styles.dangerButtonLabel}
+                onPress={clearPreferences}
+              >
+                清除問卷答案
+              </Button>
+            </View>
 
             {preferences && (
-              <Card style={{ marginTop: 12, backgroundColor: "#f3f4f6" }}>
+              <Card style={styles.nestedCard} elevation={1}>
                 <Card.Content>
-                  <Text variant="titleLarge">📋 問卷答案</Text>
-                  {Object.entries(preferences).map(([key, value], index) => {
-                    const label = labels[key] || key;
-                    const displayValue = valueLabels[key]?.[value] ?? value;
+                  <Text variant="titleMedium" style={styles.nestedCardTitle}>
+                    📋 問卷答案
+                  </Text>
+                  <View style={styles.preferencesContainer}>
+                    {Object.entries(preferences).map(([key, value], index) => {
+                      const label = labels[key] || key;
+                      const displayValue = valueLabels[key]?.[value] ?? value;
 
-                    return (
-                      <Text variant="bodyMedium" key={key}>
-                        {index + 1}. {label}：{displayValue}
-                      </Text>
-                    );
-                  })}
+                      return (
+                        <View key={key} style={styles.preferenceItem}>
+                          <Text variant="bodySmall" style={styles.preferenceLabel}>
+                            {label}
+                          </Text>
+                          <Text variant="bodyLarge" style={styles.preferenceValue}>
+                            {displayValue}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </View>
                 </Card.Content>
               </Card>
             )}
@@ -282,47 +331,88 @@ export default function UserScreen() {
         </Card>
 
         {/* 區塊：安全性 */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="titleLarge">🔐 安全性</Text>
-            <Button
-              mode="contained"
-              style={{ marginTop: 8 }}
-              onPress={handleSignOut}
-            >
-              登出
-            </Button>
-            <Button
-              mode="contained"
-              buttonColor="#b91c1c"
-              style={{ marginTop: 8 }}
-              onPress={showDeleteConfirmation}
-            >
-              註銷帳號
-            </Button>
+        <Card style={styles.card} elevation={2}>
+          <Card.Content style={styles.cardContent}>
+            <Text variant="titleLarge" style={styles.sectionTitle}>
+              🔐 安全性
+            </Text>
+            <Text variant="bodySmall" style={styles.sectionSubtitle}>
+              管理您的登入與帳號安全
+            </Text>
+            
+            <View style={styles.buttonGroup}>
+              <Button
+                mode="contained"
+                icon="logout"
+                style={styles.primaryButton}
+                labelStyle={styles.buttonLabel}
+                onPress={handleSignOut}
+              >
+                登出
+              </Button>
+              
+              <Button
+                mode="outlined"
+                icon="alert-circle"
+                style={[styles.outlinedButton, styles.deleteButton]}
+                labelStyle={styles.deleteButtonLabel}
+                onPress={showDeleteConfirmation}
+              >
+                註銷帳號
+              </Button>
+            </View>
           </Card.Content>
         </Card>
 
         {/* 區塊：開發者設定 */}
-        <Card style={styles.card}>
-          <Card.Content>
-            <Text variant="titleLarge">⚙️ 開發者設定</Text>
-            <Text variant="bodyMedium">手動設定翻譯模型的 API 位址</Text>
-            <TextInput
-              label="翻譯 API URL"
-              value={translationApiUrl}
-              onChangeText={setTranslationApiUrl}
-              mode="outlined"
-              style={{ marginTop: 8 }}
-              autoCapitalize="none"
-            />
-            <Button
-              mode="contained"
-              style={{ marginTop: 8 }}
-              onPress={handleSaveApiUrl}
+        <Card style={styles.card} elevation={2}>
+          <Card.Content style={styles.cardContent}>
+            <TouchableOpacity
+              onPress={() => setIsApiSectionExpanded(!isApiSectionExpanded)}
+              activeOpacity={0.7}
             >
-              儲存 API 位址
-            </Button>
+              <View style={styles.expandableHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text variant="titleLarge" style={styles.sectionTitle}>
+                    ⚙️ 開發者設定
+                  </Text>
+                  <Text variant="bodySmall" style={styles.sectionSubtitle}>
+                    進階使用者選項
+                  </Text>
+                </View>
+                <Text style={styles.expandIcon}>
+                  {isApiSectionExpanded ? "▼" : "▶"}
+                </Text>
+              </View>
+            </TouchableOpacity>
+            
+            {isApiSectionExpanded && (
+              <>
+                <Divider style={styles.divider} />
+                <Text variant="bodyMedium" style={styles.apiDescription}>
+                  手動設定翻譯模型的 API 位址
+                </Text>
+                <TextInput
+                  label="翻譯 API URL"
+                  value={translationApiUrl}
+                  onChangeText={setTranslationApiUrl}
+                  mode="outlined"
+                  style={styles.textInput}
+                  autoCapitalize="none"
+                  placeholder="https://your-api-url.com"
+                  dense
+                />
+                <Button
+                  mode="contained"
+                  icon="content-save"
+                  style={styles.primaryButton}
+                  labelStyle={styles.buttonLabel}
+                  onPress={handleSaveApiUrl}
+                >
+                  儲存 API 位址
+                </Button>
+              </>
+            )}
           </Card.Content>
         </Card>
       </ScrollView>
@@ -341,5 +431,174 @@ export default function UserScreen() {
 }
 
 const styles = StyleSheet.create({
-  card: { marginBottom: 16 },
+  // Page header styles
+  pageTitle: {
+    marginBottom: 8,
+    marginTop: 8,
+    fontWeight: "700",
+    color: "#1E293B",
+    letterSpacing: 0.5,
+  },
+  pageSubtitle: {
+    marginBottom: 24,
+    color: "#64748B",
+    lineHeight: 20,
+  },
+  
+  // Card styles
+  card: {
+    marginBottom: 20,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+  },
+  cardContent: {
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+  },
+  
+  // Section header styles
+  sectionTitle: {
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 4,
+    letterSpacing: 0.3,
+  },
+  sectionSubtitle: {
+    color: "#64748B",
+    marginBottom: 16,
+    lineHeight: 18,
+  },
+  
+  // Info row styles (for account info)
+  infoRow: {
+    marginBottom: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#2563EB",
+  },
+  infoLabel: {
+    color: "#64748B",
+    marginBottom: 4,
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  infoValue: {
+    color: "#1E293B",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  
+  // Button styles
+  buttonGroup: {
+    gap: 10,
+  },
+  primaryButton: {
+    borderRadius: 12,
+    paddingVertical: 4,
+  },
+  buttonLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+  },
+  outlinedButton: {
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: "#2563EB",
+    paddingVertical: 4,
+  },
+  outlinedButtonLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#2563EB",
+    letterSpacing: 0.3,
+  },
+  dangerButton: {
+    borderRadius: 12,
+  },
+  dangerButtonLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#DC2626",
+    letterSpacing: 0.3,
+  },
+  deleteButton: {
+    borderColor: "#DC2626",
+  },
+  deleteButtonLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#DC2626",
+    letterSpacing: 0.3,
+  },
+  
+  // Divider style
+  divider: {
+    marginVertical: 16,
+    backgroundColor: "#E2E8F0",
+  },
+  
+  // Nested card (for preferences display)
+  nestedCard: {
+    marginTop: 16,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  nestedCardTitle: {
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: 12,
+    letterSpacing: 0.3,
+  },
+  preferencesContainer: {
+    gap: 12,
+  },
+  preferenceItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: "#10B981",
+  },
+  preferenceLabel: {
+    color: "#64748B",
+    marginBottom: 4,
+    fontSize: 12,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+  },
+  preferenceValue: {
+    color: "#1E293B",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  
+  // Expandable section styles
+  expandableHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  expandIcon: {
+    fontSize: 18,
+    color: "#64748B",
+    marginLeft: 12,
+  },
+  apiDescription: {
+    color: "#64748B",
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  textInput: {
+    marginBottom: 12,
+    backgroundColor: "#FFFFFF",
+  },
 });
