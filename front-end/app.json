@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/images/LOGO.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F1F5FF"
     },
     "androidStatusBar": {
       "barStyle": "dark-content",
@@ -25,8 +25,7 @@
         "NSCameraUsageDescription": "允許 SouL 使用您的相機來錄製手語影片。",
         "NSMicrophoneUsageDescription": "允許 SouL 使用您的麥克風來錄製聲音.",
         "UIStatusBarStyle": "UIStatusBarStyleDarkContent"
-      },
-      "statusBarStyle": "dark"
+      }
     },
     "android": {
       "package": "com.soulsign.soul",
