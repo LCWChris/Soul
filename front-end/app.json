@@ -14,7 +14,8 @@
     },
     "androidStatusBar": {
       "barStyle": "dark-content",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F1F5FF",
+      "translucent": false
     },
     "newArchEnabled": true,
     "ios": {
@@ -22,8 +23,10 @@
       "bundleIdentifier": "com.soulsign.soul",
       "infoPlist": {
         "NSCameraUsageDescription": "允許 SouL 使用您的相機來錄製手語影片。",
-        "NSMicrophoneUsageDescription": "允許 SouL 使用您的麥克風來錄製聲音。"
-      }
+        "NSMicrophoneUsageDescription": "允許 SouL 使用您的麥克風來錄製聲音.",
+        "UIStatusBarStyle": "UIStatusBarStyleDarkContent"
+      },
+      "statusBarStyle": "dark"
     },
     "android": {
       "package": "com.soulsign.soul",
@@ -32,7 +35,6 @@
         "foregroundImage": "./assets/images/LOGO.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "permissions": [
         "CAMERA",
         "RECORD_AUDIO",
