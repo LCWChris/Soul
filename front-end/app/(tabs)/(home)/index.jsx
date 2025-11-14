@@ -527,7 +527,7 @@ export default function HomeScreen() {
           />
           <View style={styles.greetingSection}>
             <Text style={styles.greeting}>
-              👋 Hi，{user?.firstName || mockUserData.name}
+              👋 嗨，{user?.firstName || mockUserData.name}
             </Text>
             {!loadingStreak && streakDays > 0 && (
               <View
@@ -983,9 +983,6 @@ const styles = StyleSheet.create({
     width: "90%",
     height: 200,
   },
-  greetingSection: {
-    marginBottom: 8,
-  },
   greeting: {
     fontSize: 28,
     fontWeight: "700",
@@ -1028,7 +1025,7 @@ const styles = StyleSheet.create({
     borderColor: "#EF4444",
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 15,
     color: "#6B7280",
     lineHeight: 22,
   },

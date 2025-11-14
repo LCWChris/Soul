@@ -1,20 +1,45 @@
 // services/gemini-service.js
+import { getGeminiApiKey } from "@/utils/settings";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// 初始化 Gemini AI
-const API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(API_KEY);
+// 動態獲取 API Key
+let customApiKey = null;
+(async () => {
+  customApiKey = await getGeminiApiKey();
+})();
+
+/**
+ * 獲取 Gemini API Key
+ * 優先使用用戶自訂的 Key，否則使用環境變數
+ */
+const getApiKey = () => {
+  return customApiKey || process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+};
 
 /**
  * Soul 手語學習 APP 的 AI 助手服務
  */
 class GeminiService {
   constructor() {
+    this.conversationHistory = [];
+    this.initializeModel();
+  }
+
+  /**
+   * 初始化或重新初始化模型
+   */
+  initializeModel() {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      console.warn("⚠️ Gemini API Key 未設定");
+      this.model = null;
+      return;
+    }
+    const genAI = new GoogleGenerativeAI(apiKey);
     // 僅使用 Google 建議的 gemini-2.5-flash 作為唯一模型
     this.model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
     });
-    this.conversationHistory = [];
     console.log("✅ Gemini Service 初始化成功 - 使用 gemini-2.5-flash");
   }
 

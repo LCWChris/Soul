@@ -1,5 +1,12 @@
 import { API_CONFIG } from "@/constants/api";
-import { getTranslationApiUrl, saveTranslationApiUrl } from "@/utils/settings";
+import {
+  getBackendApiUrl,
+  getGeminiApiKey,
+  getTranslationApiUrl,
+  saveBackendApiUrl,
+  saveGeminiApiKey,
+  saveTranslationApiUrl,
+} from "@/utils/settings";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -8,6 +15,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -26,24 +34,48 @@ export default function UserScreen() {
   const [preferences, setPreferences] = useState(null);
   const [loading, setLoading] = useState(false);
   const [translationApiUrl, setTranslationApiUrl] = useState("");
+  const [backendApiUrl, setBackendApiUrl] = useState("");
+  const [geminiApiKey, setGeminiApiKey] = useState("");
 
   // === Snackbar 狀態 ===
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
   useEffect(() => {
-    const loadApiUrl = async () => {
-      const storedUrl = await getTranslationApiUrl();
-      if (storedUrl) {
-        setTranslationApiUrl(storedUrl);
+    const loadApiSettings = async () => {
+      const storedTranslationUrl = await getTranslationApiUrl();
+      if (storedTranslationUrl) {
+        setTranslationApiUrl(storedTranslationUrl);
+      }
+      const storedBackendUrl = await getBackendApiUrl();
+      if (storedBackendUrl) {
+        setBackendApiUrl(storedBackendUrl);
+      }
+      const storedGeminiKey = await getGeminiApiKey();
+      if (storedGeminiKey) {
+        setGeminiApiKey(storedGeminiKey);
       }
     };
-    loadApiUrl();
+    loadApiSettings();
   }, []);
 
-  const handleSaveApiUrl = async () => {
+  const handleSaveTranslationApi = async () => {
     await saveTranslationApiUrl(translationApiUrl);
     setSnackbarMessage("✅ 翻譯 API URL 已儲存");
+    setSnackbarVisible(true);
+    setTimeout(() => setSnackbarVisible(false), 2000);
+  };
+
+  const handleSaveBackendApi = async () => {
+    await saveBackendApiUrl(backendApiUrl);
+    setSnackbarMessage("✅ 後端 API URL 已儲存");
+    setSnackbarVisible(true);
+    setTimeout(() => setSnackbarVisible(false), 2000);
+  };
+
+  const handleSaveGeminiApi = async () => {
+    await saveGeminiApiKey(geminiApiKey);
+    setSnackbarMessage("✅ Gemini API Key 已儲存");
     setSnackbarVisible(true);
     setTimeout(() => setSnackbarVisible(false), 2000);
   };
@@ -220,19 +252,24 @@ export default function UserScreen() {
 
   return (
     <LinearGradient colors={["#F0F9FF", "#E0F2FE"]} style={styles.container}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <Text style={styles.headerTitle}>使用者設定</Text>
-      </View>
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: insets.bottom + 100 },
+          { paddingBottom: insets.bottom + 80 },
         ]}
         showsVerticalScrollIndicator={false}
       >
+        {/* Header */}
+        <View style={styles.header}>
+          <Image
+            source={require("@/assets/images/auth-bg-1.png")}
+            style={styles.headerImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.headerTitle}>👤 使用者設定</Text>
+        </View>
+
         {/* 區塊：帳號設定 */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
@@ -367,18 +404,20 @@ export default function UserScreen() {
             </View>
             <Text style={styles.cardTitle}>開發者設定</Text>
           </View>
-          <Text style={styles.cardSubtitle}>手動設定翻譯模型的 API 位址</Text>
+
+          {/* 後端 API URL */}
+          <Text style={styles.settingLabel}>後端 API URL</Text>
           <TextInput
-            placeholder="翻譯 API URL"
-            value={translationApiUrl}
-            onChangeText={setTranslationApiUrl}
+            placeholder="例如：https://your-backend.com"
+            value={backendApiUrl}
+            onChangeText={setBackendApiUrl}
             style={styles.textInput}
             autoCapitalize="none"
             placeholderTextColor="#94A3B8"
           />
           <TouchableOpacity
             style={styles.button}
-            onPress={handleSaveApiUrl}
+            onPress={handleSaveBackendApi}
             activeOpacity={0.8}
           >
             <LinearGradient
@@ -387,7 +426,62 @@ export default function UserScreen() {
               end={{ x: 1, y: 0 }}
               style={styles.buttonGradient}
             >
-              <Text style={styles.buttonText}>儲存 API 位址</Text>
+              <Text style={styles.buttonText}>儲存後端 API</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* 翻譯 API URL */}
+          <Text style={[styles.settingLabel, { marginTop: 20 }]}>
+            翻譯 API URL
+          </Text>
+          <TextInput
+            placeholder="例如：https://your-translate-api.com"
+            value={translationApiUrl}
+            onChangeText={setTranslationApiUrl}
+            style={styles.textInput}
+            autoCapitalize="none"
+            placeholderTextColor="#94A3B8"
+          />
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleSaveTranslationApi}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={["#34D399", "#10B981"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buttonGradient}
+            >
+              <Text style={styles.buttonText}>儲存翻譯 API</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Gemini API Key */}
+          <Text style={[styles.settingLabel, { marginTop: 20 }]}>
+            Gemini API Key
+          </Text>
+          <TextInput
+            placeholder="AIza..."
+            value={geminiApiKey}
+            onChangeText={setGeminiApiKey}
+            style={styles.textInput}
+            autoCapitalize="none"
+            placeholderTextColor="#94A3B8"
+            secureTextEntry
+          />
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleSaveGeminiApi}
+            activeOpacity={0.8}
+          >
+            <LinearGradient
+              colors={["#34D399", "#10B981"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buttonGradient}
+            >
+              <Text style={styles.buttonText}>儲存 Gemini API</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -408,13 +502,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
+    paddingBottom: 20,
+    alignItems: "center",
+  },
+  headerImage: {
+    width: "90%",
+    height: 250,
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: "bold",
     color: "#1E293B",
+    textAlign: "center",
   },
   scrollView: {
     flex: 1,
@@ -508,6 +607,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignItems: "center",
     justifyContent: "center",
+  },
+  settingLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#475569",
+    marginBottom: 8,
   },
   textInput: {
     backgroundColor: "#F8FAFC",

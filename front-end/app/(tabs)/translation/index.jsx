@@ -1,9 +1,9 @@
-import { getTranslationApiUrl } from "@/utils/settings";
 import { Ionicons } from "@expo/vector-icons";
 import { Audio, Video } from "expo-av";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -30,6 +30,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 function TranslateScreen() {
+  const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const [audioPermission, setAudioPermission] = useState(null);
   const [facing, setFacing] = useState("back");
@@ -54,8 +55,32 @@ function TranslateScreen() {
   const recordingScale = useSharedValue(1);
   const uploadProgress = useSharedValue(0);
 
-  const BACKEND_URL = process.env.EXPO_PUBLIC_TRANSLATE_API_BACKEND_URL;
-  const NODE_API = process.env.EXPO_PUBLIC_IP;
+  // 動態獲取 API URLs
+  const [BACKEND_URL, setBackendUrl] = useState(
+    process.env.EXPO_PUBLIC_TRANSLATE_API_BACKEND_URL
+  );
+  const [NODE_API, setNodeApi] = useState(process.env.EXPO_PUBLIC_IP);
+
+  // 載入自訂的 API URLs
+  useEffect(() => {
+    const loadCustomUrls = async () => {
+      const { getTranslationApiUrl, getBackendApiUrl } = await import(
+        "@/utils/settings"
+      );
+      const customTranslationUrl = await getTranslationApiUrl();
+      const customBackendUrl = await getBackendApiUrl();
+
+      if (customTranslationUrl) {
+        setBackendUrl(customTranslationUrl);
+        console.log("✅ 使用自訂翻譯 API:", customTranslationUrl);
+      }
+      if (customBackendUrl) {
+        setNodeApi(customBackendUrl);
+        console.log("✅ 使用自訂後端 API:", customBackendUrl);
+      }
+    };
+    loadCustomUrls();
+  }, []);
 
   // 請求麥克風權限
   useEffect(() => {
@@ -578,12 +603,16 @@ function TranslateScreen() {
       <Animated.View entering={FadeInDown.delay(100)} style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() =>
+            router.navigate({
+              pathname: "/(tabs)/(home)/",
+            })
+          }
           activeOpacity={0.8}
         >
           <Ionicons name="arrow-back" size={24} color="#1E293B" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>手語翻譯</Text>
+        <Text style={styles.headerTitle}>🙌 手語翻譯</Text>
         <TouchableOpacity
           style={styles.cameraFlipButton}
           onPress={toggleCameraFacing}

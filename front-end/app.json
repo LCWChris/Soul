@@ -7,16 +7,27 @@
     "icon": "./assets/images/LOGO.png",
     "scheme": "soul",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "androidStatusBar": {
       "barStyle": "dark-content",
       "backgroundColor": "#ffffff"
     },
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.soulsign.soul",
+      "infoPlist": {
+        "NSCameraUsageDescription": "允許 SouL 使用您的相機來錄製手語影片。",
+        "NSMicrophoneUsageDescription": "允許 SouL 使用您的麥克風來錄製聲音。"
+      }
     },
     "android": {
       "package": "com.soulsign.soul",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"

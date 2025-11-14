@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
+  Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -166,12 +167,14 @@ export default function Education() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          {/* Hero 區 - 帶圖標 */}
+          {/* Hero 區 - 帶圖片 */}
           <View style={styles.heroSection}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="school" size={36} color="#6366F1" />
-            </View>
-            <Text style={styles.title}>學習專區</Text>
+            <Image
+              source={require("@/assets/images/learning.png")}
+              style={styles.heroImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.title}>📚 學習專區</Text>
             <Text style={styles.subTitle}>今天再學一點點，就更接近目標。</Text>
           </View>
 
@@ -346,28 +349,19 @@ const styles = StyleSheet.create({
   // Hero 區域
   heroSection: {
     alignItems: "center",
-    marginBottom: 32,
+    marginBottom: 24,
     paddingTop: 0,
   },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#EEF2FF",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: "#6366F1",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+  heroImage: {
+    width: "90%",
+    height: 200,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "700",
     color: "#1F2937",
     marginBottom: 8,
+    marginTop: 8,
   },
   subTitle: {
     fontSize: 15,
