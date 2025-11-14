@@ -36,6 +36,18 @@ export default function HomeScreen() {
   // AI Chatbot 狀態
   const [showChatbot, setShowChatbot] = useState(false);
 
+  // 今日任務狀態
+  const [todayTasks, setTodayTasks] = useState({
+    completedTasks: 0,
+    totalTasks: 3,
+    tasks: {
+      learn: false,
+      review: false,
+      quiz: false,
+    },
+  });
+  const [loadingTasks, setLoadingTasks] = useState(true);
+
   // 模擬用戶數據 - 添加更多實用信息
   const mockUserData = {
     name: "仕彥",
@@ -51,7 +63,48 @@ export default function HomeScreen() {
   useEffect(() => {
     loadPersonalizedRecommendations();
     loadDailySign();
+    loadTodayTasks();
   }, [user]);
+
+  const loadTodayTasks = async () => {
+    if (!user?.id) {
+      console.log("📍 用戶未登入，無法載入今日任務");
+      setLoadingTasks(false);
+      return;
+    }
+
+    try {
+      setLoadingTasks(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/api/learning-stats/today-tasks/${user.id}`,
+        {
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ 成功載入今日任務:", data);
+      setTodayTasks(data);
+    } catch (error) {
+      console.error("❌ 載入今日任務失敗:", error.message);
+      // 失敗時使用預設值
+      setTodayTasks({
+        completedTasks: 0,
+        totalTasks: 3,
+        tasks: { learn: false, review: false, quiz: false },
+      });
+    } finally {
+      setLoadingTasks(false);
+    }
+  };
 
   const loadPersonalizedRecommendations = async () => {
     if (!user?.id) {
@@ -302,26 +355,27 @@ export default function HomeScreen() {
         {/* 今日任務 - 簡化版 */}
         {!mockUserData.isNewUser && (
           <View style={styles.todaySection}>
-            <View style={styles.taskHeader}>
-              <Text style={styles.taskTitle}>今日任務</Text>
-              <Text style={styles.taskProgress}>2/3</Text>
-            </View>
-            <View style={styles.taskGrid}>
-              <View style={[styles.taskItem, styles.taskDone]}>
-                <Ionicons name="checkmark" size={16} color="#4CAF50" />
-                <Text style={styles.taskLabel}>新手語</Text>
-              </View>
-              <View style={[styles.taskItem, styles.taskDone]}>
-                <Ionicons name="checkmark" size={16} color="#4CAF50" />
-                <Text style={styles.taskLabel}>複習</Text>
-              </View>
-              <View style={[styles.taskItem, styles.taskPending]}>
-                <Ionicons name="ellipse-outline" size={16} color="#9CA3AF" />
-                <Text style={[styles.taskLabel, { color: "#9CA3AF" }]}>
-                  測驗
-                </Text>
-              </View>
-            </View>
+            {loadingTasks ? (
+              <ActivityIndicator
+                size="small"
+                color="#6366F1"
+                style={{ paddingVertical: 20 }}
+              />
+            ) : (
+              <>
+                <View style={styles.taskHeader}>
+                  <Text style={styles.taskTitle}>今日任務</Text>
+                  <Text style={styles.taskProgress}>
+                    {todayTasks.completedTasks}/{todayTasks.totalTasks}
+                  </Text>
+                </View>
+                <View style={styles.taskGrid}>
+                  <TaskItem label="新手語" isDone={todayTasks.tasks.learn} />
+                  <TaskItem label="複習" isDone={todayTasks.tasks.review} />
+                  <TaskItem label="測驗" isDone={todayTasks.tasks.quiz} />
+                </View>
+              </>
+            )}
           </View>
         )}
 
@@ -1030,6 +1084,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#1F2937",
   },
 });
+
+// 將 TaskItem 提取為獨立組件
+function TaskItem({ label, isDone }) {
+  return (
+    <View
+      style={[styles.taskItem, isDone ? styles.taskDone : styles.taskPending]}
+    >
+      <Ionicons
+        name={isDone ? "checkmark" : "ellipse-outline"}
+        size={16}
+        color={isDone ? "#4CAF50" : "#9CA3AF"}
+      />
+      <Text style={[styles.taskLabel, !isDone && { color: "#9CA3AF" }]}>
+        {label}
+      </Text>
+    </View>
+  );
+}
 
 function RecommendCard({ item, onPress, isPersonalized = false }) {
   const [loaded, setLoaded] = useState(false);
