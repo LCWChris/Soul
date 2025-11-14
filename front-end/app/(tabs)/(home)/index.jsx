@@ -284,31 +284,31 @@ export default function HomeScreen() {
 
   const handleRecommendationPress = (recommendation) => {
     console.log("🔘 點擊推薦:", recommendation);
+    const { action } = recommendation;
 
-    if (recommendation.action) {
-      // 處理來自後端的個人化推薦（有完整的 action 結構）
-      const { action } = recommendation;
+    if (action) {
       if (action.type === "navigate") {
-        console.log(`🔗 跳轉到: ${action.route}`, action.params);
-        if (action.params && Object.keys(action.params).length > 0) {
+        // 檢查是否為需要特殊處理的跨分頁導航
+        if (action.route.startsWith("(tabs)/")) {
+          router.navigate(action.route, action.params);
+        } else {
+          // 分頁內部或簡單導航，使用 push
           router.push({
             pathname: action.route,
             params: action.params,
           });
-        } else {
-          router.push(action.route);
         }
       }
     } else if (recommendation.category) {
-      // 處理靜態推薦（根據 title/category 決定跳轉）
+      // 處理舊的或靜態的推薦（備用）
       console.log(`🔗 跳轉到分類學習: ${recommendation.category}`);
       router.push({
         pathname: "/(tabs)/education/word-learning",
         params: { category: recommendation.category },
       });
     } else {
-      // 備用：跳到教育頁面
-      console.log("🔗 跳轉到教育頁面");
+      // 最終備用：跳到教育頁面
+      console.log("🔗 缺少 action，跳轉到教育頁面");
       router.push("/(tabs)/education");
     }
   };

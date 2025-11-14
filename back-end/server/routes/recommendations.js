@@ -6,41 +6,17 @@ const BookWord = require("../models/Vocabulary");
 
 // A simple list of all available learning materials/categories for fallback
 const allMaterials = [
-  {
-    id: 1,
-    title: "日常對話",
-    category: "日常用語",
-    description: "學習常見日常手勢",
-    type: "material",
-  },
-  {
-    id: 2,
-    title: "餐廳用語",
-    category: "餐廳",
-    description: "掌握餐廳常用手語",
-    type: "material",
-  },
-  {
-    id: 3,
-    title: "交通出行",
-    category: "交通",
-    description: "學會出行相關手語",
-    type: "material",
-  },
-  {
-    id: 4,
-    title: "數字與時間",
-    category: "數字",
-    description: "學習數字和時間的表達",
-    type: "material",
-  },
-  {
-    id: 5,
-    title: "家庭稱謂",
-    category: "家庭",
-    description: "認識家庭成員的稱呼",
-    type: "material",
-  },
+  { id: "cat-1", title: "人物關係", category: "人物關係", type: "material" },
+  { id: "cat-2", title: "動物自然", category: "動物自然", type: "material" },
+  { id: "cat-3", title: "地點場所", category: "地點場所", type: "material" },
+  { id: "cat-4", title: "家庭生活", category: "家庭生活", type: "material" },
+  { id: "cat-5", title: "情感表達", category: "情感表達", type: "material" },
+  { id: "cat-6", title: "數字時間", category: "數字時間", type: "material" },
+  { id: "cat-7", title: "日常動作", category: "日常動作", type: "material" },
+  { id: "cat-8", title: "物品工具", category: "物品工具", type: "material" },
+  { id: "cat-9", title: "身體健康", category: "身體健康", type: "material" },
+  { id: "cat-10", title: "食物飲品", category: "食物飲品", type: "material" },
+  { id: "cat-11", title: "其他", category: "其他", type: "material" },
 ];
 
 /**
