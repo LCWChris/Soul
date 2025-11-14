@@ -5,31 +5,31 @@ const mongoose = require("mongoose");
 const LearningRecordSchema = new mongoose.Schema({
   wordId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'BookWord',
-    required: true
+    ref: "BookWord",
+    required: true,
   },
   action: {
     type: String,
-    enum: ['view', 'learn', 'practice', 'master', 'review'],
-    required: true
+    enum: ["view", "learn", "practice", "master", "review"],
+    required: true,
   },
   difficulty: {
     type: String,
-    enum: ['easy', 'medium', 'hard'],
-    default: 'medium'
+    enum: ["easy", "medium", "hard"],
+    default: "medium",
   },
   timeSpent: {
     type: Number, // 秒數
-    default: 0
+    default: 0,
   },
   isCorrect: {
     type: Boolean,
-    default: null // null 表示不適用 (如 view 動作)
+    default: null, // null 表示不適用 (如 view 動作)
   },
   timestamp: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // 用戶學習進度 Schema
@@ -37,35 +37,37 @@ const LearningProgressSchema = new mongoose.Schema({
   userId: {
     type: String, // Clerk User ID
     required: true,
-    unique: true
+    unique: true,
   },
   // 學習記錄
   learningRecords: [LearningRecordSchema],
-  
+
   // 已學習的單詞 ID
-  learnedWords: [{
-    wordId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'BookWord'
+  learnedWords: [
+    {
+      wordId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "BookWord",
+      },
+      firstLearnedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      masteredAt: {
+        type: Date,
+        default: null,
+      },
+      reviewCount: {
+        type: Number,
+        default: 0,
+      },
+      lastReviewedAt: {
+        type: Date,
+        default: null,
+      },
     },
-    firstLearnedAt: {
-      type: Date,
-      default: Date.now
-    },
-    masteredAt: {
-      type: Date,
-      default: null
-    },
-    reviewCount: {
-      type: Number,
-      default: 0
-    },
-    lastReviewedAt: {
-      type: Date,
-      default: null
-    }
-  }],
-  
+  ],
+
   // 統計資料
   stats: {
     totalStudyTime: { type: Number, default: 0 }, // 總學習時間 (分鐘)
@@ -73,51 +75,60 @@ const LearningProgressSchema = new mongoose.Schema({
     lastStudyDate: { type: Date, default: null },
     totalWordsLearned: { type: Number, default: 0 },
     totalWordsMastered: { type: Number, default: 0 },
-    
+
     // 分類統計
-    categoryProgress: [{
-      category: String,
-      wordsLearned: { type: Number, default: 0 },
-      wordsMastered: { type: Number, default: 0 },
-      totalTime: { type: Number, default: 0 }
-    }],
-    
+    categoryProgress: [
+      {
+        category: String,
+        wordsLearned: { type: Number, default: 0 },
+        wordsMastered: { type: Number, default: 0 },
+        totalTime: { type: Number, default: 0 },
+      },
+    ],
+
     // 等級統計
-    levelProgress: [{
-      level: String,
-      wordsLearned: { type: Number, default: 0 },
-      wordsMastered: { type: Number, default: 0 },
-      totalTime: { type: Number, default: 0 }
-    }]
+    levelProgress: [
+      {
+        level: String,
+        wordsLearned: { type: Number, default: 0 },
+        wordsMastered: { type: Number, default: 0 },
+        totalTime: { type: Number, default: 0 },
+      },
+    ],
   },
-  
+
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 // 更新 updatedAt 時間戳
-LearningProgressSchema.pre('save', function(next) {
+LearningProgressSchema.pre("save", function (next) {
   this.updatedAt = new Date();
   next();
 });
 
 // 靜態方法：記錄學習活動
-LearningProgressSchema.statics.recordLearningActivity = async function(userId, wordId, action, options = {}) {
-  const { difficulty = 'medium', timeSpent = 0, isCorrect = null } = options;
-  
+LearningProgressSchema.statics.recordLearningActivity = async function (
+  userId,
+  wordId,
+  action,
+  options = {}
+) {
+  const { difficulty = "medium", timeSpent = 0, isCorrect = null } = options;
+
   try {
     let progress = await this.findOne({ userId });
-    
+
     if (!progress) {
       progress = new this({ userId });
     }
-    
+
     // 添加學習記錄
     progress.learningRecords.push({
       wordId,
@@ -125,38 +136,46 @@ LearningProgressSchema.statics.recordLearningActivity = async function(userId, w
       difficulty,
       timeSpent,
       isCorrect,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
-    
+
     // 更新統計
-    if (action === 'learn') {
-      const existingWord = progress.learnedWords.find(w => w.wordId.toString() === wordId.toString());
-      
+    if (action === "learn") {
+      const existingWord = progress.learnedWords.find(
+        (w) => w.wordId.toString() === wordId.toString()
+      );
+
       if (!existingWord) {
         progress.learnedWords.push({
           wordId,
-          firstLearnedAt: new Date()
+          firstLearnedAt: new Date(),
         });
         progress.stats.totalWordsLearned += 1;
       }
-    } else if (action === 'master') {
-      const wordIndex = progress.learnedWords.findIndex(w => w.wordId.toString() === wordId.toString());
-      
+    } else if (action === "master") {
+      const wordIndex = progress.learnedWords.findIndex(
+        (w) => w.wordId.toString() === wordId.toString()
+      );
+
       if (wordIndex !== -1) {
         progress.learnedWords[wordIndex].masteredAt = new Date();
         progress.stats.totalWordsMastered += 1;
       }
     }
-    
+
     // 更新學習時間(timeSpent 是秒數,stats.totalStudyTime 存儲分鐘數)
     const timeSpentInMinutes = timeSpent / 60;
     progress.stats.totalStudyTime += timeSpentInMinutes;
-    console.log(`⏱️ 更新學習時間: +${timeSpent}秒 (${timeSpentInMinutes.toFixed(2)}分鐘), 累計: ${progress.stats.totalStudyTime.toFixed(2)}分鐘`);
-    
+    console.log(
+      `⏱️ 更新學習時間: +${timeSpent}秒 (${timeSpentInMinutes.toFixed(
+        2
+      )}分鐘), 累計: ${progress.stats.totalStudyTime.toFixed(2)}分鐘`
+    );
+
     // 更新連續學習天數
     const today = new Date();
     const lastStudyDate = progress.stats.lastStudyDate;
-    
+
     if (!lastStudyDate || !isSameDay(lastStudyDate, today)) {
       if (lastStudyDate && isYesterday(lastStudyDate, today)) {
         progress.stats.streak += 1;
@@ -165,42 +184,44 @@ LearningProgressSchema.statics.recordLearningActivity = async function(userId, w
       }
       progress.stats.lastStudyDate = today;
     }
-    
+
     await progress.save();
     return progress;
   } catch (error) {
-    console.error('記錄學習活動失敗:', error);
+    console.error("記錄學習活動失敗:", error);
     throw error;
   }
 };
 
 // 靜態方法：獲取用戶統計
-LearningProgressSchema.statics.getUserStats = async function(userId) {
+LearningProgressSchema.statics.getUserStats = async function (userId) {
   try {
-    const progress = await this.findOne({ userId })
-      .populate('learnedWords.wordId');
-    
+    const progress = await this.findOne({ userId }).populate(
+      "learnedWords.wordId"
+    );
+
     if (!progress) {
       return null;
     }
-    
+
     // 計算分類和等級統計
     const categoryStats = {};
     const levelStats = {};
-    
+
     for (const learnedWord of progress.learnedWords) {
       if (learnedWord.wordId && learnedWord.wordId.categories) {
         // 過濾無效的分類值
-        const validCategories = (learnedWord.wordId.categories || []).filter(category => 
-          category && 
-          typeof category === 'string' && 
-          category.trim() !== '' &&
-          category !== 'NaN' &&
-          category !== 'null' &&
-          category !== 'undefined' &&
-          !category.match(/^[\s\[\]'"]*$/)
+        const validCategories = (learnedWord.wordId.categories || []).filter(
+          (category) =>
+            category &&
+            typeof category === "string" &&
+            category.trim() !== "" &&
+            category !== "NaN" &&
+            category !== "null" &&
+            category !== "undefined" &&
+            !category.match(/^[\s\[\]'"]*$/)
         );
-        
+
         for (const category of validCategories) {
           if (!categoryStats[category]) {
             categoryStats[category] = { learned: 0, mastered: 0 };
@@ -211,16 +232,18 @@ LearningProgressSchema.statics.getUserStats = async function(userId) {
           }
         }
       }
-      
+
       if (learnedWord.wordId && learnedWord.wordId.learning_level) {
         const level = learnedWord.wordId.learning_level;
         // 過濾無效的等級值
-        if (level && 
-            typeof level === 'string' && 
-            level.trim() !== '' &&
-            level !== 'NaN' &&
-            level !== 'null' &&
-            level !== 'undefined') {
+        if (
+          level &&
+          typeof level === "string" &&
+          level.trim() !== "" &&
+          level !== "NaN" &&
+          level !== "null" &&
+          level !== "undefined"
+        ) {
           if (!levelStats[level]) {
             levelStats[level] = { learned: 0, mastered: 0 };
           }
@@ -231,7 +254,7 @@ LearningProgressSchema.statics.getUserStats = async function(userId) {
         }
       }
     }
-    
+
     return {
       ...progress.stats.toObject(),
       categoryStats,
@@ -239,15 +262,15 @@ LearningProgressSchema.statics.getUserStats = async function(userId) {
       recentActivity: progress.learningRecords
         .slice(-10)
         .reverse()
-        .map(record => ({
+        .map((record) => ({
           date: record.timestamp,
           action: record.action,
           timeSpent: record.timeSpent,
-          wordId: record.wordId
-        }))
+          wordId: record.wordId,
+        })),
     };
   } catch (error) {
-    console.error('獲取用戶統計失敗:', error);
+    console.error("獲取用戶統計失敗:", error);
     throw error;
   }
 };
@@ -263,4 +286,79 @@ function isYesterday(date1, today) {
   return isSameDay(date1, yesterday);
 }
 
-module.exports = mongoose.model('LearningProgress', LearningProgressSchema);
+// 新增：靜態方法：獲取用戶最後學習的課程
+LearningProgressSchema.statics.getLastLesson = async function (userId) {
+  try {
+    const progress = await this.findOne({ userId })
+      .populate({
+        path: "learningRecords.wordId",
+        model: "BookWord",
+        select: "title volume lesson", // 只選擇需要的欄位
+      })
+      .sort({ "learningRecords.timestamp": -1 }); // 按時間戳排序
+
+    if (!progress || progress.learningRecords.length === 0) {
+      return null; // 沒有學習記錄
+    }
+
+    // 找到最近一筆 'learn' 或 'review' 的記錄
+    const lastRecord = progress.learningRecords
+      .slice() // 創建副本以避免修改原始陣列
+      .reverse()
+      .find((r) => r.wordId && (r.action === "learn" || r.action === "review"));
+
+    if (!lastRecord || !lastRecord.wordId) {
+      return null; // 找不到相關記錄
+    }
+
+    const { volume, lesson, title } = lastRecord.wordId;
+
+    if (volume === undefined || lesson === undefined) {
+      return null; // 記錄中沒有冊或課的資訊
+    }
+
+    // 計算該單元的總詞彙數
+    const totalWordsInLesson = await mongoose
+      .model("BookWord")
+      .countDocuments({ volume, lesson });
+
+    // 計算該單元已學習的詞彙數
+    const learnedWordsInLesson = await this.aggregate([
+      { $match: { userId } },
+      { $unwind: "$learnedWords" },
+      {
+        $lookup: {
+          from: "book_words",
+          localField: "learnedWords.wordId",
+          foreignField: "_id",
+          as: "wordDetails",
+        },
+      },
+
+      { $unwind: "$wordDetails" },
+      {
+        $match: { "wordDetails.volume": volume, "wordDetails.lesson": lesson },
+      },
+      { $count: "count" },
+    ]);
+
+    const learnedCount =
+      learnedWordsInLesson.length > 0 ? learnedWordsInLesson[0].count : 0;
+    const progressPercentage =
+      totalWordsInLesson > 0 ? learnedCount / totalWordsInLesson : 0;
+
+    return {
+      lastLesson: {
+        volume,
+        lesson,
+        title,
+      },
+      progress: progressPercentage,
+    };
+  } catch (error) {
+    console.error("❌ 獲取最後學習課程失敗:", error);
+    throw error;
+  }
+};
+
+module.exports = mongoose.model("LearningProgress", LearningProgressSchema);

@@ -48,6 +48,14 @@ export default function HomeScreen() {
   });
   const [loadingTasks, setLoadingTasks] = useState(true);
 
+  // 新增：繼續學習狀態
+  const [userProgress, setUserProgress] = useState({
+    lastLesson: { volume: 1, lesson: 1, title: "基礎手語" },
+    progress: 0,
+    isNewUser: true,
+  });
+  const [loadingProgress, setLoadingProgress] = useState(true);
+
   // 模擬用戶數據 - 添加更多實用信息
   const mockUserData = {
     name: "仕彥",
@@ -61,10 +69,50 @@ export default function HomeScreen() {
 
   // 載入數據
   useEffect(() => {
-    loadPersonalizedRecommendations();
-    loadDailySign();
-    loadTodayTasks();
+    if (user) {
+      loadPersonalizedRecommendations();
+      loadDailySign();
+      loadTodayTasks();
+      loadUserProgress();
+    }
   }, [user]);
+
+  const loadUserProgress = async () => {
+    if (!user?.id) {
+      console.log("📍 用戶未登入，無法載入學習進度");
+      setLoadingProgress(false);
+      return;
+    }
+    try {
+      setLoadingProgress(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/api/learning-stats/last-lesson/${user.id}`,
+        {
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log("✅ 成功載入用戶進度:", data);
+      setUserProgress(data);
+    } catch (error) {
+      console.error("❌ 載入用戶進度失敗:", error.message);
+      // 失敗時使用預設值
+      setUserProgress({
+        lastLesson: { volume: 1, lesson: 1, title: "基礎手語" },
+        progress: 0,
+        isNewUser: true,
+      });
+    } finally {
+      setLoadingProgress(false);
+    }
+  };
 
   const loadTodayTasks = async () => {
     if (!user?.id) {
@@ -332,28 +380,8 @@ export default function HomeScreen() {
           <Text style={styles.subtitle}>今天再學一點點，就更接近目標</Text>
         </View>
 
-        {/* 新用戶歡迎卡片 */}
-        {mockUserData.isNewUser && (
-          <Card style={styles.welcomeCard} mode="contained">
-            <Card.Content style={styles.welcomeContent}>
-              <Text style={styles.welcomeTitle}>🎉 歡迎開始手語學習之旅！</Text>
-              <Text style={styles.welcomeDesc}>
-                讓我們從基礎開始，一步步學會用手語表達自己
-              </Text>
-              <Button
-                mode="contained"
-                buttonColor="#4CAF50"
-                style={styles.welcomeButton}
-                onPress={() => router.push("/(tabs)/education/teach/1/1")}
-              >
-                開始第一課
-              </Button>
-            </Card.Content>
-          </Card>
-        )}
-
         {/* 今日任務 - 簡化版 */}
-        {!mockUserData.isNewUser && (
+        {!userProgress.isNewUser && !loadingProgress && (
           <View style={styles.todaySection}>
             {loadingTasks ? (
               <ActivityIndicator
@@ -385,55 +413,66 @@ export default function HomeScreen() {
             colors={["#6366F1", "#4F46E5"]}
             style={styles.cardGradient}
           >
-            <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>
-                {mockUserData.isNewUser
-                  ? "開始你的學習之旅"
-                  : `繼續「${mockUserData.lastLesson.title}」`}
-              </Text>
-              {!mockUserData.isNewUser && (
-                <>
-                  <Text style={styles.cardSubtitle}>
-                    第 {mockUserData.lastLesson.volume} 冊 • 第{" "}
-                    {mockUserData.lastLesson.unit} 單元
-                  </Text>
-                  <View style={styles.progressContainer}>
-                    <View style={styles.progressTrack}>
-                      <View
-                        style={[
-                          styles.progressFill,
-                          {
-                            width: `${Math.round(
-                              mockUserData.progress * 100
-                            )}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.progressText}>
-                      {Math.round(mockUserData.progress * 100)}%
-                    </Text>
-                  </View>
-                </>
-              )}
-              <TouchableOpacity
-                style={styles.continueButton}
-                onPress={() => {
-                  if (mockUserData.isNewUser) {
-                    router.push("/(tabs)/education/teach/1/1");
-                  } else {
-                    router.push(
-                      `/(tabs)/education/teach/${mockUserData.lastLesson.volume}/${mockUserData.lastLesson.unit}`
-                    );
-                  }
-                }}
-              >
-                <Text style={styles.continueText}>
-                  {mockUserData.isNewUser ? "開始學習" : "繼續學習"}
+            {loadingProgress ? (
+              <ActivityIndicator color="#fff" style={{ paddingVertical: 40 }} />
+            ) : (
+              <View style={styles.cardContent}>
+                <Text style={styles.cardTitle}>
+                  {userProgress.isNewUser
+                    ? "開始你的學習之旅"
+                    : `繼續「${userProgress.lastLesson.title}」`}
                 </Text>
-                <Ionicons name="arrow-forward" size={20} color="#6366F1" />
-              </TouchableOpacity>
-            </View>
+                {!userProgress.isNewUser && (
+                  <>
+                    <Text style={styles.cardSubtitle}>
+                      第 {userProgress.lastLesson.volume} 冊 • 第{" "}
+                      {userProgress.lastLesson.lesson} 單元
+                    </Text>
+                    <View style={styles.progressContainer}>
+                      <View style={styles.progressTrack}>
+                        <View
+                          style={[
+                            styles.progressFill,
+                            {
+                              width: `${Math.round(
+                                userProgress.progress * 100
+                              )}%`,
+                            },
+                          ]}
+                        />
+                      </View>
+                      <Text style={styles.progressText}>
+                        {Math.round(userProgress.progress * 100)}%
+                      </Text>
+                    </View>
+                  </>
+                )}
+                <TouchableOpacity
+                  style={styles.continueButton}
+                  onPress={() => {
+                    if (userProgress.isNewUser) {
+                      router.navigate("(tabs)/education", {
+                        screen: "teach-screen",
+                        params: { volume: 1, lesson: 1 },
+                      });
+                    } else {
+                      router.navigate("(tabs)/education", {
+                        screen: "teach-screen",
+                        params: {
+                          volume: userProgress.lastLesson.volume,
+                          lesson: userProgress.lastLesson.lesson,
+                        },
+                      });
+                    }
+                  }}
+                >
+                  <Text style={styles.continueText}>
+                    {userProgress.isNewUser ? "開始學習" : "繼續學習"}
+                  </Text>
+                  <Ionicons name="arrow-forward" size={20} color="#6366F1" />
+                </TouchableOpacity>
+              </View>
+            )}
           </LinearGradient>
         </Card>
 
@@ -647,9 +686,9 @@ export default function HomeScreen() {
         userContext={{
           userName: user?.firstName || mockUserData.name,
           streakDays: mockUserData.streakDays,
-          progress: mockUserData.progress,
-          lastLesson: mockUserData.lastLesson,
-          isNewUser: mockUserData.isNewUser,
+          progress: userProgress.progress,
+          lastLesson: userProgress.lastLesson,
+          isNewUser: userProgress.isNewUser,
         }}
       />
     </LinearGradient>

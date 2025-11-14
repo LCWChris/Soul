@@ -599,4 +599,36 @@ router.get("/today-tasks/:userId", async (req, res) => {
   }
 });
 
+// 新增：獲取最後學習課程
+router.get("/last-lesson/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(`📚 請求最後學習課程, userId: ${userId}`);
+
+    const result = await LearningProgress.getLastLesson(userId);
+
+    if (!result) {
+      console.log("🤷‍♂️ 找不到最後學習課程");
+      // 如果找不到，可以回傳一個預設值或 null
+      return res.json({
+        lastLesson: {
+          volume: 1,
+          lesson: 1,
+          title: "基礎手語",
+        },
+        progress: 0,
+        isNewUser: true, // 標記為新用戶，前端可以顯示歡迎卡片
+      });
+    }
+
+    console.log("✅ 成功獲取最後學習課程:", result);
+    res.json({ ...result, isNewUser: false });
+  } catch (error) {
+    console.error("❌ 獲取最後學習課程失敗:", error);
+    res
+      .status(500)
+      .json({ error: "獲取最後學習課程失敗", message: error.message });
+  }
+});
+
 module.exports = router;
