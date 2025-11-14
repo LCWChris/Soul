@@ -71,7 +71,7 @@ function TranslateScreen() {
         const customBackendUrl = await getBackendApiUrl();
 
         // 只有當自訂 URL 存在且不為空時才覆蓋預設值
-        if (customTranslationUrl && customTranslationUrl.trim() !== '') {
+        if (customTranslationUrl && customTranslationUrl.trim() !== "") {
           setBackendUrl(customTranslationUrl);
           console.log("✅ 使用自訂翻譯 API:", customTranslationUrl);
         } else {
@@ -80,8 +80,8 @@ function TranslateScreen() {
           setBackendUrl(envUrl);
           console.log("📋 使用預設翻譯 API (.env):", envUrl);
         }
-        
-        if (customBackendUrl && customBackendUrl.trim() !== '') {
+
+        if (customBackendUrl && customBackendUrl.trim() !== "") {
           setNodeApi(customBackendUrl);
           console.log("✅ 使用自訂後端 API:", customBackendUrl);
         } else {

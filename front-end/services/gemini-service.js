@@ -16,10 +16,10 @@ const loadCustomApiKey = async () => {
   try {
     const key = await getGeminiApiKey();
     // 只有在有有效值時才設定，否則保持 null 以使用 .env 預設值
-    customApiKey = key && key.trim() !== '' ? key : null;
+    customApiKey = key && key.trim() !== "" ? key : null;
     hasLoadedOnce = true;
   } catch (error) {
-    console.error('❌ 載入自訂 Gemini API Key 失敗:', error);
+    console.error("❌ 載入自訂 Gemini API Key 失敗:", error);
   } finally {
     isLoadingCustomKey = false;
   }
@@ -59,7 +59,7 @@ class GeminiService {
    */
   initializeModel() {
     const apiKey = getApiKey();
-    if (!apiKey || apiKey.trim() === '') {
+    if (!apiKey || apiKey.trim() === "") {
       console.warn("⚠️ Gemini API Key 未設定");
       this.model = null;
       return;
@@ -69,8 +69,10 @@ class GeminiService {
     this.model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
     });
-    const keySource = customApiKey ? '自訂 API Key' : '.env 預設值';
-    console.log(`✅ Gemini Service 初始化成功 - 使用 gemini-2.5-flash (${keySource})`);
+    const keySource = customApiKey ? "自訂 API Key" : ".env 預設值";
+    console.log(
+      `✅ Gemini Service 初始化成功 - 使用 gemini-2.5-flash (${keySource})`
+    );
   }
 
   /**

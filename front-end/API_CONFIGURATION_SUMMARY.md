@@ -7,6 +7,7 @@
 **位置**: `app/(tabs)/translation/index.jsx`
 
 **邏輯**:
+
 ```javascript
 // 初始化：使用 .env 預設值
 const [BACKEND_URL, setBackendUrl] = useState(
@@ -28,6 +29,7 @@ const translationUrl = `${BACKEND_URL}/translate-by-url`;
 ```
 
 **行為**:
+
 - ✅ 預設使用 `.env` 中的 `EXPO_PUBLIC_TRANSLATE_API_BACKEND_URL`
 - ✅ 如果用戶設定了自訂 URL 且不為空，覆蓋預設值
 - ✅ 如果用戶清空自訂 URL（儲存空字串），恢復使用 `.env` 預設值
@@ -40,6 +42,7 @@ const translationUrl = `${BACKEND_URL}/translate-by-url`;
 **位置**: `constants/api.ts`
 
 **邏輯**:
+
 ```typescript
 let customBackendUrl: string | null = null;
 
@@ -47,7 +50,7 @@ let customBackendUrl: string | null = null;
 const loadCustomBackendUrl = async () => {
   const url = await getBackendApiUrl();
   // 只有在有有效值時才設定，否則保持 null 以使用 .env
-  customBackendUrl = url && url.trim() !== '' ? url : null;
+  customBackendUrl = url && url.trim() !== "" ? url : null;
 };
 
 // 立即開始載入
@@ -61,6 +64,7 @@ export const getBaseUrl = (): string => {
 ```
 
 **使用範例**:
+
 ```javascript
 import { API_CONFIG } from '@/constants/api';
 
@@ -69,6 +73,7 @@ fetch(`${API_CONFIG.BASE_URL}/api/vocabularies`, { ... });
 ```
 
 **行為**:
+
 - ✅ 預設使用 `.env` 中的 `EXPO_PUBLIC_IP`
 - ✅ 如果用戶設定了自訂 URL 且不為空，覆蓋預設值
 - ✅ 如果用戶清空自訂 URL（儲存空字串），恢復使用 `.env` 預設值
@@ -81,6 +86,7 @@ fetch(`${API_CONFIG.BASE_URL}/api/vocabularies`, { ... });
 **位置**: `services/gemini-service.js`
 
 **邏輯**:
+
 ```javascript
 let customApiKey = null;
 
@@ -88,7 +94,7 @@ let customApiKey = null;
 const loadCustomApiKey = async () => {
   const key = await getGeminiApiKey();
   // 只有在有有效值時才設定，否則保持 null 以使用 .env
-  customApiKey = key && key.trim() !== '' ? key : null;
+  customApiKey = key && key.trim() !== "" ? key : null;
 };
 
 // 立即開始載入
@@ -108,14 +114,16 @@ export const reloadApiKey = async () => {
 ```
 
 **使用範例**:
+
 ```javascript
-import geminiService from '@/services/gemini-service';
+import geminiService from "@/services/gemini-service";
 
 // 使用時
 const reply = await geminiService.sendMessage("你好", { userName: "Chris" });
 ```
 
 **行為**:
+
 - ✅ 預設使用 `.env` 中的 `EXPO_PUBLIC_GEMINI_API_KEY`
 - ✅ 如果用戶設定了自訂 Key 且不為空，覆蓋預設值
 - ✅ 如果用戶清空自訂 Key（儲存空字串），恢復使用 `.env` 預設值
@@ -129,25 +137,29 @@ const reply = await geminiService.sendMessage("你好", { userName: "Chris" });
 **位置**: `app/(tabs)/user/index.jsx`
 
 **保存邏輯**:
+
 ```javascript
 const handleSaveTranslationApi = async () => {
   // 如果是空字串，儲存空值以使用 .env 預設
-  await saveTranslationApiUrl(translationApiUrl.trim() !== '' ? translationApiUrl : '');
+  await saveTranslationApiUrl(
+    translationApiUrl.trim() !== "" ? translationApiUrl : ""
+  );
   setSnackbarMessage("✅ 翻譯 API URL 已儲存（如為空則使用 .env 預設）");
 };
 
 const handleSaveBackendApi = async () => {
-  await saveBackendApiUrl(backendApiUrl.trim() !== '' ? backendApiUrl : '');
+  await saveBackendApiUrl(backendApiUrl.trim() !== "" ? backendApiUrl : "");
   setSnackbarMessage("✅ 後端 API URL 已儲存（如為空則使用 .env 預設）");
 };
 
 const handleSaveGeminiApi = async () => {
-  await saveGeminiApiKey(geminiApiKey.trim() !== '' ? geminiApiKey : '');
+  await saveGeminiApiKey(geminiApiKey.trim() !== "" ? geminiApiKey : "");
   setSnackbarMessage("✅ Gemini API Key 已儲存（如為空則使用 .env 預設）");
 };
 ```
 
 **行為**:
+
 - ✅ 用戶輸入自訂值並儲存 → 使用自訂值
 - ✅ 用戶清空輸入並儲存 → 儲存空字串，恢復使用 `.env` 預設值
 - ✅ 儲存後顯示 Snackbar 提示
@@ -159,36 +171,39 @@ const handleSaveGeminiApi = async () => {
 **位置**: `utils/settings.js`
 
 **儲存**:
+
 ```javascript
 export const saveTranslationApiUrl = async (url) => {
-  await AsyncStorage.setItem('translation_api_url', url);
+  await AsyncStorage.setItem("translation_api_url", url);
 };
 
 export const saveBackendApiUrl = async (url) => {
-  await AsyncStorage.setItem('backend_api_url', url);
+  await AsyncStorage.setItem("backend_api_url", url);
 };
 
 export const saveGeminiApiKey = async (key) => {
-  await AsyncStorage.setItem('gemini_api_key', key);
+  await AsyncStorage.setItem("gemini_api_key", key);
 };
 ```
 
 **讀取**:
+
 ```javascript
 export const getTranslationApiUrl = async () => {
-  return await AsyncStorage.getItem('translation_api_url');  // 可能返回 null 或空字串
+  return await AsyncStorage.getItem("translation_api_url"); // 可能返回 null 或空字串
 };
 
 export const getBackendApiUrl = async () => {
-  return await AsyncStorage.getItem('backend_api_url');
+  return await AsyncStorage.getItem("backend_api_url");
 };
 
 export const getGeminiApiKey = async () => {
-  return await AsyncStorage.getItem('gemini_api_key');
+  return await AsyncStorage.getItem("gemini_api_key");
 };
 ```
 
 **行為**:
+
 - ✅ 返回 `null` → 表示從未設定過
 - ✅ 返回 `''` (空字串) → 表示用戶清空了自訂值
 - ✅ 返回有效字串 → 表示用戶設定了自訂值
@@ -200,6 +215,7 @@ export const getGeminiApiKey = async () => {
 **位置**: `.env` (根目錄 `front-end/.env`)
 
 **必要變數**:
+
 ```env
 # 後端 API URL
 EXPO_PUBLIC_IP=https://your-backend-url.com
@@ -215,6 +231,7 @@ EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ```
 
 **載入機制**:
+
 - ✅ Expo 自動載入以 `EXPO_PUBLIC_` 開頭的環境變數
 - ✅ 可在代碼中通過 `process.env.EXPO_PUBLIC_*` 訪問
 - ✅ 在 EAS Build 中也可以使用（需在 `eas.json` 配置）
@@ -260,18 +277,21 @@ EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ## 測試檢查清單
 
 ### ✅ 翻譯 API
+
 - [ ] 未設定時使用 .env 預設值
 - [ ] 設定自訂值後使用自訂值
 - [ ] 清空自訂值後恢復使用 .env 預設值
 - [ ] 每次進入翻譯頁面都會重新載入配置
 
 ### ✅ 後端 API
+
 - [ ] 未設定時使用 .env 預設值
 - [ ] 設定自訂值後使用自訂值
 - [ ] 清空自訂值後恢復使用 .env 預設值
 - [ ] 應用啟動時自動載入配置
 
 ### ✅ Gemini API Key
+
 - [ ] 未設定時使用 .env 預設值
 - [ ] 設定自訂值後使用自訂值
 - [ ] 清空自訂值後恢復使用 .env 預設值
@@ -282,6 +302,7 @@ EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ## 調試日誌
 
 ### 翻譯頁面
+
 ```javascript
 // 正確的日誌輸出應該是：
 📋 使用預設翻譯 API (.env): https://your-api.com
@@ -293,6 +314,7 @@ EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ```
 
 ### API 調用
+
 ```javascript
 // 翻譯時的日誌：
 🚀 使用翻譯 API: https://your-api.com
@@ -300,6 +322,7 @@ EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ```
 
 ### Gemini Service
+
 ```javascript
 // 初始化時的日誌：
 ✅ Gemini Service 初始化成功 - 使用 gemini-2.5-flash (.env 預設值)
@@ -320,6 +343,7 @@ EXPO_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 5. ✅ **一致性**: 三個 API 使用相同的邏輯模式，易於維護和理解
 
 **用戶體驗**:
+
 - 開箱即用：只需配置 `.env` 文件
 - 靈活自訂：可在設定頁面覆蓋任何 API
 - 輕鬆重置：清空輸入即可恢復預設值

@@ -11,10 +11,10 @@ const loadCustomBackendUrl = async () => {
   try {
     const url = await getBackendApiUrl();
     // 只有在有有效值時才設定，否則保持 null 以使用 .env 預設值
-    customBackendUrl = url && url.trim() !== '' ? url : null;
+    customBackendUrl = url && url.trim() !== "" ? url : null;
     hasLoadedOnce = true;
   } catch (error) {
-    console.error('❌ 載入自訂後端 URL 失敗:', error);
+    console.error("❌ 載入自訂後端 URL 失敗:", error);
   } finally {
     isLoadingCustomUrl = false;
   }

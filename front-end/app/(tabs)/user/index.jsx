@@ -61,7 +61,9 @@ export default function UserScreen() {
 
   const handleSaveTranslationApi = async () => {
     // 儲存（如果是空字串，儲存空值以使用 .env 預設）
-    await saveTranslationApiUrl(translationApiUrl.trim() !== '' ? translationApiUrl : '');
+    await saveTranslationApiUrl(
+      translationApiUrl.trim() !== "" ? translationApiUrl : ""
+    );
     setSnackbarMessage("✅ 翻譯 API URL 已儲存");
     setSnackbarVisible(true);
     setTimeout(() => setSnackbarVisible(false), 2000);
@@ -69,7 +71,7 @@ export default function UserScreen() {
 
   const handleSaveBackendApi = async () => {
     // 儲存（如果是空字串，儲存空值以使用 .env 預設）
-    await saveBackendApiUrl(backendApiUrl.trim() !== '' ? backendApiUrl : '');
+    await saveBackendApiUrl(backendApiUrl.trim() !== "" ? backendApiUrl : "");
     setSnackbarMessage("✅ 後端 API URL 已儲存（如為空則使用 .env 預設）");
     setSnackbarVisible(true);
     setTimeout(() => setSnackbarVisible(false), 2000);
@@ -77,7 +79,7 @@ export default function UserScreen() {
 
   const handleSaveGeminiApi = async () => {
     // 儲存（如果是空字串，儲存空值以使用 .env 預設）
-    await saveGeminiApiKey(geminiApiKey.trim() !== '' ? geminiApiKey : '');
+    await saveGeminiApiKey(geminiApiKey.trim() !== "" ? geminiApiKey : "");
     setSnackbarMessage("✅ Gemini API Key 已儲存（如為空則使用 .env 預設）");
     setSnackbarVisible(true);
     setTimeout(() => setSnackbarVisible(false), 2000);
