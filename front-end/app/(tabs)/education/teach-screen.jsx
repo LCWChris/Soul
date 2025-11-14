@@ -1,67 +1,82 @@
-import { API_CONFIG } from '@/constants/api';
-import axios from 'axios';
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity,View } from 'react-native';
-import ArrowBack from '@/components/ArrowBack';
+import { API_CONFIG } from "@/constants/api";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import axios from "axios";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TeachScreen() {
   const [volumes, setVolumes] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const loadVolumes = async () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIALS}`;
-        console.log('🔗 準備打 API：', url);
+        console.log("🔗 準備打 API：", url);
 
         const response = await axios.get(url, {
           headers: {
-            'ngrok-skip-browser-warning': 'true',
+            "ngrok-skip-browser-warning": "true",
           },
         });
-        
-        console.log('📦 完整回應：', response);
-        console.log('📄 回應資料：', response.data);
-        console.log('🔍 資料型別：', typeof response.data);
-        console.log('✅ 是否為陣列：', Array.isArray(response.data));
-        
+
+        console.log("📦 完整回應：", response);
+        console.log("📄 回應資料：", response.data);
+        console.log("🔍 資料型別：", typeof response.data);
+        console.log("✅ 是否為陣列：", Array.isArray(response.data));
+
         // 驗證資料格式
         if (!response.data) {
-          throw new Error('API 回應為空');
+          throw new Error("API 回應為空");
         }
-        
+
         if (!Array.isArray(response.data)) {
-          console.error('❌ API 回應不是陣列：', response.data);
-          throw new Error('API 回應格式錯誤，預期為陣列');
+          console.error("❌ API 回應不是陣列：", response.data);
+          throw new Error("API 回應格式錯誤，預期為陣列");
         }
-        
-        console.log('📊 資料筆數：', response.data.length);
-        console.log('🧾 前三筆預覽：', response.data.slice(0, 3));
-        
-        const uniqueVolumes = [...new Set(response.data.map((item) => Number(item.volume)))];
-        console.log('🧮 提取 volumes：', uniqueVolumes);
-        
+
+        console.log("📊 資料筆數：", response.data.length);
+        console.log("🧾 前三筆預覽：", response.data.slice(0, 3));
+
+        const uniqueVolumes = [
+          ...new Set(response.data.map((item) => Number(item.volume))),
+        ];
+        console.log("🧮 提取 volumes：", uniqueVolumes);
+
         setVolumes(uniqueVolumes.sort((a, b) => a - b));
       } catch (err) {
-        console.error('❌ 載入教材失敗：', err);
-        console.error('❌ 錯誤訊息：', err.message);
-        console.error('❌ 錯誤回應：', err.response?.data);
-        
-        let errorMessage = '載入教材時發生未知錯誤';
-        
+        console.error("❌ 載入教材失敗：", err);
+        console.error("❌ 錯誤訊息：", err.message);
+        console.error("❌ 錯誤回應：", err.response?.data);
+
+        let errorMessage = "載入教材時發生未知錯誤";
+
         if (err.response) {
-          errorMessage = `伺服器錯誤 (${err.response.status}): ${err.response.data?.message || err.message}`;
+          errorMessage = `伺服器錯誤 (${err.response.status}): ${
+            err.response.data?.message || err.message
+          }`;
         } else if (err.request) {
-          errorMessage = '無法連線到伺服器，請檢查網路連線';
+          errorMessage = "無法連線到伺服器，請檢查網路連線";
         } else {
           errorMessage = err.message;
         }
-        
+
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -72,102 +87,200 @@ export default function TeachScreen() {
   }, []);
 
   return (
-// 使用一個最外層的 View 來包裹內容
-    <View style={styles.fullScreenContainer}>
-      {/* ArrowBack 放在 ScrollView 外面，獨立於可捲動內容 */}
-      <View style={styles.header}>
-        <ArrowBack onPress={()=> router.back()}/>
+    <LinearGradient
+      colors={["#EEF2FF", "#E0E7FF", "#F9FAFB"]}
+      style={styles.container}
+    >
+      {/* 自定義返回按鈕 */}
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back" size={24} color="#1F2937" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>選擇冊別</Text>
       </View>
-      
-      {/* ScrollView 只包含可捲動的內容 (Volumes) */}
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {error && (
-          <Text style={styles.errorText}>⚠️ {error}</Text>
+
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {loading && (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color="#6366F1" />
+            <Text style={styles.loadingText}>載入教材中...</Text>
+          </View>
         )}
 
-        {loading && (
-          <Text style={styles.loadingText}> 載入教材中...</Text>
+        {error && (
+          <View style={styles.errorContainer}>
+            <Ionicons name="alert-circle" size={48} color="#EF4444" />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
         )}
 
         {!loading && volumes.length === 0 && !error && (
-          <Text style={styles.emptyText}>
-            📭 尚未載入任何教材，請確認資料庫是否有資料
-          </Text>
+          <View style={styles.emptyContainer}>
+            <Ionicons name="book-outline" size={64} color="#9CA3AF" />
+            <Text style={styles.emptyText}>尚未載入任何教材</Text>
+            <Text style={styles.emptySubtext}>請確認資料庫是否有資料</Text>
+          </View>
         )}
 
-        {volumes.map((vol) => {
-          console.log('🔍 渲染中的 vol：', vol);
-          return (
-            <TouchableOpacity
-              key={vol}
-              style={styles.card}
-              onPress={() => router.push(`/education/teach/${vol}`)}
-            >
-              <Text style={styles.text}>第 {vol} 冊</Text>
-            </TouchableOpacity>
-          );
-        })}
+        {!loading && !error && volumes.length > 0 && (
+          <View style={styles.gridContainer}>
+            {volumes.map((vol) => (
+              <TouchableOpacity
+                key={vol}
+                activeOpacity={0.8}
+                onPress={() => router.push(`/(tabs)/education/teach/${vol}`)}
+              >
+                <LinearGradient
+                  colors={[
+                    vol % 2 === 0 ? "#6366F1" : "#8B5CF6",
+                    vol % 2 === 0 ? "#4F46E5" : "#7C3AED",
+                  ]}
+                  style={styles.volumeCard}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <View style={styles.volumeIconContainer}>
+                    <Ionicons name="book" size={32} color="#FFF" />
+                  </View>
+                  <Text style={styles.volumeNumber}>第 {vol} 冊</Text>
+                  <View style={styles.volumeArrow}>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color="rgba(255,255,255,0.8)"
+                    />
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 }
 
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = (width - 60) / 2;
+
 const styles = StyleSheet.create({
-  fullScreenContainer: {
-    flex: 1, // 讓 View 佔滿整個螢幕
-    backgroundColor: 'white', // 假設背景色
+  container: {
+    flex: 1,
   },
   header: {
-    padding: 20, // 確保 ArrowBack 有足夠的點擊和視覺空間
-    paddingBottom: 0, // 減少底部的間隔
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingBottom: 12,
+    gap: 12,
+  },
+  backButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#FFF",
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1F2937",
   },
   scrollContent: {
     padding: 20,
-    paddingTop: 16, // 確保 ScrollView 的內容不會太靠近 Header
-    gap: 16,
+    paddingTop: 0,
   },
-  card: {
-    backgroundColor: '#E0E7FF',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  text: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1E3A8A',
-  },
-  emptyText: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: '#6B7280',
-    marginTop: 32,
-    fontStyle: 'italic',
-  },
-  errorText: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: '#DC2626',
-    marginTop: 32,
-    backgroundColor: '#FEF2F2',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#FECACA',
+  centerContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
   },
   loadingText: {
-    textAlign: 'center',
+    marginTop: 16,
     fontSize: 16,
-    color: '#3B82F6',
-    marginTop: 32,
-    fontWeight: '500',
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  errorContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  errorText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: "#EF4444",
+    textAlign: "center",
+    lineHeight: 24,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#6B7280",
+    textAlign: "center",
+  },
+  emptySubtext: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#9CA3AF",
+    textAlign: "center",
+  },
+  gridContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+  },
+  volumeCard: {
+    width: CARD_WIDTH,
+    height: 140,
+    borderRadius: 20,
+    padding: 16,
+    justifyContent: "space-between",
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  volumeIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  volumeNumber: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#FFF",
+  },
+  volumeArrow: {
+    position: "absolute",
+    bottom: 16,
+    right: 16,
   },
 });

@@ -1,4 +1,3 @@
-import ArrowBack from "@/components/ArrowBack";
 import { getTranslationApiUrl } from "@/utils/settings";
 import { Ionicons } from "@expo/vector-icons";
 import { Audio, Video } from "expo-av";
@@ -577,19 +576,29 @@ function TranslateScreen() {
 
       {/* 頂部導航欄 */}
       <Animated.View entering={FadeInDown.delay(100)} style={styles.header}>
-        <ArrowBack />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="arrow-back" size={24} color="#1E293B" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>手語翻譯</Text>
         <TouchableOpacity
           style={styles.cameraFlipButton}
           onPress={toggleCameraFacing}
           activeOpacity={0.8}
         >
-          <Ionicons name="camera-reverse-outline" size={24} color="#FFFFFF" />
+          <Ionicons name="camera-reverse-outline" size={24} color="#2563EB" />
         </TouchableOpacity>
       </Animated.View>
 
       {/* 主要內容區域 */}
-      <View style={styles.mainContent}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.mainContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* 相機視圖 */}
         <Animated.View
           entering={FadeInUp.delay(200)}
@@ -635,76 +644,73 @@ function TranslateScreen() {
               </View>
             )}
           </View>
-
-          {/* 相機控制條 */}
-          <View style={styles.cameraControls}>
-            <TouchableOpacity
-              style={styles.smallControlButton}
-              onPress={pickVideoFromGallery}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="folder-outline" size={20} color="#2563EB" />
-            </TouchableOpacity>
-
-            {/* 核心修改：中央控制區域 (包含倒數和錄製按鈕) */}
-            <View style={styles.centerControlArea}>
-              {countdown !== null && (
-                <Animated.View
-                  entering={ZoomIn}
-                  style={styles.countdownDisplay}
-                >
-                  <Text style={styles.countdownText}>{countdown}</Text>
-                </Animated.View>
-              )}
-
-              <Animated.View
-                style={[
-                  recordingAnimatedStyle,
-                  // 倒數時隱藏錄製按鈕
-                  countdown !== null && { opacity: 0 },
-                ]}
-              >
-                <TouchableOpacity
-                  style={[
-                    styles.recordButton,
-                    isRecording && styles.recordButtonActive,
-                    (!isCameraReady || cameraInitializing) &&
-                      styles.recordButtonDisabled,
-                  ]}
-                  onPress={isRecording ? stopRecording : startRecording}
-                  disabled={
-                    !isCameraReady || cameraInitializing || countdown !== null
-                  } // 倒數時禁用
-                  activeOpacity={0.8}
-                >
-                  <View
-                    style={[
-                      styles.recordButtonInner,
-                      isRecording && styles.recordButtonInnerActive,
-                    ]}
-                  >
-                    <Ionicons
-                      name={isRecording ? "stop" : "radio-button-on"}
-                      size={28}
-                      color="#FFFFFF"
-                    />
-                  </View>
-                </TouchableOpacity>
-              </Animated.View>
-            </View>
-
-            <TouchableOpacity
-              style={styles.smallControlButton}
-              onPress={() => {
-                resetCameraState();
-                Alert.alert("提示", "已重設相機狀態");
-              }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="refresh-outline" size={20} color="#2563EB" />
-            </TouchableOpacity>
-          </View>
         </Animated.View>
+
+        {/* 相機控制條 */}
+        <View style={styles.cameraControls}>
+          <TouchableOpacity
+            style={styles.smallControlButton}
+            onPress={pickVideoFromGallery}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="folder-outline" size={24} color="#2563EB" />
+          </TouchableOpacity>
+
+          {/* 核心修改：中央控制區域 (包含倒數和錄製按鈕) */}
+          <View style={styles.centerControlArea}>
+            {countdown !== null && (
+              <Animated.View entering={ZoomIn} style={styles.countdownDisplay}>
+                <Text style={styles.countdownText}>{countdown}</Text>
+              </Animated.View>
+            )}
+
+            <Animated.View
+              style={[
+                recordingAnimatedStyle,
+                // 倒數時隱藏錄製按鈕
+                countdown !== null && { opacity: 0 },
+              ]}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.recordButton,
+                  isRecording && styles.recordButtonActive,
+                  (!isCameraReady || cameraInitializing) &&
+                    styles.recordButtonDisabled,
+                ]}
+                onPress={isRecording ? stopRecording : startRecording}
+                disabled={
+                  !isCameraReady || cameraInitializing || countdown !== null
+                } // 倒數時禁用
+                activeOpacity={0.8}
+              >
+                <View
+                  style={[
+                    styles.recordButtonInner,
+                    isRecording && styles.recordButtonInnerActive,
+                  ]}
+                >
+                  <Ionicons
+                    name={isRecording ? "stop" : "radio-button-on"}
+                    size={28}
+                    color="#FFFFFF"
+                  />
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.smallControlButton}
+            onPress={() => {
+              resetCameraState();
+              Alert.alert("提示", "已重設相機狀態");
+            }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="refresh-outline" size={24} color="#2563EB" />
+          </TouchableOpacity>
+        </View>
 
         {/* 緊急錄影選項 - 只在相機未準備好時顯示 */}
         {(!isCameraReady || cameraInitializing) && !isRecording && (
@@ -712,7 +718,10 @@ function TranslateScreen() {
             entering={FadeInUp.delay(400)}
             style={styles.emergencySection}
           >
-            <Text style={styles.emergencySectionTitle}>相機未就緒？</Text>
+            <View style={styles.emergencyHeader}>
+              <Ionicons name="alert-circle-outline" size={20} color="#F59E0B" />
+              <Text style={styles.emergencySectionTitle}>相機未就緒？</Text>
+            </View>
             <View style={styles.emergencyButtons}>
               <TouchableOpacity
                 style={[styles.emergencyButton, styles.emergencyButtonPrimary]}
@@ -722,95 +731,84 @@ function TranslateScreen() {
                 <Ionicons name="videocam" size={18} color="#FFFFFF" />
                 <Text style={styles.emergencyButtonText}>強制錄影</Text>
               </TouchableOpacity>
+            </View>
+          </Animated.View>
+        )}
 
+        {/* 影片預覽區域 */}
+        {videoUri && (
+          <Animated.View
+            entering={FadeInUp}
+            style={styles.videoPreviewContainer}
+          >
+            <View style={styles.videoPreview}>
+              <Video
+                source={{ uri: videoUri }}
+                style={styles.videoPlayer}
+                useNativeControls
+                resizeMode="contain"
+              />
               <TouchableOpacity
-                style={[
-                  styles.emergencyButton,
-                  styles.emergencyButtonSecondary,
-                ]}
-                onPress={emergencyRecord}
-                activeOpacity={0.8}
+                style={styles.closeVideoButton}
+                onPress={() => setVideoUri(null)}
               >
-                <Ionicons name="warning-outline" size={18} color="#EF4444" />
-                <Text style={styles.emergencyButtonTextSecondary}>
-                  緊急模式
-                </Text>
+                <Ionicons name="close" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+
+            {/* 翻譯按鈕 */}
+            <TouchableOpacity
+              style={[
+                styles.translateButton,
+                isUploading && styles.translateButtonDisabled,
+              ]}
+              onPress={uploadAndTranslateVideo}
+              disabled={isUploading}
+              activeOpacity={0.8}
+            >
+              {isUploading ? (
+                <View style={styles.uploadingContainer}>
+                  <View style={styles.uploadProgressBar}>
+                    <Animated.View
+                      style={[styles.uploadProgress, uploadAnimatedStyle]}
+                    />
+                  </View>
+                  <Text style={styles.translateButtonText}>翻譯中...</Text>
+                </View>
+              ) : (
+                <>
+                  <Ionicons name="language-outline" size={20} color="#FFFFFF" />
+                  <Text style={styles.translateButtonText}>開始翻譯</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
+        {/* 翻譯結果區域 */}
+        {showResults && translationResult && (
+          <Animated.View
+            entering={FadeInUp.delay(300)}
+            style={styles.resultsContainer}
+          >
+            <View style={styles.resultCard}>
+              <View style={styles.resultHeader}>
+                <Ionicons name="checkmark-circle" size={24} color="#2563EB" />
+                <Text style={styles.resultTitle}>翻譯結果</Text>
+              </View>
+              <ScrollView style={styles.resultContent}>
+                <Text style={styles.resultText}>{translationResult}</Text>
+              </ScrollView>
+              <TouchableOpacity
+                style={styles.closeResultButton}
+                onPress={() => setShowResults(false)}
+              >
+                <Ionicons name="close" size={20} color="#64748B" />
               </TouchableOpacity>
             </View>
           </Animated.View>
         )}
-      </View>
-
-      {/* 影片預覽區域 */}
-      {videoUri && (
-        <Animated.View entering={FadeInUp} style={styles.videoPreviewContainer}>
-          <View style={styles.videoPreview}>
-            <Video
-              source={{ uri: videoUri }}
-              style={styles.videoPlayer}
-              useNativeControls
-              resizeMode="contain"
-            />
-            <TouchableOpacity
-              style={styles.closeVideoButton}
-              onPress={() => setVideoUri(null)}
-            >
-              <Ionicons name="close" size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-
-          {/* 翻譯按鈕 */}
-          <TouchableOpacity
-            style={[
-              styles.translateButton,
-              isUploading && styles.translateButtonDisabled,
-            ]}
-            onPress={uploadAndTranslateVideo}
-            disabled={isUploading}
-            activeOpacity={0.8}
-          >
-            {isUploading ? (
-              <View style={styles.uploadingContainer}>
-                <View style={styles.uploadProgressBar}>
-                  <Animated.View
-                    style={[styles.uploadProgress, uploadAnimatedStyle]}
-                  />
-                </View>
-                <Text style={styles.translateButtonText}>翻譯中...</Text>
-              </View>
-            ) : (
-              <>
-                <Ionicons name="language-outline" size={20} color="#FFFFFF" />
-                <Text style={styles.translateButtonText}>開始翻譯</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </Animated.View>
-      )}
-
-      {/* 翻譯結果區域 */}
-      {showResults && translationResult && (
-        <Animated.View
-          entering={FadeInUp.delay(300)}
-          style={styles.resultsContainer}
-        >
-          <View style={styles.resultCard}>
-            <View style={styles.resultHeader}>
-              <Ionicons name="checkmark-circle" size={24} color="#2563EB" />
-              <Text style={styles.resultTitle}>翻譯結果</Text>
-            </View>
-            <ScrollView style={styles.resultContent}>
-              <Text style={styles.resultText}>{translationResult}</Text>
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.closeResultButton}
-              onPress={() => setShowResults(false)}
-            >
-              <Ionicons name="close" size={20} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-        </Animated.View>
-      )}
+      </ScrollView>
     </LinearGradient>
   );
 }
@@ -920,100 +918,91 @@ const styles = StyleSheet.create({
 
   // 頂部導航欄
   header: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 12, // 減少左右邊距，讓標題區域更寬
-    paddingVertical: 16,
-    backgroundColor: "rgba(37, 99, 235, 0.9)", // 半透明藍色
-    backdropFilter: "blur(10px)",
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    shadowColor: "#2563EB",
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 12,
+    backgroundColor: "transparent",
+    zIndex: 20,
+  },
+  backButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#FFF",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     elevation: 4,
   },
   headerTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
     color: "#FFFFFF",
-    fontSize: 20,
-    fontWeight: "600",
     flex: 1,
     textAlign: "center",
-    letterSpacing: 0.5,
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
   cameraFlipButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#FFF",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
 
   // 主要內容區域
   mainContent: {
     flex: 1,
-    paddingHorizontal: 8, // 減少左右邊距，讓畫面更寬
-    paddingVertical: 8,
-    paddingBottom: 100, // 增加底部邊距為 Tab Bar 留出空間
-    gap: 16,
   },
 
   // 相機包裝器
   cameraWrapper: {
     flex: 1,
-    borderRadius: 16, // 減少圓角
-    backgroundColor: "#FFFFFF",
-    padding: 4, // 減少內邊距
-    shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: "rgba(37, 99, 235, 0.1)",
-    position: "relative", // 添加相對定位
+    position: "relative",
   },
 
   // 相機容器
   cameraContainer: {
     flex: 1,
-    borderRadius: 12, // 減少圓角
     overflow: "hidden",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#000",
     position: "relative",
   },
   camera: {
     flex: 1,
   },
 
-  // 相機控制條 - 改為浮動覆蓋層
+  // 相機控制條
   cameraControls: {
-    position: "absolute", // 改為絕對定位，浮動在畫面上
-    bottom: 20, // 距離底部
+    position: "absolute",
+    bottom: 100,
     left: 0,
     right: 0,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    backgroundColor: "rgba(255, 255, 255, 0.1)", // 極透明的背景
-    borderRadius: 24, // 圓角背景
-    marginHorizontal: 20, // 左右邊距
-    shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1, // 減少陰影透明度
-    shadowRadius: 12,
-    elevation: 4, // 減少高度
-    borderWidth: 1,
-    borderColor: "rgba(37, 99, 235, 0.15)", // 更透明的邊框
-    backdropFilter: "blur(10px)", // 毛玻璃效果
-    zIndex: 10, // 確保在最上層
+    paddingHorizontal: 32,
+    paddingVertical: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    zIndex: 15,
   },
 
   // 新增：中央控制區域 (倒數/錄製按鈕)
@@ -1040,43 +1029,40 @@ const styles = StyleSheet.create({
   },
 
   smallControlButton: {
-    width: 52, // 稍微增大
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "rgba(235, 242, 255, 0.6)", // 更透明的背景
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#2563EB",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1, // 減少陰影透明度
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 3, // 減少高度
-    borderWidth: 1,
-    borderColor: "rgba(37, 99, 235, 0.2)", // 更透明的邊框
-    backdropFilter: "blur(5px)", // 毛玻璃效果
+    elevation: 5,
   },
 
   // 錄製按鈕
   recordButton: {
-    width: 88, // 增大錄製按鈕
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: "#2563EB",
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "#EF4444",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 6 },
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 10,
-    borderWidth: 4,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 5,
     borderColor: "#FFFFFF",
   },
   recordButtonInner: {
-    width: 72, // 對應調整內部按鈕
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "#1D4ED8",
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "#DC2626",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -1173,92 +1159,79 @@ const styles = StyleSheet.create({
 
   // 緊急錄影區域
   emergencySection: {
-    backgroundColor: "rgba(255, 255, 255, 0.4)", // 更透明的背景
+    position: "absolute",
+    top: 120,
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(255, 251, 235, 0.95)",
     borderRadius: 16,
     padding: 16,
-    marginHorizontal: 8, // 左右邊距
     gap: 12,
-    shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05, // 減少陰影透明度
-    shadowRadius: 8,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: "rgba(37, 99, 235, 0.15)", // 更透明的邊框
-    backdropFilter: "blur(5px)", // 毛玻璃效果
+    borderColor: "#FEF3C7",
+    zIndex: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  emergencyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    justifyContent: "center",
   },
   emergencySectionTitle: {
-    color: "#64748B",
-    fontSize: 14,
-    fontWeight: "500",
-    textAlign: "center",
+    color: "#92400E",
+    fontSize: 15,
+    fontWeight: "600",
   },
   emergencyButtons: {
     flexDirection: "row",
-    gap: 12,
+    justifyContent: "center",
   },
   emergencyButton: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     borderRadius: 12,
     gap: 8,
   },
   emergencyButtonPrimary: {
-    backgroundColor: "#2563EB",
-  },
-  emergencyButtonSecondary: {
-    backgroundColor: "#FEF2F2",
-    borderWidth: 1,
-    borderColor: "#EF4444",
+    backgroundColor: "#F59E0B",
   },
   emergencyButtonText: {
     color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  emergencyButtonTextSecondary: {
-    color: "#EF4444",
-    fontSize: 14,
-    fontWeight: "500",
+    fontSize: 15,
+    fontWeight: "600",
   },
 
-  // 影片預覽區域 (修正後)
+  // 影片預覽區域
   videoPreviewContainer: {
     position: "absolute",
     bottom: 80,
-    left: 8,
-    right: 8,
-    backgroundColor: "#FFFFFF", // ✅ 改為不透明的白色
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    paddingTop: 20,
-    paddingBottom: 32,
-    paddingHorizontal: 20,
-    shadowColor: "#2563EB",
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.98)",
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1, // 減少陰影
+    shadowOpacity: 0.2,
     shadowRadius: 16,
-    elevation: 10, // 增加高度
-    zIndex: 10,
-    borderWidth: 1,
-    borderColor: "#E8EEFF", // ✅ 改為不透明的淺色邊框
-    // (已移除 backdropFilter)
+    elevation: 10,
+    gap: 16,
+    zIndex: 25,
   },
   videoPreview: {
     position: "relative",
-    height: 220, // 增加高度讓影片預覽更大
+    height: 200,
     borderRadius: 16,
     overflow: "hidden",
-    backgroundColor: "#F8FAFC",
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(37, 99, 235, 0.1)",
+    backgroundColor: "#000",
   },
   videoPlayer: {
     width: "100%",
@@ -1266,12 +1239,12 @@ const styles = StyleSheet.create({
   },
   closeVideoButton: {
     position: "absolute",
-    top: 8,
-    right: 8,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    top: 12,
+    right: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -1282,15 +1255,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#2563EB",
     paddingVertical: 16,
     paddingHorizontal: 24,
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
     shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 12,
+    elevation: 6,
   },
   translateButtonDisabled: {
     backgroundColor: "#94A3B8",
@@ -1321,61 +1294,48 @@ const styles = StyleSheet.create({
   // 翻譯結果區域
   resultsContainer: {
     position: "absolute",
-    bottom: 80, // 調整底部位置避免被 Tab Bar 遮擋
-    left: 8, // 減少左邊距
-    right: 8, // 減少右邊距
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    paddingTop: 50,
-    zIndex: 20,
-    borderRadius: 16, // 添加圓角
-  },
-  // 翻譯結果區域 (修正後)
-  resultCard: {
-    backgroundColor: "#FFFFFF", // ✅ 改為不透明的白色
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    paddingTop: 20,
-    paddingBottom: 32,
-    paddingHorizontal: 20,
-    maxHeight: screenHeight * 0.6,
-    borderWidth: 1,
-    borderColor: "#E8EEFF", // ✅ 改為不透明的淺色邊框
-    shadowColor: "#2563EB",
+    bottom: 80,
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.98)",
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.1, // 減少陰影
+    shadowOpacity: 0.2,
     shadowRadius: 16,
-    elevation: 10, // 增加高度
-    // (已移除 backdropFilter)
+    elevation: 10,
+    maxHeight: screenHeight * 0.5,
+    zIndex: 25,
+  },
+  resultCard: {
+    position: "relative",
   },
   resultHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     marginBottom: 16,
+    paddingRight: 40,
   },
   resultTitle: {
-    fontSize: 20,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "bold",
     color: "#1E293B",
-    flex: 1,
   },
   closeResultButton: {
     position: "absolute",
-    top: 20,
-    right: 20,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#E8EEFF",
+    top: 0,
+    right: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "rgba(37, 99, 235, 0.2)",
   },
   resultContent: {
-    maxHeight: 200,
+    maxHeight: 300,
   },
   resultText: {
     fontSize: 16,
