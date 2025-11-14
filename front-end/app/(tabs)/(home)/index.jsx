@@ -368,11 +368,20 @@ export default function HomeScreen() {
     // TODO: 實際保存到後端
   };
 
-  // PanResponder處理滑動
+  // PanResponder處理滑動 - 優化：只在水平滑動時攔截手勢
   const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => !loadingDailySign && !refreshingDaily,
+    onStartShouldSetPanResponder: () => false, // 不在開始時攔截
     onMoveShouldSetPanResponder: (_, gestureState) => {
-      return Math.abs(gestureState.dx) > 10;
+      // 只有當水平滑動距離明顯大於垂直滑動時才攔截（避免影響垂直滾動）
+      const isHorizontalSwipe =
+        Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 2;
+      const isSufficientDistance = Math.abs(gestureState.dx) > 20;
+      return (
+        !loadingDailySign &&
+        !refreshingDaily &&
+        isHorizontalSwipe &&
+        isSufficientDistance
+      );
     },
     onPanResponderMove: (_, gestureState) => {
       swipeAnimation.setValue(gestureState.dx);
