@@ -493,8 +493,8 @@ export default function HomeScreen() {
               color="#1E40AF"
               style={{ marginBottom: 8 }}
             />
-            <Text style={styles.quickTitle}>即時翻譯</Text>
-            <Text style={styles.quickDesc}>手語 ↔ 文字 / 語音</Text>
+            <Text style={styles.quickTitle}>手語翻譯</Text>
+            <Text style={styles.quickDesc}>手語 ➡️ 文字</Text>
             <Button
               mode="contained"
               buttonColor="#1E40AF"
@@ -508,7 +508,20 @@ export default function HomeScreen() {
           <TouchableOpacity
             activeOpacity={0.85}
             style={[styles.quickCard, styles.quickOutline]}
-            onPress={() => router.push("/(tabs)/education/quiz")}
+            onPress={() => {
+              const volumeId = userProgress.isNewUser
+                ? 1
+                : userProgress.lastLesson.volume;
+              const lessonId = 1; // 預設從第一課開始測驗
+              router.navigate({
+                pathname: "/(tabs)/education",
+                params: {
+                  navigateTo: "quiz",
+                  volumeId: volumeId,
+                  lessonId: lessonId,
+                },
+              });
+            }}
           >
             <Ionicons
               name="school"
@@ -1099,13 +1112,14 @@ const styles = StyleSheet.create({
   },
   recLinkBtn: {
     alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  recLinkText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#6366F1",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: "#F8FAFF",
+    color: "#fff",
   },
   personalizedCard: {
     borderColor: "#6366F1",
@@ -1142,60 +1156,89 @@ function TaskItem({ label, isDone }) {
   );
 }
 
-function RecommendCard({ item, onPress, isPersonalized = false }) {
-  const [loaded, setLoaded] = useState(false);
+function RecommendCard({ item, onPress }) {
   const [error, setError] = useState(false);
 
-  const title = item.title;
-  const description = item.description;
+  // --- New: Define styles for different recommendation types ---
+  const getRecommendationStyle = (item) => {
+    const id = item.id?.toString() || "";
+    if (id.startsWith("continue")) {
+      return {
+        icon: "bookmark",
+        color: "#2563EB", // Blue
+        backgroundColor: "#EFF6FF",
+        label: "繼續",
+      };
+    }
+    if (id.startsWith("review")) {
+      return {
+        icon: "refresh",
+        color: "#16A34A", // Green
+        backgroundColor: "#F0FDF4",
+        label: "複習",
+      };
+    }
+    if (id.startsWith("learn")) {
+      return {
+        icon: "flame",
+        color: "#EA580C", // Orange
+        backgroundColor: "#FFF7ED",
+        label: "挑戰",
+      };
+    }
+    // Fallback for general topics
+    return {
+      icon: "compass",
+      color: "#7C3AED", // Purple
+      backgroundColor: "#F5F3FF",
+      label: "探索",
+    };
+  };
+
+  const styleInfo = getRecommendationStyle(item);
   const imageUrl = item.image || item.image_url;
 
   return (
     <TouchableOpacity
       activeOpacity={0.9}
       onPress={onPress}
-      style={[styles.recOuter, isPersonalized && styles.personalizedCard]}
+      style={[
+        styles.recOuter,
+        {
+          backgroundColor: styleInfo.backgroundColor,
+          borderColor: styleInfo.color,
+        },
+      ]}
     >
       <View style={styles.recImageWrap}>
         {error || !imageUrl ? (
           <View style={styles.placeholderImage}>
-            <Ionicons
-              name={
-                item.type === "vocabulary"
-                  ? "book"
-                  : item.type === "material"
-                  ? "school"
-                  : "apps"
-              }
-              size={32}
-              color="#666"
-            />
+            <Ionicons name={styleInfo.icon} size={40} color={styleInfo.color} />
           </View>
         ) : (
           <Image
             source={{ uri: imageUrl }}
             style={styles.recImage}
             resizeMode="cover"
-            onLoad={() => setLoaded(true)}
             onError={() => setError(true)}
           />
         )}
         <LinearGradient
-          colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.55)"]}
+          colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.6)"]}
           style={styles.recOverlay}
         >
           <Text style={styles.recTitle} numberOfLines={1}>
-            {title}
+            {item.title}
           </Text>
         </LinearGradient>
       </View>
       <View style={styles.recBody}>
         <Text style={styles.recDesc} numberOfLines={2}>
-          {description}
+          {item.description}
         </Text>
-        <Text style={styles.recLinkBtn}>
-          {isPersonalized ? "開始學習" : "查看"}
-        </Text>
+        <View style={[styles.recLinkBtn, { backgroundColor: styleInfo.color }]}>
+          <Text style={styles.recLinkText}>{styleInfo.label}</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );

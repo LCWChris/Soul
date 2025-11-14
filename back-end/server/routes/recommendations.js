@@ -49,83 +49,113 @@ const allMaterials = [
  */
 router.get("/personalized/:userId", async (req, res) => {
   const { userId } = req.params;
-  const { limit = 5 } = req.query;
+  const { limit = 4 } = req.query;
+  let recommendations = [];
+  let recommendationReason = "";
 
   try {
-    const [preferences, progress] = await Promise.all([
-      UserPreference.findOne({ userId }),
+    // Fetch user progress and preferences in parallel
+    const [progress, preferences] = await Promise.all([
       LearningProgress.find({ userId }).sort({ lastStudied: -1 }),
+      UserPreference.findOne({ userId }),
     ]);
 
-    let recommendations = [];
-    let recommendationReason = "Default fallback recommendations.";
+    const studiedWordsSet = new Set();
+    progress.forEach((p) => {
+      p.completedWords.forEach((word) => studiedWordsSet.add(word));
+    });
+    const studiedWords = Array.from(studiedWordsSet);
 
-    if (preferences && preferences.answers) {
-      const { interestCategory, learningLevel } = preferences.answers;
-
-      // Strategy 1: Recommend based on user's stated interests
-      if (interestCategory) {
-        const interestedVocab = await BookWord.find({
-          category: interestCategory,
-        }).limit(limit);
-        if (interestedVocab.length > 0) {
-          recommendationReason = `Based on your interest in '${interestCategory}'.`;
-          recommendations = interestedVocab.map((v) => ({
-            id: v._id,
-            title: v.title,
-            description: `詞彙: ${v.content}`,
-            image_url: v.image_url,
-            type: "vocabulary",
-            action: {
-              type: "navigate",
-              route: "/(tabs)/education/word-learning",
-              params: { word: v.content },
-            },
-          }));
-        }
-      }
-
-      // Strategy 2: If no items from interest, recommend based on level
-      if (recommendations.length < limit && learningLevel) {
-        const levelBasedVocab = await BookWord.find({
-          level: learningLevel,
-          category: { $ne: interestCategory },
-        }).limit(limit - recommendations.length);
-        if (levelBasedVocab.length > 0) {
-          recommendationReason =
-            recommendations.length > 0
-              ? `${recommendationReason} Also showing items for '${learningLevel}' level.`
-              : `Based on your level: '${learningLevel}'.`;
-          recommendations.push(
-            ...levelBasedVocab.map((v) => ({
-              id: v._id,
-              title: v.title,
-              description: `詞彙: ${v.content}`,
-              image_url: v.image_url,
-              type: "vocabulary",
-              action: {
-                type: "navigate",
-                route: "/(tabs)/education/word-learning",
-                params: { word: v.content },
+    // --- Strategy 1: Continue Learning ---
+    if (recommendations.length < limit) {
+      const lastLesson = await LearningProgress.getLastLesson(userId);
+      if (lastLesson && !lastLesson.isNewUser && lastLesson.progress < 1) {
+        recommendations.push({
+          id: `continue-${lastLesson.lastLesson.volume}-${lastLesson.lastLesson.lesson}`,
+          title: `繼續學習: ${lastLesson.lastLesson.title}`,
+          description: `第 ${lastLesson.lastLesson.volume} 冊 · 第 ${lastLesson.lastLesson.lesson} 單元`,
+          type: "material",
+          image_url:
+            "https://images.unsplash.com/photo-1517842645767-c6f90405774b?q=80&w=2070",
+          action: {
+            type: "navigate",
+            route: "(tabs)/education",
+            params: {
+              screen: "teach-screen",
+              params: {
+                volume: lastLesson.lastLesson.volume,
+                lesson: lastLesson.lastLesson.lesson,
               },
-            }))
-          );
-        }
+            },
+          },
+        });
+        recommendationReason += "Added 'Continue Learning' card. ";
       }
     }
 
-    // Strategy 3: Recommend un-finished or new materials if other strategies fail
+    // --- Strategy 2: Review a Studied Word ---
+    if (recommendations.length < limit && studiedWords.length > 0) {
+      const wordToReview =
+        studiedWords[Math.floor(Math.random() * studiedWords.length)];
+      const vocab = await BookWord.findOne({ content: wordToReview });
+      if (vocab) {
+        recommendations.push({
+          id: `review-${vocab._id}`,
+          title: `複習單字: ${vocab.content}`,
+          description: `分類: ${vocab.category}`,
+          image_url: vocab.image_url,
+          type: "vocabulary",
+          action: {
+            type: "navigate",
+            route: "/(tabs)/education/word-learning",
+            params: { word: vocab.content },
+          },
+        });
+        recommendationReason += "Added 'Review Word' card. ";
+      }
+    }
+
+    // --- Strategy 3: Learn a New Word ---
     if (recommendations.length < limit) {
-      const studiedIds = progress.map((p) => p.materialId);
+      const learningLevel = preferences?.answers?.learningLevel || "初級";
+      const newWords = await BookWord.find({
+        content: { $nin: studiedWords },
+        level: learningLevel,
+      }).limit(10);
+
+      if (newWords.length > 0) {
+        const wordToLearn =
+          newWords[Math.floor(Math.random() * newWords.length)];
+        recommendations.push({
+          id: `learn-${wordToLearn._id}`,
+          title: `挑戰新單字: ${wordToLearn.content}`,
+          description: `來自 '${wordToLearn.category}' 分類`,
+          image_url: wordToLearn.image_url,
+          type: "vocabulary",
+          action: {
+            type: "navigate",
+            route: "/(tabs)/education/word-learning",
+            params: { word: wordToLearn.content },
+          },
+        });
+        recommendationReason += "Added 'Learn New Word' card. ";
+      }
+    }
+
+    // --- Strategy 4: Fill with unstudied categories ---
+    if (recommendations.length < limit) {
+      const studiedCategories = new Set(
+        progress.map((p) => p.category).filter(Boolean)
+      );
       const unstudied = allMaterials.filter(
-        (m) => !studiedIds.includes(m.id.toString())
+        (m) => !studiedCategories.has(m.category)
       );
 
       if (unstudied.length > 0) {
-        recommendationReason = "Recommending new topics for you to explore.";
         recommendations.push(
           ...unstudied.slice(0, limit - recommendations.length).map((m) => ({
             ...m,
+            description: `探索 '${m.title}' 主題`,
             action: {
               type: "navigate",
               route: "/(tabs)/education/word-learning",
@@ -133,11 +163,14 @@ router.get("/personalized/:userId", async (req, res) => {
             },
           }))
         );
+        recommendationReason += "Filled with new categories. ";
       }
     }
 
-    // Final Fallback: If still no recommendations, return some default ones.
+    // --- Final Fallback ---
     if (recommendations.length === 0) {
+      recommendationReason =
+        "No specific recommendations, showing default topics.";
       recommendations = allMaterials.slice(0, limit).map((m) => ({
         ...m,
         action: {
@@ -151,7 +184,7 @@ router.get("/personalized/:userId", async (req, res) => {
     res.json({
       success: true,
       message: "Personalized recommendations generated successfully.",
-      reason: recommendationReason,
+      reason: recommendationReason.trim(),
       recommendations: recommendations.slice(0, limit),
     });
   } catch (error) {
@@ -160,7 +193,6 @@ router.get("/personalized/:userId", async (req, res) => {
       success: false,
       message: "Failed to generate recommendations.",
       error: error.message,
-      // Fallback to default recommendations on error
       recommendations: allMaterials.slice(0, limit).map((m) => ({
         ...m,
         action: {
