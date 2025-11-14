@@ -9,8 +9,10 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Dimensions,
   Image,
+  PanResponder,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -32,6 +34,13 @@ export default function HomeScreen() {
   // 每日一句狀態
   const [dailySign, setDailySign] = useState(null);
   const [loadingDailySign, setLoadingDailySign] = useState(true);
+  const [dailySignFavorited, setDailySignFavorited] = useState(false);
+  const [refreshingDaily, setRefreshingDaily] = useState(false);
+  const [showSwipeHint, setShowSwipeHint] = useState(true);
+
+  // Swiper動畫值
+  const swipeAnimation = new Animated.Value(0);
+  const opacityAnimation = new Animated.Value(1);
 
   // AI Chatbot 狀態
   const [showChatbot, setShowChatbot] = useState(false);
@@ -56,6 +65,10 @@ export default function HomeScreen() {
   });
   const [loadingProgress, setLoadingProgress] = useState(true);
 
+  // 連續天數狀態
+  const [streakDays, setStreakDays] = useState(0);
+  const [loadingStreak, setLoadingStreak] = useState(true);
+
   // 模擬用戶數據 - 添加更多實用信息
   const mockUserData = {
     name: "仕彥",
@@ -74,6 +87,7 @@ export default function HomeScreen() {
       loadDailySign();
       loadTodayTasks();
       loadUserProgress();
+      loadStreakDays();
     }
   }, [user]);
 
@@ -218,9 +232,11 @@ export default function HomeScreen() {
   };
 
   // 載入每日一句
-  const loadDailySign = async () => {
+  const loadDailySign = async (silent = false) => {
     try {
-      setLoadingDailySign(true);
+      if (!silent) {
+        setLoadingDailySign(true);
+      }
 
       // 檢查 API 配置是否存在
       if (!API_CONFIG.BASE_URL) {
@@ -260,13 +276,57 @@ export default function HomeScreen() {
       console.log("✅ 成功載入每日一句:", data);
 
       if (data && data.word) {
+        // 處理 category，確保是有效字符串
+        let categoryText = "日常生活";
+        if (data.category) {
+          let category = data.category;
+
+          // 如果是 JSON 字符串格式的數組，先解析
+          if (typeof category === "string" && category.startsWith("[")) {
+            try {
+              category = JSON.parse(category);
+            } catch (e) {
+              // 解析失敗，保持原值
+            }
+          }
+
+          if (Array.isArray(category)) {
+            // 遍歷數組找到第一個有效分類
+            for (const cat of category) {
+              if (cat && typeof cat === "string") {
+                const trimmed = cat.trim();
+                if (
+                  trimmed.length > 1 &&
+                  !["[", "]", "{", "}", ",", ".", ";"].includes(trimmed) &&
+                  trimmed !== ","
+                ) {
+                  categoryText = trimmed;
+                  break;
+                }
+              }
+            }
+          } else if (typeof category === "string") {
+            // 過濾掉無效的分類名稱
+            const trimmed = category.trim();
+            if (
+              trimmed &&
+              trimmed.length > 1 &&
+              !["[", "]", "{", "}", ","].includes(trimmed)
+            ) {
+              categoryText = trimmed;
+            }
+          }
+        }
+        console.log("📂 分類資訊:", data.category, "→", categoryText);
+
         setDailySign({
           word: data.word,
           chinese: data.chinese || data.word,
           image: data.image || data.gif || data.imageUrl,
           description: data.description,
-          category: data.category,
+          category: categoryText,
         });
+        setDailySignFavorited(false);
         console.log(`🎯 載入每日一句: ${data.word}`);
       } else {
         console.log("📋 沒有每日一句數據，使用預設");
@@ -278,7 +338,113 @@ export default function HomeScreen() {
       // 使用預設的每日一句作為後備
       setDailySign(defaultDailySign);
     } finally {
-      setLoadingDailySign(false);
+      if (!silent) {
+        setLoadingDailySign(false);
+      }
+    }
+  };
+
+  const refreshDailySign = async (isSwipe = false) => {
+    if (isSwipe) {
+      // 滑動觸發的刷新，靜默載入（不改變 loading 狀態）
+      await loadDailySign(true);
+    } else {
+      // 按鈕觸發的刷新，顯示 loading
+      setRefreshingDaily(true);
+      await loadDailySign(false);
+      setTimeout(() => setRefreshingDaily(false), 300);
+    }
+  };
+
+  const toggleDailySignFavorite = () => {
+    const newState = !dailySignFavorited;
+    setDailySignFavorited(newState);
+
+    // 添加簡單的觸覺反饋（如果支持）
+    if (newState) {
+      // 收藏時的動畫效果可以在這裡添加
+      console.log("❤️ 已收藏:", dailySign?.word);
+    }
+    // TODO: 實際保存到後端
+  };
+
+  // PanResponder處理滑動
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => !loadingDailySign && !refreshingDaily,
+    onMoveShouldSetPanResponder: (_, gestureState) => {
+      return Math.abs(gestureState.dx) > 10;
+    },
+    onPanResponderMove: (_, gestureState) => {
+      swipeAnimation.setValue(gestureState.dx);
+    },
+    onPanResponderRelease: (_, gestureState) => {
+      // 滑動超過100px就觸發換一個
+      if (Math.abs(gestureState.dx) > 100) {
+        // 滑動出去的動畫
+        Animated.parallel([
+          Animated.timing(swipeAnimation, {
+            toValue: gestureState.dx > 0 ? 500 : -500,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnimation, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+        ]).start(async () => {
+          // 先載入新的每日一句（不改變 loading 狀態）
+          await refreshDailySign(true);
+          // 立即重置位置和透明度，準備淡入
+          swipeAnimation.setValue(0);
+          opacityAnimation.setValue(0);
+          // 淡入動畫
+          Animated.timing(opacityAnimation, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+          }).start();
+        });
+      } else {
+        // 回彈動畫
+        Animated.spring(swipeAnimation, {
+          toValue: 0,
+          useNativeDriver: true,
+          friction: 8,
+        }).start();
+      }
+    },
+  });
+
+  const loadStreakDays = async () => {
+    if (!user?.id) {
+      console.log("📍 用戶未登入，無法載入連續天數");
+      setLoadingStreak(false);
+      return;
+    }
+    try {
+      setLoadingStreak(true);
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}/api/learning-stats/today-tasks/${user.id}`,
+        {
+          headers: {
+            "ngrok-skip-browser-warning": "true",
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log("✅ 成功載入連續天數:", data.streak);
+      setStreakDays(data.streak || 0);
+    } catch (error) {
+      console.error("❌ 載入連續天數失敗:", error);
+      setStreakDays(0);
+    } finally {
+      setLoadingStreak(false);
     }
   };
 
@@ -286,34 +452,24 @@ export default function HomeScreen() {
     console.log("🔘 點擊推薦:", recommendation);
     const { action } = recommendation;
 
-    if (action) {
-      if (action.type === "navigate") {
-        // 檢查是否為需要特殊處理的跨分頁導航
-        if (action.route.startsWith("(tabs)/")) {
-          router.navigate(action.route, action.params);
-        } else {
-          // 分頁內部或簡單導航，使用 push
-          router.push({
-            pathname: action.route,
-            params: action.params,
-          });
-        }
+    if (action && action.type === "navigate") {
+      if (action.params) {
+        router.push({
+          pathname: action.route,
+          params: action.params,
+        });
+      } else {
+        router.push(action.route);
       }
     } else if (recommendation.category) {
-      // 處理舊的或靜態的推薦（備用）
-      console.log(`🔗 跳轉到分類學習: ${recommendation.category}`);
       router.push({
         pathname: "/(tabs)/education/word-learning",
         params: { category: recommendation.category },
       });
     } else {
-      // 最終備用：跳到教育頁面
-      console.log("🔗 缺少 action，跳轉到教育頁面");
-      router.push("/(tabs)/education");
+      console.log("⚠️ 未知的推薦格式", recommendation);
     }
-  };
-
-  // 模擬推薦課程資料 - 添加 category 字段以支援正確跳轉
+  }; // 模擬推薦課程資料 - 添加 category 字段以支援正確跳轉
   const recommendedList = [
     {
       id: 1,
@@ -369,15 +525,25 @@ export default function HomeScreen() {
             source={require("@/assets/images/auth-bh-2.png")}
             style={styles.welcomeImage}
           />
-          <View style={styles.greetingContainer}>
+          <View style={styles.greetingSection}>
             <Text style={styles.greeting}>
               👋 Hi，{user?.firstName || mockUserData.name}
             </Text>
-            {mockUserData.streakDays > 0 && (
-              <View style={styles.streakBadge}>
+            {!loadingStreak && streakDays > 0 && (
+              <View
+                style={[
+                  styles.streakBadge,
+                  streakDays >= 30 && styles.streakBadgeLegendary,
+                  streakDays >= 7 &&
+                    streakDays < 30 &&
+                    styles.streakBadgeAmazing,
+                ]}
+              >
                 <Text style={styles.streakText}>
-                  🔥 {mockUserData.streakDays} 天
+                  {streakDays >= 30 ? "🏆" : streakDays >= 7 ? "⭐" : "🔥"}{" "}
+                  {streakDays}
                 </Text>
+                <Text style={styles.streakLabel}>天連續</Text>
               </View>
             )}
           </View>
@@ -455,16 +621,18 @@ export default function HomeScreen() {
                   style={styles.continueButton}
                   onPress={() => {
                     if (userProgress.isNewUser) {
-                      router.navigate("(tabs)/education", {
-                        screen: "teach-screen",
-                        params: { volume: 1, lesson: 1 },
+                      router.push({
+                        pathname:
+                          "/(tabs)/education/teach/[volumeId]/[lessonId]",
+                        params: { volumeId: "1", lessonId: "1" },
                       });
                     } else {
-                      router.navigate("(tabs)/education", {
-                        screen: "teach-screen",
+                      router.push({
+                        pathname:
+                          "/(tabs)/education/teach/[volumeId]/[lessonId]",
                         params: {
-                          volume: userProgress.lastLesson.volume,
-                          lesson: userProgress.lastLesson.lesson,
+                          volumeId: userProgress.lastLesson.volume.toString(),
+                          lessonId: userProgress.lastLesson.lesson.toString(),
                         },
                       });
                     }
@@ -480,6 +648,123 @@ export default function HomeScreen() {
           </LinearGradient>
         </Card>
 
+        {/* 每日一句 */}
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionBar} />
+          <Text style={styles.sectionTitle}>✍️ 每日一句</Text>
+          <TouchableOpacity
+            onPress={refreshDailySign}
+            style={styles.refreshBtn}
+            disabled={loadingDailySign || refreshingDaily}
+          >
+            <Ionicons
+              name="refresh"
+              size={20}
+              color="#6366F1"
+              style={{
+                transform: [{ rotate: refreshingDaily ? "360deg" : "0deg" }],
+              }}
+            />
+          </TouchableOpacity>
+        </View>
+        {loadingDailySign ? (
+          <Card style={[styles.flatCard, styles.dailyCard]} mode="contained">
+            <Card.Content style={styles.dailyContent}>
+              <View style={styles.dailyLoadingContainer}>
+                <ActivityIndicator size="small" color="#6366F1" />
+                <Text style={styles.dailyLoadingText}>載入每日一句...</Text>
+              </View>
+            </Card.Content>
+          </Card>
+        ) : (
+          <Animated.View
+            {...panResponder.panHandlers}
+            style={[
+              {
+                transform: [
+                  { translateX: swipeAnimation },
+                  {
+                    rotate: swipeAnimation.interpolate({
+                      inputRange: [-200, 0, 200],
+                      outputRange: ["-10deg", "0deg", "10deg"],
+                    }),
+                  },
+                ],
+                opacity: opacityAnimation,
+              },
+            ]}
+          >
+            <Card style={[styles.flatCard, styles.dailyCard]} mode="contained">
+              <Card.Content style={styles.dailyContent}>
+                {/* 滑動提示 - 永久顯示 */}
+                <View style={styles.swipeHintContainer}>
+                  <Ionicons name="chevron-back" size={20} color="#6366F1" />
+                  <Text style={styles.swipeHintText}>左右滑動換一個</Text>
+                  <Ionicons name="chevron-forward" size={20} color="#6366F1" />
+                </View>
+
+                {/* 標籤和收藏區 */}
+                <View style={styles.dailyHeader}>
+                  <View style={styles.dailyTagsRow}>
+                    <View style={styles.difficultyBadge}>
+                      <Text style={styles.difficultyText}>🌟 初級</Text>
+                    </View>
+                    <View style={styles.categoryBadge}>
+                      <Text style={styles.categoryText}>
+                        {dailySign?.category || "日常生活"}
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    onPress={toggleDailySignFavorite}
+                    style={styles.favoriteBtn}
+                  >
+                    <Ionicons
+                      name={dailySignFavorited ? "heart" : "heart-outline"}
+                      size={24}
+                      color={dailySignFavorited ? "#EF4444" : "#9CA3AF"}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* 主要內容 */}
+                <Text style={styles.dailyWord}>
+                  {dailySign?.chinese ||
+                    dailySign?.word ||
+                    defaultDailySign.chinese}
+                </Text>
+
+                {/* 使用情境說明 */}
+                <Text style={styles.dailyContext}>
+                  💬 常用於日常交流、社交場合
+                </Text>
+
+                <DailySignImage dailySign={dailySign || defaultDailySign} />
+
+                {/* 學習按鈕 */}
+                <Button
+                  mode="contained"
+                  buttonColor="#6366F1"
+                  style={styles.dailyPrimaryBtn}
+                  labelStyle={{ fontSize: 14, fontWeight: "700" }}
+                  onPress={() => {
+                    const wordToLearn =
+                      dailySign?.word ||
+                      dailySign?.chinese ||
+                      defaultDailySign.word;
+                    router.push({
+                      pathname: "/(tabs)/education/word-learning",
+                      params: { word: wordToLearn },
+                    });
+                  }}
+                >
+                  📚 學習這個手語
+                </Button>
+              </Card.Content>
+            </Card>
+          </Animated.View>
+        )}
+
         {/* 快速功能 */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionBar} />
@@ -487,31 +772,36 @@ export default function HomeScreen() {
         </View>
         <View style={styles.quickRow}>
           <TouchableOpacity
-            activeOpacity={0.85}
+            activeOpacity={0.7}
             style={[styles.quickCard, styles.quickPrimary]}
             onPress={() => router.push("/(tabs)/translation")}
           >
-            <Ionicons
-              name="camera"
-              size={24}
-              color="#1E40AF"
-              style={{ marginBottom: 8 }}
-            />
+            <View style={styles.quickIconWrapper}>
+              <LinearGradient
+                colors={["#6366F1", "#4F46E5"]}
+                style={styles.quickIconBg}
+              >
+                <Ionicons name="camera" size={32} color="#FFF" />
+              </LinearGradient>
+            </View>
             <Text style={styles.quickTitle}>手語翻譯</Text>
-            <Text style={styles.quickDesc}>手語 ➡️ 文字</Text>
+            <Text style={styles.quickDesc}>即時辨識手語動作</Text>
+            <View style={styles.quickBadge}>
+              <Text style={styles.quickBadgeText}>📸 需要相機</Text>
+            </View>
             <Button
               mode="contained"
-              buttonColor="#1E40AF"
+              buttonColor="#6366F1"
               style={styles.quickBtn}
-              labelStyle={{ fontSize: 13 }}
+              labelStyle={{ fontSize: 14, fontWeight: "700" }}
             >
-              開啟
+              開啟翻譯
             </Button>
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={0.85}
-            style={[styles.quickCard, styles.quickOutline]}
+            activeOpacity={0.7}
+            style={[styles.quickCard, styles.quickSecondary]}
             onPress={() => {
               const volumeId = userProgress.isNewUser
                 ? 1
@@ -527,22 +817,27 @@ export default function HomeScreen() {
               });
             }}
           >
-            <Ionicons
-              name="school"
-              size={24}
-              color="#000"
-              style={{ marginBottom: 8 }}
-            />
+            <View style={styles.quickIconWrapper}>
+              <LinearGradient
+                colors={["#1F2937", "#111827"]}
+                style={styles.quickIconBg}
+              >
+                <Ionicons name="school" size={32} color="#FFF" />
+              </LinearGradient>
+            </View>
             <Text style={styles.quickTitle}>練習測驗</Text>
-            <Text style={styles.quickDesc}>測試已學內容掌握度</Text>
+            <Text style={styles.quickDesc}>檢測學習成果</Text>
+            <View style={styles.quickBadge}>
+              <Text style={styles.quickBadgeText}>📝 智能出題</Text>
+            </View>
             <Button
               mode="contained"
-              buttonColor="#000"
+              buttonColor="#1F2937"
               textColor="#fff"
               style={[styles.quickBtn, styles.blackButton]}
-              labelStyle={{ fontSize: 13 }}
+              labelStyle={{ fontSize: 14, fontWeight: "700" }}
             >
-              開始
+              開始測驗
             </Button>
           </TouchableOpacity>
         </View>
@@ -582,50 +877,6 @@ export default function HomeScreen() {
           </ScrollView>
         )}
 
-        {/* 每日一句 */}
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionBar} />
-          <Text style={styles.sectionTitle}>✍️ 每日一句</Text>
-        </View>
-        <Card style={[styles.flatCard, styles.dailyCard]} mode="contained">
-          <Card.Content style={styles.dailyContent}>
-            {loadingDailySign ? (
-              <View style={styles.dailyLoadingContainer}>
-                <ActivityIndicator size="small" color="#6366F1" />
-                <Text style={styles.dailyLoadingText}>載入每日一句...</Text>
-              </View>
-            ) : (
-              <>
-                <Text style={styles.dailyWord}>
-                  {dailySign?.chinese ||
-                    dailySign?.word ||
-                    defaultDailySign.chinese}
-                </Text>
-                <DailySignImage dailySign={dailySign || defaultDailySign} />
-                <Button
-                  compact
-                  mode="text"
-                  textColor="#6366F1"
-                  onPress={() => {
-                    const wordToLearn =
-                      dailySign?.word ||
-                      dailySign?.chinese ||
-                      defaultDailySign.word;
-                    router.push({
-                      pathname: "/(tabs)/education/word-learning",
-                      params: { word: wordToLearn },
-                    });
-                  }}
-                  style={{ marginTop: 6 }}
-                  labelStyle={{ fontSize: 13, fontWeight: "600" }}
-                >
-                  學習這個手語
-                </Button>
-              </>
-            )}
-          </Card.Content>
-        </Card>
-
         {/* 學習統計 - 改進版 */}
         <View style={styles.sectionHeader}>
           <View style={styles.sectionBar} />
@@ -638,33 +889,34 @@ export default function HomeScreen() {
           <Card.Content style={styles.progressLiteContent}>
             <View style={styles.statsGrid}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{mockUserData.streakDays}</Text>
-                <Text style={styles.statLabel}>連續天數</Text>
+                <Text style={styles.statNumber}>
+                  {todayTasks.completedTasks || 0}
+                </Text>
+                <Text style={styles.statLabel}>今日完成</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>
-                  {mockUserData.weeklyCompleted}
+                  {userProgress.lastLesson?.volume || 1}
                 </Text>
-                <Text style={styles.statLabel}>本週完成</Text>
+                <Text style={styles.statLabel}>當前冊數</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>
-                  {Math.round(mockUserData.progress * 100)}%
+                  {Math.round((userProgress.progress || 0) * 100)}%
                 </Text>
-                <Text style={styles.statLabel}>整體進度</Text>
+                <Text style={styles.statLabel}>學習進度</Text>
               </View>
             </View>
 
             <View style={styles.progressBarWrap}>
-              <Text style={styles.progressLabel}>本週目標進度</Text>
+              <Text style={styles.progressLabel}>本日任務進度</Text>
               <View style={styles.weeklyProgressTrack}>
                 <View
                   style={[
                     styles.weeklyProgressFill,
                     {
                       width: `${Math.round(
-                        (mockUserData.weeklyCompleted /
-                          mockUserData.weeklyTarget) *
+                        (todayTasks.completedTasks / todayTasks.totalTasks) *
                           100
                       )}%`,
                     },
@@ -672,7 +924,7 @@ export default function HomeScreen() {
                 />
               </View>
               <Text style={styles.progressTextBottom}>
-                {mockUserData.weeklyCompleted}/{mockUserData.weeklyTarget} 課程
+                {todayTasks.completedTasks}/{todayTasks.totalTasks} 任務
               </Text>
             </View>
 
@@ -682,7 +934,9 @@ export default function HomeScreen() {
               textColor="#fff"
               style={styles.progressActionBtn}
               labelStyle={{ fontSize: 13, fontWeight: "600" }}
-              onPress={() => router.push("/education/word-learning/progress")}
+              onPress={() =>
+                router.push("/(tabs)/education/word-learning/progress")
+              }
             >
               查看詳細統計
             </Button>
@@ -729,27 +983,49 @@ const styles = StyleSheet.create({
     width: "90%",
     height: 200,
   },
-  greetingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  greetingSection: {
     marginBottom: 8,
   },
   greeting: {
     fontSize: 28,
     fontWeight: "700",
     color: "#1F2937",
+    marginBottom: 12,
   },
   streakBadge: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#FEF3C7",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
+    alignSelf: "flex-start",
+    gap: 6,
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   streakText: {
-    fontSize: 14,
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#92400E",
+  },
+  streakLabel: {
+    fontSize: 13,
     fontWeight: "600",
     color: "#92400E",
+  },
+  streakBadgeAmazing: {
+    backgroundColor: "#DBEAFE",
+    borderWidth: 2,
+    borderColor: "#3B82F6",
+  },
+  streakBadgeLegendary: {
+    backgroundColor: "#FEE2E2",
+    borderWidth: 2,
+    borderColor: "#EF4444",
   },
   subtitle: {
     fontSize: 16,
@@ -894,6 +1170,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1F2937",
   },
+  refreshBtn: {
+    padding: 8,
+    borderRadius: 8,
+    marginLeft: "auto",
+  },
 
   // 快速功能 - 簡化
   quickRow: {
@@ -904,33 +1185,71 @@ const styles = StyleSheet.create({
   quickCard: {
     flex: 1,
     backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
+    borderRadius: 20,
+    padding: 24,
     alignItems: "center",
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: "#E5E7EB",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    minHeight: 240,
+    justifyContent: "space-between",
   },
   quickPrimary: {
     borderColor: "#6366F1",
-    backgroundColor: "#F8FAFF",
+    backgroundColor: "#FAFBFF",
+  },
+  quickSecondary: {
+    borderColor: "#374151",
+    backgroundColor: "#F9FAFB",
+  },
+  quickIconWrapper: {
+    marginBottom: 12,
+  },
+  quickIconBg: {
+    width: 64,
+    height: 64,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
   quickTitle: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 17,
+    fontWeight: "700",
     color: "#1F2937",
     marginTop: 8,
     marginBottom: 4,
   },
   quickDesc: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#6B7280",
     textAlign: "center",
+    marginBottom: 8,
+  },
+  quickBadge: {
+    backgroundColor: "#F3F4F6",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
     marginBottom: 12,
   },
+  quickBadgeText: {
+    fontSize: 11,
+    color: "#6B7280",
+    fontWeight: "600",
+  },
   quickBtn: {
-    borderRadius: 10,
-    minWidth: 70,
-    height: 36,
+    borderRadius: 12,
+    minWidth: "100%",
+    height: 44,
   },
 
   // 載入狀態
@@ -958,12 +1277,54 @@ const styles = StyleSheet.create({
   },
   dailyCard: {
     backgroundColor: "#fff",
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: "#E5E7EB",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
   },
   dailyContent: {
     alignItems: "center",
-    paddingVertical: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+  },
+  dailyHeader: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  dailyTagsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  difficultyBadge: {
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  difficultyText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#92400E",
+  },
+  categoryBadge: {
+    backgroundColor: "#E0E7FF",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  categoryText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#3730A3",
+  },
+  favoriteBtn: {
+    padding: 4,
   },
   dailyLoadingContainer: {
     alignItems: "center",
@@ -975,14 +1336,47 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   dailyWord: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 12,
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 8,
     color: "#1F2937",
+    textAlign: "center",
+  },
+  dailyContext: {
+    fontSize: 13,
+    color: "#6B7280",
+    marginBottom: 16,
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  swipeContainer: {
+    width: "100%",
+    alignItems: "center",
+  },
+  swipeHintContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EEF2FF",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginBottom: 16,
+    gap: 8,
+  },
+  swipeHintText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#6366F1",
+  },
+  dailyPrimaryBtn: {
+    borderRadius: 12,
+    height: 48,
+    width: "100%",
+    marginTop: 16,
   },
   gif: {
-    width: 250,
-    height: 250,
+    width: 280,
+    height: 280,
     borderRadius: 15,
   },
   dailyImageContainer: {
@@ -1077,17 +1471,22 @@ const styles = StyleSheet.create({
 
   // 推薦卡片
   recOuter: {
-    width: 200,
+    width: 240,
     marginRight: 16,
-    borderRadius: 16,
+    borderRadius: 20,
     backgroundColor: "#fff",
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: "#E5E7EB",
     overflow: "hidden",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   recImageWrap: {
     width: "100%",
-    aspectRatio: 16 / 9,
+    height: 140,
     backgroundColor: "#F3F4F6",
     position: "relative",
   },
@@ -1100,34 +1499,41 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: 12,
-    paddingTop: 20,
-    paddingBottom: 8,
+    paddingHorizontal: 16,
+    paddingTop: 30,
+    paddingBottom: 12,
     justifyContent: "flex-end",
   },
   recTitle: {
     color: "#FFF",
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
+    textShadowColor: "rgba(0, 0, 0, 0.3)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   recBody: {
-    padding: 12,
+    padding: 16,
+    minHeight: 100,
+    justifyContent: "space-between",
   },
   recDesc: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#6B7280",
-    lineHeight: 16,
-    marginBottom: 8,
+    lineHeight: 18,
+    marginBottom: 12,
+    flex: 1,
   },
   recLinkBtn: {
-    alignSelf: "flex-start",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    alignSelf: "stretch",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: "center",
   },
   recLinkText: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
     color: "#fff",
   },
   personalizedCard: {

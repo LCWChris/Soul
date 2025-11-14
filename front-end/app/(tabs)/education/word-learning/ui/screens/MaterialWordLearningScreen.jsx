@@ -80,12 +80,17 @@ const MaterialWordLearningScreen = () => {
     loadLearningProgress(); // 載入學習進度
   }, []);
 
-  // 新增：處理從其他頁面跳轉過來並直接顯示指定單字
+  // 新增：處理從其他頁面跳轉過來並直接顯示指定單字或分類
   useEffect(() => {
     if (params.word || params.wordId) {
       loadSpecificWord(params.word, params.wordId);
+    } else if (params.category) {
+      // 如果傳入 category 參數，自動設置該分類並觸發搜尋
+      console.log(`🔍 自動載入分類: ${params.category}`);
+      setSelectedCategory(params.category);
+      setShowCategories(false);
     }
-  }, [params.word, params.wordId]);
+  }, [params.word, params.wordId, params.category]);
 
   useEffect(() => {
     if (

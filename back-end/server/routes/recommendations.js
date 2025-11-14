@@ -57,13 +57,10 @@ router.get("/personalized/:userId", async (req, res) => {
             "https://images.unsplash.com/photo-1517842645767-c6f90405774b?q=80&w=2070",
           action: {
             type: "navigate",
-            route: "(tabs)/education",
+            route: "/(tabs)/education/teach/[volumeId]/[lessonId]",
             params: {
-              screen: "teach-screen",
-              params: {
-                volume: lastLesson.lastLesson.volume,
-                lesson: lastLesson.lastLesson.lesson,
-              },
+              volumeId: lastLesson.lastLesson.volume.toString(),
+              lessonId: lastLesson.lastLesson.lesson.toString(),
             },
           },
         });

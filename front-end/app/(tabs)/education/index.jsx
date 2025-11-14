@@ -26,6 +26,7 @@ const theme = {
 export default function Education() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { initialRoute } = params;
 
   useEffect(() => {
     if (params.navigateTo === "quiz" && params.volumeId && params.lessonId) {
@@ -35,6 +36,13 @@ export default function Education() {
       });
     }
   }, [params]);
+
+  useEffect(() => {
+    if (initialRoute && typeof initialRoute === "string") {
+      // Use replace to avoid adding the landing page to history
+      router.replace(initialRoute);
+    }
+  }, [initialRoute]);
 
   // 定義返回函式
   const goBack = () => {

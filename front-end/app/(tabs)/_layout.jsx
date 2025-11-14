@@ -1,11 +1,11 @@
-import { COLORS } from '@/constants/theme';
-import { useUser } from '@clerk/clerk-expo';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Redirect, Tabs } from 'expo-router';
+import { COLORS } from "@/constants/theme";
+import { useUser } from "@clerk/clerk-expo";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { Redirect, Tabs } from "expo-router";
 
 export default function TabLayout() {
   const { isSignedIn } = useUser();
-  if (!isSignedIn) return <Redirect href={'/sign-in'} />; // 如果未登入，重定向到登入頁面
+  if (!isSignedIn) return <Redirect href={"/sign-in"} />; // 如果未登入，重定向到登入頁面
 
   return (
     <Tabs
@@ -19,7 +19,7 @@ export default function TabLayout() {
           borderTopWidth: 0,
           elevation: 1, // Android 上的陰影
           shadowColor: COLORS.shadow, // iOS 上的陰影
-          position: 'absolute', // 使 TabBar 固定在底部
+          position: "absolute", // 使 TabBar 固定在底部
           height: 60,
           paddingTop: 8, // 調整頂部填充以適應圖標
           paddingBottom: 8, // 調整底部填充以適應圖標
@@ -29,7 +29,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="(home)"
         options={{
-          title: '首頁',
+          title: "首頁",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="home-variant-outline"
@@ -44,7 +44,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="education"
         options={{
-          title: '學習',
+          title: "學習",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="book-open-page-variant-outline"
@@ -53,13 +53,14 @@ export default function TabLayout() {
             />
           ),
           headerShown: false,
-          popToTopOnBlur: true,
+          href: "/(tabs)/education",
+          unmountOnBlur: true, // 離開時卸載，確保每次進入都是全新狀態
         }}
       />
       <Tabs.Screen
         name="translation"
         options={{
-          title: '翻譯',
+          title: "翻譯",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="hand-wave-outline"
@@ -74,7 +75,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="user"
         options={{
-          title: '使用者',
+          title: "使用者",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
               name="account-outline"

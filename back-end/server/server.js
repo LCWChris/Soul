@@ -485,16 +485,65 @@ app.get("/api/daily-sign", async (req, res) => {
     const word = randomWord[0];
     console.log(`✅ 選中每日一句: ${word.title}`);
 
+    // 處理分類：優先使用 category（單數），再處理 categories（複數）
+    let categoryText = "手語詞彙";
+
+    // 先使用 category 欄位（通常比較乾淨）
+    if (word.category && typeof word.category === "string") {
+      const trimmed = word.category.trim();
+      if (
+        trimmed.length > 1 &&
+        !["[", "]", "{", "}", ",", ".", ";"].includes(trimmed)
+      ) {
+        categoryText = trimmed;
+      }
+    }
+
+    // 如果 category 無效，處理 categories
+    if (categoryText === "手語詞彙" && word.categories) {
+      let categoriesData = word.categories;
+
+      // 處理 Python 風格的字符串 "['item1', 'item2']"
+      if (typeof categoriesData === "string" && categoriesData.includes("'")) {
+        try {
+          // 替換單引號為雙引號，並解析
+          const jsonStr = categoriesData.replace(/'/g, '"');
+          categoriesData = JSON.parse(jsonStr);
+        } catch (e) {
+          console.log("⚠️ 無法解析 categories:", categoriesData);
+        }
+      }
+
+      if (Array.isArray(categoriesData)) {
+        // 遍歷數組找第一個有效分類
+        for (const cat of categoriesData) {
+          if (cat && typeof cat === "string") {
+            const trimmed = cat.trim();
+            if (
+              trimmed.length > 1 &&
+              !["[", "]", "{", "}", ",", ".", ";", ""].includes(trimmed)
+            ) {
+              categoryText = trimmed;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    console.log(
+      `📂 分類處理: categories=${JSON.stringify(word.categories)}, category=${
+        word.category
+      }, 結果=${categoryText}`
+    );
+
     // 回傳每日一句數據
     res.json({
       word: word.title,
       chinese: word.title,
       image: word.image_url || word.gif_url,
       description: word.description || `學習「${word.title}」這個手語`,
-      category:
-        word.categories && word.categories.length > 0
-          ? word.categories[0]
-          : "手語詞彙",
+      category: categoryText,
       volume: word.volume,
       lesson: word.lesson,
     });
@@ -817,7 +866,32 @@ app.get("/api/volumes", async (req, res) => {
   }
 });
 
-// 3) 取得單一教材詳細
+// 3) 取得單一教材詳細（根據 volume 和 lesson）
+app.get("/api/material/by-lesson/:volume/:lesson", async (req, res) => {
+  try {
+    const { volume, lesson } = req.params;
+    const volNum = Number(volume);
+    const lesNum = Number(lesson);
+
+    if (Number.isNaN(volNum) || Number.isNaN(lesNum)) {
+      return res.status(400).json({ error: "volume 和 lesson 需為數字" });
+    }
+
+    const material = await Material.findOne({
+      volume: volNum,
+      lesson: lesNum,
+    }).lean();
+    if (!material) {
+      return res.status(404).json({ error: "找不到該冊別和單元的教材" });
+    }
+    res.json(material);
+  } catch (err) {
+    console.error("讀取教材失敗：", err);
+    res.status(500).json({ error: "伺服器錯誤" });
+  }
+});
+
+// 4) 取得單一教材詳細（根據 ID）
 app.get("/api/material/:id", async (req, res) => {
   try {
     const { id } = req.params;
