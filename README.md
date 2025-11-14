@@ -1,22 +1,82 @@
-# Soul Monorepo Split
+# Soul Learning Platform - 手語學習平台
 
-此專案已重構為三個子資料夾（monorepo）：
+## 🚀 快速開始指南
+
+### 1️⃣ 切換到開發分支
+
+```bash
+git switch feat/split
+```
+
+### 2️⃣ 安裝所有套件（一鍵設置）
+
+```bash
+.\setup.bat
+```
+
+**如果自動安裝失敗，請手動執行以下步驟：**
+
+```bash
+# 1. 設定 Python 虛擬環境
+python -m venv .venv
+.\.venv\Scripts\activate
+
+# 2. 安裝翻譯後端套件
+cd translation-end
+pip install -r requirements.txt
+cd ..
+
+# 3. 安裝資料庫後端套件
+cd back-end\server
+npm install
+cd ..\..
+
+# 4. 安裝前端套件
+cd front-end
+npm install
+cd ..
+```
+
+### 3️⃣ 啟動後端服務（Node.js + 翻譯模型）
+
+```bash
+cd back-end
+python .\dev_server.py
+```
+
+> 💡 此指令會同時啟動 Node.js API 和翻譯模型，並自動建立 ngrok 隧道
+
+### 4️⃣ 啟動前端服務
+
+```bash
+cd front-end
+npx expo start
+```
+
+---
+
+## 📁 專案結構 (Monorepo)
+
+此專案已重構為三個子資料夾：
 
 ```
-repo-root/
-   front-end/          Expo (React Native) 前端 – 只有上架到 App 的程式碼
-   back-end/           Node.js Express API 與 MongoDB
-   translation-end/    Python FastAPI 手語翻譯服務
+Soul/
+   ├── front-end/          # Expo (React Native) 前端應用
+   ├── back-end/           # Node.js Express API + MongoDB
+   └── translation-end/    # Python FastAPI 手語翻譯服務
 ```
 
-前端打包（EAS）只需在 `front-end/` 下運行；後端兩個服務獨立部署（Render 或其他）。
+前端打包（EAS Build）只需在 `front-end/` 下運行；後端兩個服務可獨立部署（Render 或其他平台）。
 
 ## Front-end (Expo)
+
 位置：`front-end/`
+
 - 設定：`front-end/app.json`, `front-end/eas.json`
 - 環境變數：`front-end/.env`（只放 `EXPO_PUBLIC_*`）
 
 本機啟動：
+
 ```powershell
 cd front-end
 npm install
@@ -24,14 +84,18 @@ npx expo start
 ```
 
 EAS 打包（Android APK）：
+
 ```powershell
 cd front-end
 eas build --platform android --profile production
 ```
 
 ## Back-end (Node.js)
+
 位置：`back-end/server/`
+
 - 範例環境檔：`back-end/.env.sample`（複製為 `.env`）
+
 ```powershell
 cd back-end/server
 npm install
@@ -39,35 +103,44 @@ node server.js
 ```
 
 ## Translation-end (FastAPI)
+
 位置：`translation-end/backend/`
+
 ```powershell
 cd translation-end
 pip install -r requirements.txt
 python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
+
 或：
+
 ```powershell
 python translation_server.py
 ```
 
 ## Dev 啟動器（ngrok）
+
 `back-end/dev_server.py` 會：
-1) 啟動 `translation-end/backend`（FastAPI）
-2) 啟動 `back-end/server`（Node）
-3) 建立 ngrok 隧道
-4) 自動更新 `front-end/.env` 的動態 URL
+
+1. 啟動 `translation-end/backend`（FastAPI）
+2. 啟動 `back-end/server`（Node）
+3. 建立 ngrok 隧道
+4. 自動更新 `front-end/.env` 的動態 URL
 
 ```powershell
 cd back-end
 python dev_server.py
 ```
+
 更新後請回到 `front-end/` 重啟 Expo 以載入最新 `.env`。
 
 ## 環境變數原則
+
 - `front-end/.env` 只放 `EXPO_PUBLIC_*` 公開鍵值（例如 API Base、Clerk publishable key）。
 - 後端密鑰（DB URI、Cloudinary Secret、Clerk Webhook Secret）放在 `back-end/.env` 或部署平台的秘密管理。
 
 ---
+
 # Welcome to your Expo app 👋
 
 這是從頭開始的資料優，按照下面的指示操作~
