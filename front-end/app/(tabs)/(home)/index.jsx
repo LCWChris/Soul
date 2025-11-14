@@ -365,6 +365,10 @@ export default function HomeScreen() {
       >
         {/* Header 歡迎區 - 簡化版 */}
         <View style={styles.welcomeSection}>
+          <Image
+            source={require("@/assets/images/auth-bh-2.png")}
+            style={styles.welcomeImage}
+          />
           <View style={styles.greetingContainer}>
             <Text style={styles.greeting}>
               👋 Hi，{user?.firstName || mockUserData.name}
@@ -719,6 +723,11 @@ const styles = StyleSheet.create({
   // 簡化的歡迎區
   welcomeSection: {
     marginBottom: 24,
+    alignItems: "center", // Center the image
+  },
+  welcomeImage: {
+    width: "90%",
+    height: 200,
   },
   greetingContainer: {
     flexDirection: "row",

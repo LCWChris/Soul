@@ -62,7 +62,9 @@ router.get("/personalized/:userId", async (req, res) => {
 
     const studiedWordsSet = new Set();
     progress.forEach((p) => {
-      p.completedWords.forEach((word) => studiedWordsSet.add(word));
+      if (p.completedWords && Array.isArray(p.completedWords)) {
+        p.completedWords.forEach((word) => studiedWordsSet.add(word));
+      }
     });
     const studiedWords = Array.from(studiedWordsSet);
 
