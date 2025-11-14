@@ -227,10 +227,12 @@ export default function UserScreen() {
 
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 100 }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
         showsVerticalScrollIndicator={false}
       >
-
         {/* 區塊：帳號設定 */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
@@ -241,7 +243,9 @@ export default function UserScreen() {
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>帳號：</Text>
-            <Text style={styles.infoValue}>{user?.primaryEmailAddress?.emailAddress}</Text>
+            <Text style={styles.infoValue}>
+              {user?.primaryEmailAddress?.emailAddress}
+            </Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>使用者名稱：</Text>
@@ -291,7 +295,9 @@ export default function UserScreen() {
             disabled={loading}
             activeOpacity={0.8}
           >
-            <Text style={styles.buttonSecondaryText}>{loading ? "載入中..." : "查看已儲存的問卷"}</Text>
+            <Text style={styles.buttonSecondaryText}>
+              {loading ? "載入中..." : "查看已儲存的問卷"}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.buttonDanger]}
@@ -312,7 +318,8 @@ export default function UserScreen() {
                   <View key={key} style={styles.answerItem}>
                     <View style={styles.answerDot} />
                     <Text style={styles.answerText}>
-                      {label}：<Text style={styles.answerValue}>{displayValue}</Text>
+                      {label}：
+                      <Text style={styles.answerValue}>{displayValue}</Text>
                     </Text>
                   </View>
                 );
