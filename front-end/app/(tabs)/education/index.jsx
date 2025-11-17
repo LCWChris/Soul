@@ -45,12 +45,15 @@ export default function Education() {
 
   useEffect(() => {
     if (params.navigateTo === "quiz" && params.volumeId && params.lessonId) {
-      router.push({
+      // 使用 replace 並立即清除 params，防止重複觸發
+      const volumeId = params.volumeId;
+      const lessonId = params.lessonId;
+      router.replace({
         pathname: "/(tabs)/education/quiz/[volumeId]/[lessonId]",
-        params: { volumeId: params.volumeId, lessonId: params.lessonId },
+        params: { volumeId, lessonId },
       });
     }
-  }, [params]);
+  }, [params.navigateTo, params.volumeId, params.lessonId]);
 
   useEffect(() => {
     if (initialRoute && typeof initialRoute === "string") {
@@ -252,7 +255,7 @@ export default function Education() {
                     <Text style={styles.progressBadgeText}>上次進度</Text>
                   </View>
                   <Text style={styles.progressChapter}>
-                    第 {userProgress.lastLesson?.volume || 1} 冊 • 第{" "}
+                    第 {userProgress.lastLesson?.volume || 1} 冊 • 第
                     {userProgress.lastLesson?.lesson || 1} 單元
                   </Text>
                 </View>

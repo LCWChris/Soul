@@ -571,7 +571,7 @@ export default function HomeScreen() {
                 ]}
               >
                 <Text style={styles.streakText}>
-                  {streakDays >= 30 ? "🏆" : streakDays >= 7 ? "⭐" : "🔥"}{" "}
+                  {streakDays >= 30 ? "🏆" : streakDays >= 7 ? "⭐" : "🔥"}
                   {streakDays}
                 </Text>
                 <Text style={styles.streakLabel}>天連續</Text>
@@ -626,7 +626,7 @@ export default function HomeScreen() {
                 {!userProgress.isNewUser && (
                   <>
                     <Text style={styles.cardSubtitle}>
-                      第 {userProgress.lastLesson.volume} 冊 • 第{" "}
+                      第 {userProgress.lastLesson.volume} 冊 • 第
                       {userProgress.lastLesson.lesson} 單元
                     </Text>
                     <View style={styles.progressContainer}>
@@ -1015,7 +1015,7 @@ const styles = StyleSheet.create({
     height: 200,
   },
   greeting: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "700",
     color: "#1F2937",
     marginBottom: 12,
@@ -1250,7 +1250,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   quickTitle: {
-    fontSize: 17,
+    fontSize: 19,
     fontWeight: "700",
     color: "#1F2937",
     marginTop: 8,
@@ -1270,7 +1270,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   quickBadgeText: {
-    fontSize: 11,
+    fontSize: 13,
     color: "#6B7280",
     fontWeight: "600",
   },
@@ -1364,7 +1364,7 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   dailyWord: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "700",
     marginBottom: 8,
     color: "#1F2937",
@@ -1423,7 +1423,7 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
   },
   placeholderText: {
-    fontSize: 10,
+    fontSize: 12,
     color: "#6B7280",
     marginTop: 4,
   },
@@ -1457,7 +1457,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "700",
     color: "#6366F1",
   },

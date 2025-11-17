@@ -129,6 +129,7 @@ temp_videos/
 !app.json
 !tsconfig.json
 !expo-env.d.ts
+!package-lock.json
 
 # Temporary files
 *.tmp
@@ -136,4 +137,4 @@ temp_videos/
 requirements_backup.txt
 .env
 "__pycache__/" 
-"*.pyc" 
+"*.pyc"

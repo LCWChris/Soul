@@ -57,7 +57,7 @@
           "image": "./assets/images/LOGO.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#F1F5FF"
         }
       ],
       "expo-secure-store",
@@ -75,7 +75,6 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {},
       "eas": {
         "projectId": "487704d4-6ebf-46ae-a2e6-5a259e673d69"
       }
