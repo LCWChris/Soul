@@ -136,35 +136,11 @@ export default function QuizScreen() {
       setAnswers({}); // 【新增】重置答案
       setApiError("");
 
-        if (shouldJumpAutomatically) {
-            setIsCurrentCorrect(correct); 
-            setIsJumping(true);           
-            
-            // 延遲跳轉 (800 毫秒)
-            setTimeout(() => {
-                // 【修改：檢查是否為最後一題】
-                setIndex((i) => {
-                    const next = i + 1;
-                    const totalQuestions = quiz?.questions?.length ?? 0;
-                    
-                    if (next < totalQuestions) {
-                        // 情況 1：還沒到最後一題，正常跳轉
-                        setIsJumping(false); 
-                        setIsCurrentCorrect(false);
-                        return next;
-                    } else {
-                        // 情況 2：這就是最後一題，自動交卷！
-                        // 【修正 1/2：將當前題目的答案和 ID 傳遞給 onSubmit】
-                        onSubmit(qid, val); // <-- 傳遞最新作答的 ID 和值
-                        setIsJumping(false); 
-                        return i; // 保持在當前索引 (結算畫面會覆蓋)
-                    }
-                });
-            }, 800); 
-        }
-
+      try {
+        const url = `${API_BASE_URL}/${quizVolume}/${quizLesson}`;
+        const response = await axios.get(url);
+        const data = response.data;
         setQuiz(data);
-        // (重置狀態已移到 try 之前)
       } catch (error) {
         console.error("Failed to fetch quiz data:", error);
         const errorMessage = error.response?.data?.error || error.message;
@@ -183,56 +159,14 @@ export default function QuizScreen() {
 
   const q = useMemo(() => quiz?.questions?.[index], [quiz, index]);
 
-    // 【修改 3/4：修改 onSubmit 函數】
-    // 【修正 2/2：接收並處理最新作答的答案】
-    const onSubmit = (lastQid = null, lastAnswer = null) => { 
-        
-        let finalAnswers = answers;
-        
-        // 如果是自動交卷 (lastQid 存在)，則合併最新的答案
-        if (lastQid && lastAnswer) {
-            finalAnswers = {
-                ...answers, // 這是舊的 answers 狀態
-                [lastQid]: lastAnswer, // 覆蓋或加入第 10 題的最新答案
-            };
-        }
-        
-        // 使用包含第 10 題答案的 finalAnswers 進行評分
-        const { score, correct, total } = gradeQuiz(quiz, finalAnswers); 
-        setResults({ score, correct, total });
-    };
-    // 【修改 3/4：在 return 前加入結算畫面判斷】
-    if (results) {
-        return (
-            <QuizResults 
-                results={results}
-                onRetry={() => {
-                    // 重設狀態以重新開始
-                    setResults(null);
-                    setIndex(0);
-                    setAnswers({});
-                    setIsJumping(false);
-                    setIsCurrentCorrect(false);
-                }}
-                onReturn={() => {
-                    // 返回上一頁
-                    router.back(); 
-                }}
-            />
-        );
-    }
-  };
-
   // 換題時重設狀態
   useEffect(() => {
-    // ... (此函數保持不變)
     setIsJumping(false);
     setIsCurrentCorrect(false);
   }, [index]);
 
   // 判斷是否已作答 (用於啟用「下一題」按鈕)
   const hasAnswer = useMemo(() => {
-    // ... (此函數保持不變)
     if (!q) return false;
     if (isJumping) return true;
 
@@ -243,9 +177,66 @@ export default function QuizScreen() {
     );
   }, [q, answers, isJumping]);
 
+  // 【修改 3/4：修改 onSubmit 函數】
+  // 【修正 2/2：接收並處理最新作答的答案】
+  const onSubmit = (lastQid = null, lastAnswer = null) => {
+    let finalAnswers = answers;
+
+    // 如果是自動交卷 (lastQid 存在)，則合併最新的答案
+    if (lastQid && lastAnswer) {
+      finalAnswers = {
+        ...answers, // 這是舊的 answers 狀態
+        [lastQid]: lastAnswer, // 覆蓋或加入第 10 題的最新答案
+      };
+    }
+
+    // 使用包含第 10 題答案的 finalAnswers 進行評分
+    const { score, correct, total } = gradeQuiz(quiz, finalAnswers);
+    setResults({ score, correct, total });
+  };
+
+  // 【新增：處理答案變更的函數】
+  const handleAnswerChange = (qid, val) => {
+    // 更新答案狀態
+    setAnswers((prev) => ({ ...prev, [qid]: val }));
+
+    // 判斷是否為自動跳轉題型
+    const shouldJumpAutomatically =
+      q.type === "single_choice" ||
+      q.type === "true_false" ||
+      q.type === "image_select";
+
+    if (shouldJumpAutomatically) {
+      const correct = checkAnswer(q, val);
+      setIsCurrentCorrect(correct);
+      setIsJumping(true);
+
+      // 延遲跳轉 (800 毫秒)
+      setTimeout(() => {
+        // 【修改：檢查是否為最後一題】
+        setIndex((i) => {
+          const next = i + 1;
+          const totalQuestions = quiz?.questions?.length ?? 0;
+
+          if (next < totalQuestions) {
+            // 情況 1：還沒到最後一題，正常跳轉
+            setIsJumping(false);
+            setIsCurrentCorrect(false);
+            return next;
+          } else {
+            // 情況 2：這就是最後一題，自動交卷！
+            // 【修正 1/2：將當前題目的答案和 ID 傳遞給 onSubmit】
+            onSubmit(qid, val); // <-- 傳遞最新作答的 ID 和值
+            setIsJumping(false);
+            return i; // 保持在當前索引 (結算畫面會覆蓋)
+          }
+        });
+      }, 800);
+    }
+  };
+
   // 【手動處理非自動跳轉題型的點擊事件 (排序題/複選題確認)**】
   const handleManualNext = () => {
-    // ... (此函數保持不變)
     if (isJumping) return;
     if (!q || !hasAnswer) return;
 
@@ -270,6 +261,27 @@ export default function QuizScreen() {
     }, 800);
   };
 
+  // 【修改 3/4：在 return 前加入結算畫面判斷】
+  if (results) {
+    return (
+      <QuizResults
+        results={results}
+        onRetry={() => {
+          // 重設狀態以重新開始
+          setResults(null);
+          setIndex(0);
+          setAnswers({});
+          setIsJumping(false);
+          setIsCurrentCorrect(false);
+        }}
+        onReturn={() => {
+          // 返回上一頁
+          router.back();
+        }}
+      />
+    );
+  }
+
   if (loading) {
     return (
       <View style={s.center}>
@@ -292,34 +304,6 @@ export default function QuizScreen() {
           </Text>
         )}
       </View>
-    );
-  }
-
-  // 【修改 3/4：修改 onSubmit 函數】
-  const onSubmit = () => {
-    const { score, correct, total } = gradeQuiz(quiz, answers);
-    // Alert.alert("完成！", `分數：${score} 分（${correct}/${total}）`); // <-- 移除 Alert
-    setResults({ score, correct, total }); // <-- 改為設定 results 狀態
-  };
-
-  // 【修改 3/4：在 return 前加入結算畫面判斷】
-  if (results) {
-    return (
-      <QuizResults
-        results={results}
-        onRetry={() => {
-          // 重設狀態以重新開始
-          setResults(null);
-          setIndex(0);
-          setAnswers({});
-          setIsJumping(false);
-          setIsCurrentCorrect(false);
-        }}
-        onReturn={() => {
-          // 返回上一頁
-          router.back();
-        }}
-      />
     );
   }
 

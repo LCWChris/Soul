@@ -5,13 +5,13 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Dimensions,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -27,6 +27,7 @@ export default function VolumeIndex() {
       try {
         const url = `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MATERIALS}?volume=${volumeId}`;
         console.log("🔗 載入教學單元，URL：", url);
+        console.log("📌 請求的 volumeId：", volumeId);
 
         const response = await axios.get(url, {
           headers: {
@@ -35,14 +36,22 @@ export default function VolumeIndex() {
         });
 
         console.log("📄 回應資料：", response.data);
+        console.log("📊 回應資料數量：", response.data.length);
+        console.log("🔍 回應資料詳細內容：", JSON.stringify(response.data, null, 2));
 
         if (!Array.isArray(response.data)) {
           throw new Error("API 回應格式錯誤，預期為陣列");
         }
 
+        // 檢查每一筆資料的 volume 和 lesson
+        response.data.forEach((item, index) => {
+          console.log(`📝 第 ${index + 1} 筆: volume=${item.volume}, lesson=${item.lesson}, unitname=${item.unitname}`);
+        });
+
         setLessons(response.data);
       } catch (err) {
         console.error("❌ 載入單元失敗：", err.message);
+        console.error("❌ 錯誤詳情：", err);
         setLessons([]);
       } finally {
         setLoading(false);

@@ -458,7 +458,7 @@ const styles = StyleSheet.create({
   // [Swiper 單詞卡片樣式]
   vocabCardSwiper: {
     width: screenWidth - PAGE_HORIZONTAL_PADDING * 2 - 40,
-    height: 250,
+    height: 300,
     backgroundColor: "#F9FAFB",
     padding: 20,
     borderRadius: 16,
@@ -472,11 +472,10 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   swiperImage: {
-    width: 140,
-    height: 140,
-    marginBottom: 16,
+    width: "100%",
+    height: 200,
     borderRadius: 12,
-    resizeMode: "cover",
+    resizeMode: "contain",
   },
   wordSwiper: {
     fontSize: 20,
