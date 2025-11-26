@@ -201,7 +201,8 @@ export default function QuizScreen() {
                         return next;
                     } else {
                         // 情況 2：這就是最後一題，自動交卷！
-                        onSubmit(); // <-- 自動觸發提交
+                        // 【修正 1/2：將當前題目的答案和 ID 傳遞給 onSubmit】
+                        onSubmit(qid, val); // <-- 傳遞最新作答的 ID 和值
                         setIsJumping(false); 
                         return i; // 保持在當前索引 (結算畫面會覆蓋)
                     }
@@ -273,12 +274,23 @@ export default function QuizScreen() {
     } 
 
     // 【修改 3/4：修改 onSubmit 函數】
-    const onSubmit = () => { 
-        const { score, correct, total } = gradeQuiz(quiz, answers); 
-        // Alert.alert("完成！", `分數：${score} 分（${correct}/${total}）`); // <-- 移除 Alert
-        setResults({ score, correct, total }); // <-- 改為設定 results 狀態
-    }; 
-
+    // 【修正 2/2：接收並處理最新作答的答案】
+    const onSubmit = (lastQid = null, lastAnswer = null) => { 
+        
+        let finalAnswers = answers;
+        
+        // 如果是自動交卷 (lastQid 存在)，則合併最新的答案
+        if (lastQid && lastAnswer) {
+            finalAnswers = {
+                ...answers, // 這是舊的 answers 狀態
+                [lastQid]: lastAnswer, // 覆蓋或加入第 10 題的最新答案
+            };
+        }
+        
+        // 使用包含第 10 題答案的 finalAnswers 進行評分
+        const { score, correct, total } = gradeQuiz(quiz, finalAnswers); 
+        setResults({ score, correct, total });
+    };
     // 【修改 3/4：在 return 前加入結算畫面判斷】
     if (results) {
         return (
