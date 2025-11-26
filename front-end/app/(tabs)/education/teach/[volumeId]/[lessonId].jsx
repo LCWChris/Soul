@@ -183,7 +183,7 @@ export default function LessonPage() {
                 ) : (
                   <Text style={styles.emptyText}>⚠️ 此單元尚無內容。</Text>
                 )}
-              </View>{" "}
+              </View>
               {/* ===== 詞彙容器 ===== */}
               <View style={styles.vocabContainer}>
                 <View style={styles.sectionHeader}>
