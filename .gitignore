@@ -130,6 +130,7 @@ temp_videos/
 !tsconfig.json
 !expo-env.d.ts
 !package-lock.json
+!eas.json
 
 # Temporary files
 *.tmp

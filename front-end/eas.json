@@ -1,0 +1,43 @@
+{
+  "cli": {
+    "version": ">= 13.2.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "gradleCommand": ":app:assembleDebug"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_IP": "https://soul-api-shzt.onrender.com",
+        "EXPO_PUBLIC_TRANSLATE_API_BACKEND_URL": "https://soul-translate.onrender.com",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_dG9wLXN1bmJlYW0tNzcuY2xlcmsuYWNjb3VudHMuZGV2JA",
+        "EXPO_PUBLIC_GEMINI_API_KEY": "AIzaSyBI2WWJ6x2u0AQCnU92IM6NYGByPRGLAUc"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      },
+      "env": {
+        "EXPO_PUBLIC_IP": "https://soul-api-shzt.onrender.com",
+        "EXPO_PUBLIC_TRANSLATE_API_BACKEND_URL": "https://soul-translate.onrender.com",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_dG9wLXN1bmJlYW0tNzcuY2xlcmsuYWNjb3VudHMuZGV2JA",
+        "EXPO_PUBLIC_GEMINI_API_KEY": "AIzaSyBI2WWJ6x2u0AQCnU92IM6NYGByPRGLAUc"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
