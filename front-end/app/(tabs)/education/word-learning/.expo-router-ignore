@@ -1,13 +1,3 @@
-# Ignore non-route modules inside this folder
-
-# Backend/API helpers – not routes
-api/**
-
-# UI implementation – components and themes are NOT routes, but screens ARE needed
-ui/components/**
-ui/themes/**
-ui/index.js
-
 # Docs and misc
 *.md
 README.md
