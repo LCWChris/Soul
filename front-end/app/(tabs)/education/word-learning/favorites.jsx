@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import VocabularyCard from "./ui/components/cards/VocabularyCard";
+import VocabularyCard from "./ui/components/cards/VocabularyCardItem";
 import MaterialTopAppBar from "./ui/components/material/MaterialTopAppBar";
 import WordDetailModal from "./ui/components/modals/WordDetailModal";
 import {

@@ -3,16 +3,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  FlatList,
-  RefreshControl,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
+    FlatList,
+    RefreshControl,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 // Material You Components & Theme
-import VocabularyCard from "../components/cards/VocabularyCard";
+import VocabularyCard from "../components/cards/VocabularyCardItem";
 import MaterialSearchBar from "../components/material/MaterialSearchBar";
 import MaterialTopAppBar from "../components/material/MaterialTopAppBar";
 import WordDetailModal from "../components/modals/WordDetailModal";
@@ -21,9 +21,9 @@ import LearningProgressSelector from "../components/progress/LearningProgressSel
 import LevelSelector from "../components/selectors/LevelSelector";
 import VocabularyCategories from "../components/VocabularyCategories";
 import {
-  MaterialYouTheme,
-  Spacing,
-  Typography,
+    MaterialYouTheme,
+    Spacing,
+    Typography,
 } from "../themes/MaterialYouTheme";
 
 // API Services
@@ -32,15 +32,15 @@ import { useLearningTracking, VocabularyService } from "../../api";
 // Services and Utilities
 import { API_CONFIG } from "@/constants/api";
 import {
-  getFavorites,
-  toggleFavorite as toggleFavoriteUtil,
+    getFavorites,
+    toggleFavorite as toggleFavoriteUtil,
 } from "@/utils/favorites";
 import {
-  filterWordsByProgress,
-  getLearningProgress,
-  getWordProgress,
-  LEARNING_STATUS,
-  updateWordProgress,
+    filterWordsByProgress,
+    getLearningProgress,
+    getWordProgress,
+    LEARNING_STATUS,
+    updateWordProgress,
 } from "@/utils/learning-progress";
 import axios from "axios";
 
