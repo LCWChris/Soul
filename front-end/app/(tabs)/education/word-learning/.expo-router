@@ -1,23 +1,16 @@
 # Ignore non-route modules inside this folder using gitignore-style globs
 
 # Backend/API helpers – not routes
+api/**
 
-api/\*\*
-
-# UI implementation – components, screens, themes are NOT routes
-
-ui/\*\*
+# UI implementation – components and themes are NOT routes, but screens ARE needed
+ui/components/**
+ui/themes/**
 ui/index.js
 
 # Docs and misc
-
-\*.md
+*.md
 README.md
 ARCHITECTURE.md
 REFACTORING_SUMMARY.md
 
-# Localized ignores
-
-api/**
-ui/components/**
-ui/themes/\*\*

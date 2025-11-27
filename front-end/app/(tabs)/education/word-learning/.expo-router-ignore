@@ -3,8 +3,9 @@
 # Backend/API helpers – not routes
 api/**
 
-# UI implementation – components, screens, themes are NOT routes
-ui/**
+# UI implementation – components and themes are NOT routes, but screens ARE needed
+ui/components/**
+ui/themes/**
 ui/index.js
 
 # Docs and misc
@@ -12,15 +13,4 @@ ui/index.js
 README.md
 ARCHITECTURE.md
 REFACTORING_SUMMARY.md
-# 忽略 API 層 (後端)
-api/**
 
-# 忽略 UI 層組件 (前端)
-ui/components/**
-ui/themes/**
-
-# 忽略文件檔案
-*.md
-README.md
-ARCHITECTURE.md
-REFACTORING_SUMMARY.md
