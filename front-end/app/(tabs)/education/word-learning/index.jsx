@@ -1,4 +1,3 @@
-// word-learning 頁面的入口點 - Material You 設計
-import MaterialWordLearningScreen from './ui/screens/WordLearningMain';
+// Re-export from screens directory using absolute path
+export { default } from '@/app/(tabs)/education/word-learning/ui/screens/WordLearningMain';
 
-export default MaterialWordLearningScreen;
