@@ -2,8 +2,8 @@
 
 // Screens
 export { default as EnhancedWordLearningScreen } from './screens/EnhancedWordLearningScreen';
-export { default as MaterialWordLearningScreen } from './screens/MaterialWordLearningScreen';
 export { default as SimpleEnhancedWordLearningScreen } from './screens/SimpleEnhancedWordLearningScreen';
+export { default as MaterialWordLearningScreen } from './screens/WordLearningMain';
 
 // Cards
 export { default as EnhancedVocabularyCard } from './components/cards/EnhancedVocabularyCard';
