@@ -8,6 +8,8 @@ import os
 import signal
 import sys
 
+import socket
+
 # 設定路徑（monorepo 結構）
 BASE_DIR = Path(__file__).resolve().parent  # back-end/
 # 將 Expo 的 .env 放在 front-end/.env，便於前端直接讀取
@@ -24,6 +26,18 @@ NODE_SERVER_PORT = 3001
 
 print("🚀 Soul Learning Platform - 多服務啟動器")
 print("=" * 50)
+
+def wait_for_port(port, host='127.0.0.1', timeout=60):
+    """等待端口開啟"""
+    start_time = time.time()
+    while True:
+        try:
+            with socket.create_connection((host, port), timeout=1):
+                return True
+        except (OSError, ConnectionRefusedError):
+            if time.time() - start_time > timeout:
+                return False
+            time.sleep(1)
 
 def start_fastapi():
     """啟動 FastAPI 服務"""
@@ -52,10 +66,21 @@ def start_node_server():
 # 啟動兩個服務
 print("🔄 啟動服務中...")
 fastapi_proc = start_fastapi()
-time.sleep(2)
+# time.sleep(2)
 
 node_proc = start_node_server()
-time.sleep(3)
+# time.sleep(3)
+
+print("⏳ 等待服務啟動 (埠口檢查)...")
+if wait_for_port(FASTAPI_PORT):
+    print(f"✅ FastAPI 已就緒 (Port {FASTAPI_PORT})")
+else:
+    print(f"❌ FastAPI (Port {FASTAPI_PORT}) 啟動超時！請檢查日誌。")
+
+if wait_for_port(NODE_SERVER_PORT):
+    print(f"✅ Node.js 已就緒 (Port {NODE_SERVER_PORT})")
+else:
+    print(f"❌ Node.js (Port {NODE_SERVER_PORT}) 啟動超時！請檢查日誌。")
 
 # 建立 ngrok 隧道
 print("\n🌐 建立 ngrok 隧道...")
