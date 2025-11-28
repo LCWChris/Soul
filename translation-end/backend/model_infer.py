@@ -25,7 +25,7 @@ from feature_loader import (
 # 2. 載入模型 (💥 TCN v9-f 模型)
 # ----------------------------------------------------
 # 💥 [v9 修正] 確保載入您「效果很好」的權重檔
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "final_best_TCN_v9_model_f.h5") 
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "final_best_TCN_v9_model.h5") 
 model = None
 
 def load_v9_model():
